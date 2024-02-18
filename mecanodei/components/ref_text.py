@@ -14,7 +14,7 @@
 
 import flet as ft
 
-from styles import Colors
+from mecanodei.styles.colors import Colors
 
 class TextRefContainer(ft.UserControl):
     def __init__(self, texto: str) -> None:

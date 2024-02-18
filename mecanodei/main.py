@@ -18,7 +18,7 @@ import flet as ft
 
 from components.pointer import Pointer
 from components.ref_text import TextRefContainer
-from utils import quitar_tildes
+from mecanodei.utils.text import quitar_tildes
 
 
 NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Enter']
