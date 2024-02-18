@@ -13,17 +13,19 @@
 # limitations under the License.
 
 class Pointer:
-        def __init__(self) -> None:
-            self.count: int = 0
-            self.errors: int = 0
+    """Puntero que da un índice
+    y guarda los errores"""
+    def __init__(self) -> None:
+        self.count: int = 0
+        self.errors: int = 0
 
-        def go(self) -> None:
-            """Avanza de 1 posición el puntero"""
-            self.count += 1
+    def go(self) -> None:
+        """Avanza de 1 posición el puntero"""
+        self.count += 1
 
-        def stop(self) -> None:
-            """Aumenta en 1 los errores"""
-            self.errors += 1
+    def stop(self) -> None:
+        """Aumenta en 1 los errores"""
+        self.errors += 1
 
-        def __repr__(self) -> str:
-            return f'{int(self.count)}'
+    def __repr__(self) -> str:
+        return f'{int(self.count)}'

@@ -17,15 +17,11 @@ import flet as ft
 from mecanodei.styles.colors import Colors
 
 class TextRefContainer(ft.UserControl):
-    def __init__(self, texto: str) -> None:
+    def __init__(self) -> None:
         super().__init__()
-        self.texto = texto
-        self.caracteres = ft.Row([
-            ft.Container(
-                ft.Text(letra)) for letra in self.texto
-                ],
-                spacing=0
-                )
+        self.texto = ""
+        self.caracteres = ft.Row()
+
 
     def go(self, idx: int) -> None:
         """Pinta de verde el fondo del caracter 
