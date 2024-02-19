@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Script que recoge las funciones responsables de procesar texto.
+
 import unicodedata
 
 def quitar_tildes(texto: str) -> str:

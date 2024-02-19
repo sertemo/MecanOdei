@@ -27,5 +27,10 @@ class Pointer:
         """Aumenta en 1 los errores"""
         self.errors += 1
 
+    def reset(self) -> None:
+        """Reseta todos los valores del pointer"""
+        self.count = 0
+        self.errors = 0
+
     def __repr__(self) -> str:
         return f'{int(self.count)}'

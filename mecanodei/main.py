@@ -16,10 +16,11 @@
 
 import flet as ft
 
-from mecanodei.utils.pointer import Pointer
-from components.ref_text import TextRefContainer
+from mecanodei.models.pointer import Pointer
 from mecanodei.utils.text import quitar_tildes
-from mecanodei.utils.state import AppState, State
+from mecanodei.models.state import AppState, State
+
+from mecanodei.views.main_view import MainView
 
 
 NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Enter']
@@ -28,32 +29,34 @@ NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Enter']
 def main(page: ft.Page) -> None:
 
     pointer = Pointer()
-    app = AppState()
+    
 
-    def activar_mecanografia(e: ft.ControlEvent) -> None:
+
+    def cambiar_a_resting() -> None:
         """Cambia el estado de la app
-        a writing. Función asociada
-        a un evento
+        a resting
 
         Parameters
         ----------
         e : ft.ControlEvent
             _description_
         """
-        if app.state == State.ready:
-            app.write_mode()
+        mv.to_resting_state()
 
 
-    def desactivar_mecanografia() -> None:
+    def cambiar_a_ready() -> None:
         """Cambia el estado de la app
-        a writing
+        a ready. Listo para empezar.
+        Resetea el pointer
 
         Parameters
         ----------
         e : ft.ControlEvent
             _description_
         """
-        app.state = State.resting
+        mv.to_ready_state()
+        # Reseteamos los valores del pointer
+        pointer.reset()
 
 
     def procesar_tecla(caracter: str, idx: int):
@@ -62,13 +65,16 @@ def main(page: ft.Page) -> None:
         marcando el texto de referencia como correcto o incorrecto,
         y actualizando el contador de posición y errores según corresponda.
         """
-        texto_escrito.value += caracter
+        mv.add_character_to_writing(caracter)
         # Compara tecla con índice de marcar en texto
-        if quitar_tildes(texto_ref.texto[idx]).lower() == caracter.lower():
-            texto_ref.go(idx)
+        if quitar_tildes(
+            mv.type_screen
+            .texto_ref_container
+            .texto[idx]).lower() == caracter.lower():
+            mv.type_screen.texto_ref_container.go(idx)
             pointer.go()
         else:
-            texto_ref.stop(idx)
+            mv.type_screen.texto_ref_container.stop(idx)
             pointer.stop()
 
 
@@ -77,78 +83,42 @@ def main(page: ft.Page) -> None:
         if app.state == State.writing:
             # Comprobamos que el contador sea menor que la longitud del texto
             idx = pointer.count
-            texto = texto_ref.texto #! cambiar
+            texto = mv.type_screen.texto_ref_container.texto
             if idx < len(texto):
                 caracter = str(e.key)
                 # Comprueba si shift
                 if caracter not in NOT_SHOWN_KEYS:
                     procesar_tecla(caracter, idx)
             else:
-                desactivar_mecanografia()
-                contador_visual.value = idx
-                contador_errores.value = pointer.errors
+                cambiar_a_resting()
+                # Mostramos errores y caracteres
+                mv.type_screen.contador_visual.value = idx
+                mv.type_screen.contador_errores.value = pointer.errors
         page.update()
 
-    def ingest_text(text_container: TextRefContainer,
-                    path_to_file: str) -> None:
-        with open(path_to_file, 'r') as f:
-            texto = f.read()
-        text_container.controls = [ft.Container(ft.Text(letra) for letra in texto)]
-        print(texto)
+    def abrir_fichero_texto(e: ft.FilePickerResultEvent): #! AQUI Seguir
+        if e.files is not None and mv.state != State.writing:
+            # TODO Reseteamos los valores previos
+            path_txt = e.files[0].path
+            # TODO : resetear los valores de errores y letras.
+            # TODO Validar que tenga menos de X caracteres ?
+            # Ponemos la app en ready
+            mv.to_ready_state()
+            # Escribimos el path
+            self.texto_path_fichero.value = self.path_txt
+            # Abrimos el fichero
+            with open(self.path_txt, 'r') as file:
+                self.texto = file.read()
+            self.update(abrir_fichero_texto)
+
+    mv = MainView(abrir_fichero_texto)
+
+    page.on_keyboard_event = on_keyboard
 
 
-    def on_dialog_result(e: ft.FilePickerResultEvent):
-        path_txt = e.files[0].path
-        # TODO Validar que tenga menos de X caracteres ?
-        # Lo ingestamos en el contenedor de texto
-        ingest_text(texto_ref, path_txt)
-        # Ponemos la app en ready
-        app.ready_mode()
-        page.update()
-        
-
-    page.on_keyboard_event = on_keyboard    
-
-    contador_visual = ft.Text()
-    contador_errores = ft.Text()
-    texto_ref = TextRefContainer()
-    texto_escrito = ft.Text("", color='blue')
-    boton_empezar = ft.ElevatedButton("Empezar", on_click=activar_mecanografia)
-
-    # TODO Poner estos elementos en views
-    estado_app = ft.Text()
-    texto_path_fichero= ft.Text()
-    file_picker = ft.FilePicker(on_result=on_dialog_result)
-    boton_carga_archivo = ft.ElevatedButton('Carga un txt',
-                                            on_click=lambda _: file_picker.pick_files(
-                                                allowed_extensions=['txt']
-                                            ))
-    contenedor_carga = ft.Container(
-        ft.Column([
-            boton_carga_archivo, 
-            texto_path_fichero
-        ]),
-        width=500
-        )
-    contenedor_mecanografia = ft.Container(
-        ft.Column([
-            estado_app,
-            boton_empezar,
-            texto_ref,
-            texto_escrito,
-            contador_visual,
-            contador_errores,
-        ])
-    )
-
-    page.overlay.append(file_picker)
+    page.overlay.append(mv.load_screen.file_picker)
     page.update()
-    page.add(
-        ft.Row([
-            contenedor_carga,
-            contenedor_mecanografia
-        ])
-    )
+    page.add(mv)
 
 
 if __name__ == '__main__':

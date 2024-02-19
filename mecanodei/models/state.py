@@ -22,13 +22,16 @@ class State(enum.Enum):
 class AppState:
     state: State = State.resting
 
-    def write_mode(self) -> None:
+    def write_mode(self) -> State:
         self.state = State.writing
+        return self.state
 
 
-    def rest_mode(self) -> None:
+    def rest_mode(self) -> State:
         self.state = State.resting
+        return self.state
 
 
-    def ready_mode(self) -> None:
+    def ready_mode(self) -> State:
         self.state = State.ready
+        return self.state
