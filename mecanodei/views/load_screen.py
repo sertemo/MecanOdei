@@ -33,9 +33,33 @@ class LoadScreen(ft.UserControl):
                                             ))
         self.state = State.resting
 
+
+    def get_to_writing(self) -> None:
+        self.state = State.writing
+        self.update() 
+
+
+    def show_path_file(self, path: str) -> None:
+        """Muestra el path en la interfaz gráfica
+
+        Parameters
+        ----------
+        path : str
+            _description_
+        """
+        self.texto_path_fichero.value = path
+        self.update()
+
+
     def get_ready(self) -> None:
         self.state = State.ready
         self.update()
+
+
+    def get_to_rest(self) -> None:
+        self.state = State.resting
+        self.update()
+
 
     def build(self) -> ft.Container:
         return ft.Container(

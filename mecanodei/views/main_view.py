@@ -14,6 +14,8 @@
 
 # Script de la view que engloba el resto de views con métodos generales
 
+from typing import Callable
+
 import flet as ft
 
 from .load_screen import LoadScreen
@@ -22,18 +24,33 @@ from models.state import State
 from mecanodei.models.pointer import Pointer
 
 class MainView(ft.UserControl):
-    def __init__(self, max_text_len: int):
+    def __init__(self, max_text_len: int, boton_func: Callable):
         super().__init__()
         self.load_screen = LoadScreen(self.abrir_fichero_texto)
-        self.type_screen = TypeScreen()
+        self.type_screen = TypeScreen(boton_func)
         self.pointer = Pointer()
         self.max_text_len = max_text_len
         self.state = State.resting
 
 
     def to_ready_state(self) -> None:
+        self.state = State.ready
         self.load_screen.get_ready()
         self.type_screen.get_ready()
+        self.update()
+
+
+    def to_writing_state(self) -> None:
+        self.state = State.writing
+        self.load_screen.get_to_writing()
+        self.type_screen.get_to_writing()
+        self.update()
+
+
+    def to_resting_state(self) -> None:
+        self.state = State.resting
+        self.load_screen.get_to_rest()
+        self.type_screen.get_to_rest()
         self.update()
 
 
@@ -46,11 +63,6 @@ class MainView(ft.UserControl):
             _description_
         """
         return self.load_screen.file_picker
-
-
-    def to_resting_state(self) -> None:
-        self.load_screen.state = self.type_screen = State.resting
-        self.update()
 
 
     def add_character_to_writing(self, caracter: str) -> None:
@@ -129,7 +141,7 @@ class MainView(ft.UserControl):
                 # Reseteamos los valores previos si los hay
                 self.reset()
                 # Escribimos el path
-                self.load_screen.texto_path_fichero.value = path_txt     
+                self.load_screen.show_path_file(path_txt)
             else:
                 pass
                 # TODO : Mostrar un mensaje de error al usuario
@@ -139,8 +151,8 @@ class MainView(ft.UserControl):
     def reset(self) -> None:
         """Resetea el puntero y los contenedores de las stats"""
         self.pointer.reset()
-        self.type_screen.contador_visual.value = self.get_num_caracters()
-        self.type_screen.contador_errores.value = self.pointer.errors
+        self.type_screen.contador_visual.value = ""
+        self.type_screen.contador_errores.value = ""
 
 
     def create_reftext_container(self, texto: str) -> None:
@@ -219,6 +231,10 @@ class MainView(ft.UserControl):
             _description_
         """
         return len(self.get_loaded_text())
+
+
+    def get_current_state(self) -> State:
+        return self.state
 
 
     def build(self) -> ft.Container:
