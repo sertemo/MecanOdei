@@ -23,7 +23,7 @@ class TextRefContainer(ft.UserControl):
         self.caracteres = ft.Row(controls=[], spacing=0)
 
 
-    def go(self, idx: int) -> None:
+    def correct(self, idx: int) -> None:
         """Pinta de verde el fondo del caracter 
         cuyo índice es idx
 
@@ -36,7 +36,7 @@ class TextRefContainer(ft.UserControl):
         self.update()
 
 
-    def ingest(self, path_to_file: str) -> None:
+    def ingest(self, texto: str) -> None:
         """Guarda el contenido de un txt en
         la variable texto y crea un contenedor
         por cada letra.
@@ -46,16 +46,14 @@ class TextRefContainer(ft.UserControl):
         path_to_file : str
             _description_
         """
-        with open(path_to_file, 'r') as f:
-            texto = f.read()
         self.texto = texto
         self.caracteres.controls = [
-            ft.Container(ft.Text(letra)) for letra in self.texto
+            ft.Container(ft.Text(letra)) for letra in texto
             ]
         self.update()
 
 
-    def stop(self, idx: int) -> None:
+    def incorrect(self, idx: int) -> None:
         """Pinta de rojo el fondo del caracter
         cuyo índice es idx
 

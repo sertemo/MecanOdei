@@ -1,0 +1,5 @@
+[file]
+max_len_char = 500
+
+[keyboard]
+not_shown_keys = ['Backspace', 'Caps Lock', 'Enter']

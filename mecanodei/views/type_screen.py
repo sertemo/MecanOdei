@@ -5,15 +5,16 @@ from components.ref_text import TextRefContainer
 from models.state import AppState, State
 
 class TypeScreen(ft.UserControl):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.contador_visual = ft.Text()
         self.contador_errores = ft.Text()
         self.texto_ref_container = TextRefContainer()
         self.texto_escrito = ft.Text("", color='blue')
         self.boton_empezar = ft.ElevatedButton("Empezar", on_click=self.on_click)
-        self.texto_estado_app = ft.Text(State.resting)
         self.state = State.resting
+        self.texto_estado_app = ft.Text(State.resting)
+
 
     def on_click(self, e: ft.ControlEvent) -> None:
         """Cambia el estado de la app
@@ -28,6 +29,12 @@ class TypeScreen(ft.UserControl):
         if self.state == State.ready:            
             self.texto_estado_app.value = self.state = State.writing
             self.update()
+
+
+    def get_ready(self) -> None:
+        self.state = State.ready
+        self.texto_estado_app.value = self.state
+        self.update()
 
 
     def build(self) -> ft.Container:

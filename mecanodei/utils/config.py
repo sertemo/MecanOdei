@@ -12,25 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-class Pointer:
-    """Puntero que da un índice
-    y guarda los errores"""
-    def __init__(self) -> None:
-        self.count: int = 0
-        self.errors: int = 0
+import toml
 
-    def step(self) -> None:
-        """Avanza de 1 posición el puntero"""
-        self.count += 1
+def load_config() -> dict:
+    """Carga el archivo config.toml
+    y devuelve la configuración
 
-    def add_error(self) -> None:
-        """Aumenta en 1 los errores"""
-        self.errors += 1
-
-    def reset(self) -> None:
-        """Reseta todos los valores del pointer"""
-        self.count = 0
-        self.errors = 0
-
-    def __repr__(self) -> str:
-        return f'{int(self.count)}'
+    Returns
+    -------
+    dict
+        _description_
+    """
+    with open('mecanodei/config.toml', 'r') as file:
+        config = toml.load(file)
+    return config

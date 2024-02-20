@@ -16,48 +16,15 @@
 
 import flet as ft
 
-from mecanodei.models.pointer import Pointer
+from mecanodei.models.state import State
 from mecanodei.utils.text import quitar_tildes
-from mecanodei.models.state import AppState, State
-
+from mecanodei.utils.config import load_config
 from mecanodei.views.main_view import MainView
 
 
-NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Enter']
-
+config = load_config()
 
 def main(page: ft.Page) -> None:
-
-    pointer = Pointer()
-    
-
-
-    def cambiar_a_resting() -> None:
-        """Cambia el estado de la app
-        a resting
-
-        Parameters
-        ----------
-        e : ft.ControlEvent
-            _description_
-        """
-        mv.to_resting_state()
-
-
-    def cambiar_a_ready() -> None:
-        """Cambia el estado de la app
-        a ready. Listo para empezar.
-        Resetea el pointer
-
-        Parameters
-        ----------
-        e : ft.ControlEvent
-            _description_
-        """
-        mv.to_ready_state()
-        # Reseteamos los valores del pointer
-        pointer.reset()
-
 
     def procesar_tecla(caracter: str, idx: int):
         """
@@ -67,56 +34,43 @@ def main(page: ft.Page) -> None:
         """
         mv.add_character_to_writing(caracter)
         # Compara tecla con índice de marcar en texto
-        if quitar_tildes(
-            mv.type_screen
-            .texto_ref_container
-            .texto[idx]).lower() == caracter.lower():
-            mv.type_screen.texto_ref_container.go(idx)
-            pointer.go()
+        if quitar_tildes(mv.get_current_caracter()).lower() == caracter.lower():
+            # Pintamos el fondo del caracter en verde
+            mv.paint_bg_green(idx)
+            # Avanzamos el puntero de referencia
+            mv.pointer_step()
         else:
-            mv.type_screen.texto_ref_container.stop(idx)
-            pointer.stop()
+            # Pintamos de rojo el fondo
+            mv.paint_bg_red(idx)
+            # Añadimos 1 a los errores
+            mv.pointer_error()
 
 
     def on_keyboard(e: ft.KeyboardEvent):
         # Comprobamos que la app esté en modo writing
-        if app.state == State.writing:
+        if mv.check_for_writing_mode() == State.writing:
             # Comprobamos que el contador sea menor que la longitud del texto
-            idx = pointer.count
-            texto = mv.type_screen.texto_ref_container.texto
+            idx = mv.get_pointer_idx()
+            texto = mv.get_loaded_text()
             if idx < len(texto):
                 caracter = str(e.key)
                 # Comprueba si shift
-                if caracter not in NOT_SHOWN_KEYS:
+                if caracter not in config['keyboard']['not_shown_keys']:
                     procesar_tecla(caracter, idx)
             else:
-                cambiar_a_resting()
+                # Ya se ha acabado el texto de ref. Ponemos en modo resting
+                mv.to_resting_state()
                 # Mostramos errores y caracteres
-                mv.type_screen.contador_visual.value = idx
-                mv.type_screen.contador_errores.value = pointer.errors
+                mv.populate_finish_stats()
+                
         page.update()
 
-    def abrir_fichero_texto(e: ft.FilePickerResultEvent): #! AQUI Seguir
-        if e.files is not None and mv.state != State.writing:
-            # TODO Reseteamos los valores previos
-            path_txt = e.files[0].path
-            # TODO : resetear los valores de errores y letras.
-            # TODO Validar que tenga menos de X caracteres ?
-            # Ponemos la app en ready
-            mv.to_ready_state()
-            # Escribimos el path
-            self.texto_path_fichero.value = self.path_txt
-            # Abrimos el fichero
-            with open(self.path_txt, 'r') as file:
-                self.texto = file.read()
-            self.update(abrir_fichero_texto)
 
-    mv = MainView(abrir_fichero_texto)
+    # Instanciamos la view principal
+    mv = MainView(config['file']['max_len_char'])
 
     page.on_keyboard_event = on_keyboard
-
-
-    page.overlay.append(mv.load_screen.file_picker)
+    page.overlay.append(mv.get_file_picker())
     page.update()
     page.add(mv)
 

@@ -33,6 +33,9 @@ class LoadScreen(ft.UserControl):
                                             ))
         self.state = State.resting
 
+    def get_ready(self) -> None:
+        self.state = State.ready
+        self.update()
 
     def build(self) -> ft.Container:
         return ft.Container(

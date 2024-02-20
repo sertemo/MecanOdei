@@ -11,6 +11,7 @@ python = "^3.11"
 flet = "^0.20.1"
 flake8 = "^7.0.0"
 mypy = "^1.8.0"
+toml = "^0.10.2"
 
 
 [build-system]
