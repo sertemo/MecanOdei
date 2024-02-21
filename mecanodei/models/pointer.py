@@ -16,21 +16,42 @@ class Pointer:
     """Puntero que da un índice
     y guarda los errores"""
     def __init__(self) -> None:
-        self.count: int = 0
-        self.errors: int = 0
+        self._count: int = 0
+        self._errors: int = 0
 
     def step(self) -> None:
         """Avanza de 1 posición el puntero"""
-        self.count += 1
+        self._count += 1
 
     def add_error(self) -> None:
         """Aumenta en 1 los errores"""
-        self.errors += 1
+        self._errors += 1
 
     def reset(self) -> None:
         """Reseta todos los valores del pointer"""
-        self.count = 0
-        self.errors = 0
+        self._count = 0
+        self._errors = 0
 
-    def __repr__(self) -> str:
-        return f'{int(self.count)}'
+    def get_positions(self) -> int:
+        """Devuelve la posicion
+        del contador
+
+        Returns
+        -------
+        int
+            _description_
+        """
+        return self._count
+
+    def get_errors(self) -> int:
+        """Devuelve el numero de errores
+
+        Returns
+        -------
+        int
+            numero de errores
+        """
+        return self._errors
+
+    def get_corrects(self) -> int:
+        return self._count - self._errors

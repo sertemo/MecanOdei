@@ -20,6 +20,7 @@ class Timer:
     def start_timer(self) -> None:
         self.start = time.perf_counter()
 
+
     def finish_timer(self) -> float:
         """Devuelve en segundos el tiempo transcurrido
         desde que se inició

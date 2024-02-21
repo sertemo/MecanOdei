@@ -13,13 +13,23 @@
 # limitations under the License.
 
 
-class TypeTextManager:
-    """Clase para gestionar los textos cargados
+class TextManager:
+    """Clase para gestionar los textos
+    tanto el cargado por archivo
+    como el mecanografiado por usuario
     """
     all_texts: list[str] = []
-    current_text: str
+    current_ref_text: str = ""
+    current_typed_text: str = ""
 
-    def add_text(self, text: str) -> None:
+    def add_ref_text(self, text: str) -> None:
         self.all_texts.append(text)
-        self.current_text = text
+        self.current_ref_text = text
 
+
+    def add_typed_char(self, char: str) -> None:
+        self.current_typed_text += char
+
+
+    def get_ref_len(self) -> int:
+        return len(self.current_ref_text)

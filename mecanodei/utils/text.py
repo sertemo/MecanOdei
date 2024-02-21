@@ -32,3 +32,48 @@ def quitar_tildes(texto: str) -> str:
     texto_normalizado = unicodedata.normalize('NFD', texto)
     texto_sin_tildes = ''.join(c for c in texto_normalizado if unicodedata.category(c) != 'Mn' or c in ['\u0303', '\u0308'])
     return unicodedata.normalize('NFC', texto_sin_tildes)
+
+
+def calc_words_per_minute(text: str, time: float) -> int:
+    """Calcula la velocidad de mecanografiado
+    en palabras por minuto
+
+    Parameters
+    ----------
+    text : str
+        texto de referencia que se ha mecanografiado
+    time : float
+        tiempo tardad en escribir el texto en segundos
+
+    Returns
+    -------
+    int
+        devuelve el ppm aproximado
+    """
+    # Para contemplar el caso de time 0
+    if time:
+        words = len(text.split())
+        minutes = time / 60
+        return int(words // minutes)
+    else:
+        return 0
+
+
+def calc_aciertos(aciertos: int, total: int) -> int:
+    """Calcula el % de aciertos.
+
+    Parameters
+    ----------
+    aciertos : int
+        letras acertadas
+    total : int
+        total de letras
+
+    Returns
+    -------
+    int
+        aciertos en porcentaje,
+        redondeado
+    """
+    return int(aciertos / total * 100)
+

@@ -21,18 +21,27 @@ import flet as ft
 from models.state import State, AppState
 from models.pointer import Pointer
 from models.timer import Timer
-from models.type_text import TypeTextManager
+from mecanodei.models.text_manager import TextManager
 from styles.colors import Colors
-from utils.text import quitar_tildes
+from utils.text import (quitar_tildes,
+                        calc_words_per_minute,
+                        calc_aciertos)
+from mecanodei.components.stats import StatBox
+
+# TODO Agregar Navbar
+# TODO Agregar navegación a 3 paginas: Configuracion, Menu, Estadisticas,
+# TODO y practicar
+# TODO crear clase StatManager para gestionar las estadisticas ?
+# TODO Hacer que escape sea para escapar del writing y pase a ready ?
 
 MAX_LEN_CHAR = 500
-NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Enter']
+NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Enter', 'Escape']
 
 def main(page: ft.Page) -> None:
 
     app = AppState()
     pointer = Pointer()
-    text_manager = TypeTextManager()
+    text_manager = TextManager()
     timer = Timer()
 
     # TODO Meter en config
@@ -49,7 +58,7 @@ def main(page: ft.Page) -> None:
             secondary='#F9AA33'))
     #page.bgcolor = ft.colors.AMBER_300
     page.window_width = 1000
-    page.window_height = 1000
+    page.window_height = 700
     page.window_resizable = False
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.vertical_alignment = ft.MainAxisAlignment.START
@@ -67,7 +76,7 @@ def main(page: ft.Page) -> None:
             path_txt = e.files[0].path
             texto_path_fichero.value = path_txt
             # Abrir el texto
-            with open(path_txt, 'r') as file:
+            with open(path_txt, 'r', encoding='utf-8') as file:
                 texto = file.read()
             # Validar el texto
             if len(texto) <= MAX_LEN_CHAR:
@@ -80,8 +89,18 @@ def main(page: ft.Page) -> None:
                 # Habilitamos boton empezar
                 boton_empezar.disabled = False
                 # Metemos el texto en el manager para poder tener acceso a él
-                text_manager.add_text(texto)
+                text_manager.add_ref_text(texto)
         page.update()
+
+
+    def borrar_stats() -> None:
+        """Borra la visualización de las estadisticas        
+        """
+        box_num_correctos.reset_stat()
+        box_num_errores.reset_stat()
+        texto_escrito.value = texto_num_caracteres.value = \
+            texto_tiempo_tardado.value = \
+                texto_num_aciertos.value = texto_velocidad_ppm.value = ""
 
 
     def clic_empezar(e: ft.ControlEvent) -> None:
@@ -98,9 +117,7 @@ def main(page: ft.Page) -> None:
             # Reseteamos el pointer
             pointer.reset()
             # Borramos las visualizaciones anteriores
-            texto_escrito.value = texto_num_caracteres.value = \
-                                    texto_num_errores.value = \
-                                        texto_tiempo_tardado.value = ""
+            borrar_stats()
             # Mostramos un contador de 3 segundos
             for n in range(3, 0, -1):
                 texto_cuenta_atras.value = str(n)
@@ -115,6 +132,8 @@ def main(page: ft.Page) -> None:
             boton_cargar_archivo.disabled = True
             # Deshabilitamos boton empezar
             boton_empezar.disabled = True
+            # Desabilitamos boton guardar
+            boton_guardar.disabled = True
             page.update()
 
 
@@ -124,8 +143,8 @@ def main(page: ft.Page) -> None:
         marcando el texto de referencia como correcto o incorrecto,
         y actualizando el contador de posición y errores según corresponda.
         """
-        # Añadimos al texto
-        texto_escrito.value += caracter 
+        # Añadimos al texto al text manager
+        text_manager.add_typed_char(caracter) 
         # Compara tecla con índice de marcar en texto
         if quitar_tildes(
             texto_mecanografiar
@@ -155,9 +174,11 @@ def main(page: ft.Page) -> None:
         """
         # Comprobamos que la app esté en modo writing
         if app.state == State.writing:
+            #! DEBUG
+            print(e.key)
             # Comprobamos que el contador sea menor que la longitud del texto
-            idx = pointer.count
-            texto = text_manager.current_text
+            idx = pointer.get_positions()
+            texto = text_manager.current_ref_text
             if idx < len(texto):
                 caracter = str(e.key)
                 # Comprueba si shift
@@ -166,36 +187,97 @@ def main(page: ft.Page) -> None:
             else:
                 # Ya se ha acabado el texto de ref. Ponemos en modo finish
                 texto_app_state.value = app.finish_mode()
-                # Mostramos errores y caracteres
-                texto_num_errores.value = pointer.errors
-                texto_num_caracteres.value = len(text_manager.current_text)
+                # Mostramos el texto escrito
+                texto_escrito.value = text_manager.current_typed_text
+                # Poblamos las estadisticas para mostrar
+                box_num_correctos.show_stat(pointer.get_corrects())
+                box_num_errores.show_stat(pointer.get_errors())
+                texto_num_caracteres.value = text_manager.get_ref_len()
                 texto_tiempo_tardado.value = timer.finish_timer()
+                texto_num_aciertos.value = calc_aciertos(
+                    pointer.get_corrects(),
+                    text_manager.get_ref_len()
+                )
+                texto_velocidad_ppm.value = calc_words_per_minute(
+                    text_manager.current_ref_text,
+                    timer.finish)
                 # Habilitamos botones carga de texto
+                # TODO Meter esta funcionalidad en función con setattr
                 boton_cargar_archivo.disabled = False
+                boton_guardar.disabled = False
         page.update()
-
 
     # Estado de la app
     texto_app_state = ft.Text(app.state)
 
-    # Pantalla de carga de fichero
+    ### Zona de carga de fichero ###
     boton_cargar_archivo = ft.ElevatedButton(
         'Cargar txt', 
         on_click=lambda _: file_picker.pick_files(allowed_extensions=['txt']))
     texto_path_fichero = ft.Text()
     file_picker = ft.FilePicker(on_result=abrir_fichero_texto)
 
-    # Pantalla de mecanografiado
+
+    ### Zona de mecanografiado ###
     texto_mecanografiar = ft.Row(controls=[], spacing=0)
     texto_escrito = ft.Text("")
     boton_empezar = ft.ElevatedButton(
         'Empezar',
         on_click=clic_empezar,
         disabled=True)
-    texto_cuenta_atras = ft.Text(size=30)
+
+    texto_cuenta_atras = ft.Text(size=50)
+    texto_num_aciertos = ft.Text()
     texto_num_caracteres = ft.Text()
-    texto_num_errores = ft.Text()
+    # TODO Crear todo StatBox
+    box_num_correctos = StatBox('Correctas')
+    box_num_errores = StatBox('Errores')
     texto_tiempo_tardado = ft.Text()
+    texto_velocidad_ppm = ft.Text()
+    contenedor_texto_escrito = ft.Container(
+                ft.Column([
+                    ft.Text('Texto Mecanografiado'),
+                    texto_escrito,
+                ])
+            )
+    contenedor_finish_stats = ft.Container(
+        ft.Row([
+            ft.Container(
+                ft.Row([
+                    box_num_correctos,
+                    box_num_errores,
+                    ft.Container(
+                        ft.Column([
+                            ft.Text('Totales'),
+                            texto_num_caracteres
+                        ])
+                    ),                    
+                    ft.Container(
+                        ft.Column([
+                            ft.Text('% Aciertos'),
+                            texto_num_aciertos
+                        ])
+                    ),
+                    ft.Container(
+                        ft.Column([
+                            ft.Text('Tiempo'),
+                            texto_tiempo_tardado
+                        ])
+                    ),
+                    ft.Container(
+                        ft.Column([
+                            ft.Text('PPM', tooltip='Palabras Por Minuto'),
+                            texto_velocidad_ppm
+                        ])
+                    ),
+                ])
+            )
+        ],
+        alignment=ft.MainAxisAlignment.CENTER,
+        ),
+        bgcolor='blue',
+        border_radius=8,
+    )
     boton_guardar = ft.ElevatedButton('Guardar', disabled=True)
 
 
@@ -210,10 +292,9 @@ def main(page: ft.Page) -> None:
         boton_empezar,
         texto_cuenta_atras,
         ft.Container(texto_mecanografiar),
-        texto_escrito,
-        texto_num_caracteres,
-        texto_num_errores,
-        texto_tiempo_tardado,
+        #,
+        contenedor_texto_escrito,
+        contenedor_finish_stats,
         boton_guardar,
     )
 

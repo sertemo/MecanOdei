@@ -15,10 +15,10 @@
 import enum
 
 class State(enum.Enum):
-    writing = 'write'  # aplicación en estado de mecanografía
-    resting = 'rest'  # Terminada mecano viendo stats
-    ready = 'ready'  # Texto cargado listo para mecanografiar
-    finish = 'finish'  # Texto terminado de mecanografiar
+    writing = enum.auto()  # aplicación en estado de mecanografía
+    resting = enum.auto()  # Terminada mecano viendo stats
+    ready = enum.auto()  # Texto cargado listo para mecanografiar
+    finish = enum.auto()  # Texto terminado de mecanografiar
 
 class AppState:
     """Clase para llevar registro
