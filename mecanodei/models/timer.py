@@ -21,9 +21,9 @@ class Timer:
         self.start = time.perf_counter()
 
 
-    def finish_timer(self) -> float:
-        """Devuelve en segundos el tiempo transcurrido
-        desde que se inició
+    def finish_timer(self) -> 'Timer':
+        """Crea el atributo finish
+        y devuelve una instancia de Timer
 
         Returns
         -------
@@ -31,4 +31,17 @@ class Timer:
             _description_
         """
         self.finish = time.perf_counter() - self.start
-        return round(self.finish, 2)
+        return self
+
+
+    def format(self) -> str:
+        """Formatea el tiempo
+        para que se vea con la unidad
+        de segundos
+
+        Returns
+        -------
+        str
+            _description_
+        """
+        return f'{self.finish:.2f}s'

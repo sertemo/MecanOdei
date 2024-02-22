@@ -17,29 +17,37 @@ from typing import Any, Union
 import flet as ft
 
 class StatBox(ft.UserControl):
-    def __init__(self, cabecera: str) -> None:
+    def __init__(self, cabecera: str) -> None: # TODO agregar posiblidad de tooltip
         super().__init__()
         self.cabecera = cabecera
         self.init = 0
         self.box = ft.Container(
             ft.Column([
-                ft.Text(self.cabecera),
-                ft.Text(self.init, size=20),
+                ft.Row([
+                    ft.Text(self.cabecera)
+                    ],
+                    ft.MainAxisAlignment.CENTER),
+                ft.Row([
+                    ft.Text(
+                        self.init,
+                        size=20,
+                        text_align=ft.TextAlign.CENTER)
+                    ],
+                    ft.MainAxisAlignment.CENTER),
             ],
-            alignment=ft.CrossAxisAlignment.CENTER
             ),
-            margin=5,
+            margin=3, # TODO Meter en styles
             bgcolor='red',
             border_radius=6,
             padding=5,
         )
 
     def show_stat(self, stat: Union[int, float]) -> None:
-        self.box.content.controls[1].value = stat
+        self.box.content.controls[1].controls[0].value = stat
         self.update()
 
     def reset_stat(self) -> None:
-        self.box.content.controls[1].value = self.init
+        self.box.content.controls[1].controls[0].value = self.init
         self.update()
 
     def build(self) -> ft.Container:

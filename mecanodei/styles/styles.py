@@ -14,6 +14,24 @@
 
 # Script para con los estilos de la app
 
+from enum import Enum
+
+class PaddingSize(Enum):
+    SMALL = 2
+    MEDIUM = 4
+    LARGE = 8
+
+class BorderRadiusSize(Enum):
+    SMALL = 4
+    MEDIUM = 8
+    LARGE = 16
+
+contenedor_mecanografiar = dict(
+    padding=PaddingSize.LARGE.value,
+    bgcolor='blue',
+    border_radius=BorderRadiusSize.MEDIUM.value,
+)
+
 class Colors:
     verde_texto_correcto = '#9DC183'
     rojo_letra_incorrecta = '#CB3242'
