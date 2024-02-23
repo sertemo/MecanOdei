@@ -24,17 +24,15 @@ from models.stat_manager import StatManager
 from models.timer import Timer
 from mecanodei.models.text_manager import TextManager
 import mecanodei.styles.styles as styles
-from utils.text import quitar_tildes
 from mecanodei.components.stats import StatBox
 
 # TODO Agregar Navbar
 # TODO Agregar navegación a 3 paginas: Configuracion, Menu, Estadisticas,
 # TODO y practicar
-# TODO quitar del pointer el seguimiento de errores => que sea el StatManager
 # TODO Hacer que escape sea para escapar del writing y pase a ready ?
 
 MAX_LEN_CHAR = 500
-NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Enter', 'Escape']
+NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Escape']
 
 def main(page: ft.Page) -> None:
 
@@ -76,6 +74,9 @@ def main(page: ft.Page) -> None:
             # Abrir el texto
             with open(path_txt, 'r', encoding='utf-8') as file:
                 texto = file.read()
+            # Procesamos primero el texto. Lo añadimos al text manager
+            # TODO
+            texto = text_manager.add_ref_text(texto)
             # Validar el texto
             if len(texto) <= MAX_LEN_CHAR:
                 # Ponemos ready la app y mostramos
@@ -95,6 +96,9 @@ def main(page: ft.Page) -> None:
                 boton_empezar.disabled = False
                 # Metemos el texto en el manager para poder tener acceso a él
                 text_manager.add_ref_text(texto)
+            else:
+                pass
+            # TODO mostrar mensaje de error
         page.update()
 
 
@@ -150,17 +154,15 @@ def main(page: ft.Page) -> None:
         marcando el texto de referencia como correcto o incorrecto,
         y actualizando el contador de posición y errores según corresponda.
         """
-        # Sacamos el caracter de referencia
-        actual_char = texto_mecanografiar.controls[idx].content.value
+        # Sacamos el caracter de referencia.
+        actual_char = text_manager.get_char(idx)
         # Sacamos el previo y el siguiente para las stats
-        prev_char = texto_mecanografiar.controls[max(0, idx-1)].content.value
-        next_char = texto_mecanografiar \
-                        .controls[min(idx+1, text_manager.get_ref_len()-1)] \
-                            .content.value
-        # Añadimos al texto al text manager
+        prev_char = text_manager.get_char(max(0, idx-1))
+        next_char = text_manager.get_char(min(idx+1, text_manager.text_len-1))
+        # Añadimos el caracter pulsado al texto al text manager
         text_manager.add_typed_char(caracter) 
         # Compara tecla con índice de marcar en texto
-        if quitar_tildes(actual_char).lower() == caracter.lower():
+        if actual_char == caracter.lower():
             # Pintamos el fondo del caracter en verde
             texto_mecanografiar.controls[idx].bgcolor = styles.Colors \
                                                         .verde_texto_correcto
@@ -196,7 +198,7 @@ def main(page: ft.Page) -> None:
         if app.state == State.writing:
             # Comprobamos que el contador sea menor que la longitud del texto
             idx = pointer.get_position()
-            texto = text_manager.current_ref_text
+            texto = text_manager.destilled_ref_text
             if idx <= len(texto) - 1:
                 caracter = str(e.key)
                 # Comprueba si shift
@@ -210,11 +212,11 @@ def main(page: ft.Page) -> None:
                 # Poblamos las estadisticas para mostrar
                 box_num_correctos.show_stat(stat_manager.get_corrects())
                 box_num_errores.show_stat(stat_manager.get_incorrects())
-                box_num_caracteres.show_stat(text_manager.get_ref_len())
+                box_num_caracteres.show_stat(text_manager.text_len)
                 box_tiempo_tardado.show_stat(timer.finish_timer().format())
                 box_num_aciertos.show_stat(stat_manager.calc_aciertos())
                 box_velocidad_ppm.show_stat(stat_manager.calc_words_per_minute(
-                    text_manager.current_ref_text,
+                    text_manager.destilled_ref_text,
                     timer.finish))
                 # Habilitamos botones carga de texto
                 # TODO Meter esta funcionalidad en función con setattr
@@ -260,6 +262,7 @@ def main(page: ft.Page) -> None:
         controls=[], 
         spacing=0, 
         wrap=True,
+        alignment=ft.MainAxisAlignment.CENTER
         )
     contenedor_mecanografiar = ft.Container(
         texto_mecanografiar,
@@ -312,17 +315,19 @@ def main(page: ft.Page) -> None:
     contenedor_global = ft.Container(
         ft.Column([
             contenedor_zona_carga,
-            ft.Stack([                
+                ft.Stack([                
                 contenedor_mecanografiar,
-                texto_cuenta_atras,
-            ]),
+                ft.Row([
+                    texto_cuenta_atras],
+                    alignment=ft.MainAxisAlignment.CENTER)
+                ],
+                width=contenedor_mecanografiar.width),
             contenedor_texto_escrito,
             contenedor_finish_stats,
             boton_guardar,
         ],
-        ft.CrossAxisAlignment.CENTER
+        alignment=ft.CrossAxisAlignment.CENTER
         ),
-        alignment=ft.alignment.center,
     )
 
     page.overlay.append(file_picker)

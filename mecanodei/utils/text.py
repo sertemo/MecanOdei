@@ -17,7 +17,8 @@
 import unicodedata
 
 def quitar_tildes(texto: str) -> str:
-    """Quita tíldes y acentos especiales pero deja la ñ y la ü del castellano
+    """Quita tíldes y acentos especiales pero deja la ñ
+    (\u0303) del castellano
 
     Parameters
     ----------
@@ -30,7 +31,9 @@ def quitar_tildes(texto: str) -> str:
         Devuelve el texto sin tildes ni caracteres especiales
     """
     texto_normalizado = unicodedata.normalize('NFD', texto)
-    texto_sin_tildes = ''.join(c for c in texto_normalizado if unicodedata.category(c) != 'Mn' or c in ['\u0303', '\u0308'])
+    texto_sin_tildes = ''.join(
+        c for c in texto_normalizado 
+        if unicodedata.category(c) != 'Mn' or c in ['\u0303'])
     return unicodedata.normalize('NFC', texto_sin_tildes)
 
 
