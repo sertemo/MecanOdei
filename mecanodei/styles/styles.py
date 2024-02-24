@@ -15,6 +15,7 @@
 # Script para con los estilos de la app
 
 from enum import Enum
+import flet as ft
 
 class PaddingSize(Enum):
     SMALL = 2
@@ -26,12 +27,42 @@ class BorderRadiusSize(Enum):
     MEDIUM = 8
     LARGE = 16
 
-contenedor_mecanografiar = dict(
-    padding=PaddingSize.LARGE.value,
-    bgcolor='blue',
-    border_radius=BorderRadiusSize.MEDIUM.value,
-)
+class TextSize(Enum):
+    SMALL = 4
+    MEDIUM = 8
+    LARGE = 16
+    BIG = 32
+
 
 class Colors:
     verde_texto_correcto = '#9DC183'
     rojo_letra_incorrecta = '#CB3242'
+    fondo_contenedores = ft.colors.WHITE12
+    borde_contenedores = ft.colors.BLUE_500
+    borde_stats = ft.colors.RED_600
+
+class ColorBorders:
+    borde_contenedores = ft.colors.BLACK26
+
+# Estilo del contenedor mecanografiar
+contenedor_mecanografiar = dict(
+    padding=PaddingSize.LARGE.value,
+    bgcolor=Colors.fondo_contenedores,
+    border_radius=BorderRadiusSize.MEDIUM.value,
+    border=ft.border.all(0.8, color=Colors.borde_contenedores)
+)
+
+contenedor_stats = dict(
+    bgcolor=Colors.fondo_contenedores,
+    border_radius=BorderRadiusSize.MEDIUM.value,
+    padding=PaddingSize.SMALL.value,
+    border=ft.border.all(0.8, color=Colors.borde_contenedores)
+)
+
+box_stats = dict(
+    margin=3,
+    bgcolor=Colors.fondo_contenedores,
+    border_radius=BorderRadiusSize.SMALL.value,
+    padding=PaddingSize.SMALL.value,
+    border=ft.border.all(0.8, color=Colors.borde_stats)
+)

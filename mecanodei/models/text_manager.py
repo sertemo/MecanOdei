@@ -50,6 +50,10 @@ class TextManager:
         self.current_typed_text += char
 
 
+    def reset_typed_text(self) -> None:
+        self.current_typed_text = ''
+
+
     def get_char(self, idx: int) -> str:
         """Devuelve el caracter del text
         correspondiente con el indice idx

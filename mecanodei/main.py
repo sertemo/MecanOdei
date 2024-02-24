@@ -25,6 +25,7 @@ from models.timer import Timer
 from mecanodei.models.text_manager import TextManager
 import mecanodei.styles.styles as styles
 from mecanodei.components.stats import StatBox
+from mecanodei.components.ref_text import RefTextBox
 
 # TODO Agregar Navbar
 # TODO Agregar navegación a 3 paginas: Configuracion, Menu, Estadisticas,
@@ -54,10 +55,11 @@ def main(page: ft.Page) -> None:
         color_scheme_seed=ft.colors.YELLOW)
     #page.bgcolor = ft.colors.AMBER_300
     page.window_width = 600
-    page.window_height = 720
+    page.window_height = 730
     page.window_resizable = False
     page.horizontal_alignment = ft.MainAxisAlignment.CENTER
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
+    page.bgcolor = ft.colors.BLUE_50
 
     # Funciones
     def abrir_fichero_texto(e: ft.FilePickerResultEvent) -> None:
@@ -68,49 +70,46 @@ def main(page: ft.Page) -> None:
         e : ft.FilePickerResultEvent
             _description_
         """
-        if app.state != State.writing: 
-            path_txt = e.files[0].path
-            texto_path_fichero.value = path_txt
-            # Abrir el texto
-            with open(path_txt, 'r', encoding='utf-8') as file:
-                texto = file.read()
-            # Procesamos primero el texto. Lo añadimos al text manager
-            # TODO
-            texto = text_manager.add_ref_text(texto)
-            # Validar el texto
-            if len(texto) <= MAX_LEN_CHAR:
-                # Ponemos ready la app y mostramos
-                texto_app_state.value = app.ready_mode()
-                # Cargamos el texto en el contenedor pero no lo mostramos
-                texto_mecanografiar.controls = [
-                    ft.Container(
-                        ft.Text(
-                            letra, 
-                            size=16, 
-                            weight=ft.FontWeight.BOLD
-                            ),
-                        border_radius=1,
-                        ) for letra in texto
-                    ]
-                # Habilitamos boton empezar
-                boton_empezar.disabled = False
-                # Metemos el texto en el manager para poder tener acceso a él
-                text_manager.add_ref_text(texto)
-            else:
-                pass
-            # TODO mostrar mensaje de error
-        page.update()
+        if app.state != State.writing:
+            if e.files is not None:
+                path_txt = e.files[0].path
+                texto_path_fichero.value = path_txt
+                # Abrir el texto
+                with open(path_txt, 'r', encoding='utf-8') as file:
+                    texto = file.read()
+                # Procesamos primero el texto. Lo añadimos al text manager
+                texto = text_manager.add_ref_text(texto)
+                # Validar el texto
+                if len(texto) <= MAX_LEN_CHAR:
+                    # Ponemos ready la app y mostramos
+                    texto_app_state.value = app.ready_mode()
+                    # Cargamos el texto en el contenedor de referencia
+                    texto_mecanografiar.create_text(texto)
+                    # Habilitamos boton empezar
+                    boton_empezar.disabled = False
+                    # Metemos el texto en el manager para poder tener acceso a él
+                    text_manager.add_ref_text(texto)
+                else:
+                    pass
+                # TODO mostrar mensaje de error
+            page.update()
 
 
     def borrar_stats() -> None:
         """Borra la visualización de las estadisticas        
         """
+        # Borramos las estadisticas del manager
+        stat_manager.reset()
+        # Borramos las visualizaciones
         box_num_correctos.reset_stat()
         box_num_errores.reset_stat()
         box_num_aciertos.reset_stat()
         box_num_caracteres.reset_stat()
         box_tiempo_tardado.reset_stat()
         box_velocidad_ppm.reset_stat()
+        # Borramos el texto del manager
+        text_manager.reset_typed_text()
+        # Borramos la visualización del texto escrito
         texto_escrito.value = ""
 
 
@@ -143,8 +142,6 @@ def main(page: ft.Page) -> None:
             boton_cargar_archivo.disabled = True # TODO meter en función con setattr?
             # Deshabilitamos boton empezar
             boton_empezar.disabled = True
-            # Desabilitamos boton guardar
-            boton_guardar.disabled = True
             page.update()
 
 
@@ -164,22 +161,22 @@ def main(page: ft.Page) -> None:
         # Compara tecla con índice de marcar en texto
         if actual_char == caracter.lower():
             # Pintamos el fondo del caracter en verde
-            texto_mecanografiar.controls[idx].bgcolor = styles.Colors \
-                                                        .verde_texto_correcto
-            texto_mecanografiar.controls[idx].content.color = ft.colors.BLACK45
+            texto_mecanografiar.paint_green(idx)
             # Avanzamos el puntero de referencia
             pointer.step()
-            # Añadimos estadisticas al stat manager
-            stat_manager.add_correct(
+            # Añadimos el caracter al stat manager
+            # TODO hay que verificar el índice
+            stat_manager.add_char(
+                indice=idx,
                 actual=actual_char.upper(),
                 prev=prev_char.upper(),
                 next=next_char.upper())
         else:
             # Pintamos de rojo el fondo
-            texto_mecanografiar.controls[idx].bgcolor = styles.Colors \
-                                                        .rojo_letra_incorrecta
+            texto_mecanografiar.paint_red(idx)
             # Añadimos estadisticas al stat manager
             stat_manager.add_incorrect(
+                indice=idx,
                 actual=actual_char.upper(),
                 typed=caracter.upper(),
                 prev=prev_char.upper(),
@@ -221,9 +218,8 @@ def main(page: ft.Page) -> None:
                 # Habilitamos botones carga de texto
                 # TODO Meter esta funcionalidad en función con setattr
                 boton_cargar_archivo.disabled = False
-                boton_guardar.disabled = False
                 #! DEBUG
-                print(stat_manager.lista_fallos)
+                print(stat_manager.get_corrects())
         page.update()
 
 
@@ -251,26 +247,20 @@ def main(page: ft.Page) -> None:
             ],
             alignment=ft.MainAxisAlignment.CENTER)
         ],
-        alignment=ft.CrossAxisAlignment.CENTER),
-        bgcolor='blue',
-        border_radius=8,
-        padding=5,
+        alignment=ft.CrossAxisAlignment.CENTER
+        ),
+        **styles.contenedor_mecanografiar
     )
 
     ### Zona de mecanografiado ###
-    texto_mecanografiar = ft.Row(
-        controls=[], 
-        spacing=0, 
-        wrap=True,
-        alignment=ft.MainAxisAlignment.CENTER
-        )
+    texto_mecanografiar = RefTextBox()
     contenedor_mecanografiar = ft.Container(
         texto_mecanografiar,
-        height=200,
+        height=380,
         width=720,
         **styles.contenedor_mecanografiar
         )
-    texto_escrito = ft.Text("") # TODO esto pasar a listview
+
 
     texto_cuenta_atras = ft.Text(size=60, color=ft.colors.AMBER_500, weight=ft.FontWeight.BOLD)
     box_num_aciertos = StatBox('Aciertos')
@@ -279,18 +269,18 @@ def main(page: ft.Page) -> None:
     box_num_errores = StatBox('Errores')
     box_tiempo_tardado = StatBox('Tiempo')
     box_velocidad_ppm = StatBox('PPM')
+    
+    texto_escrito = ft.Text("") # TODO esto pasar a listview
     contenedor_texto_escrito = ft.Container(
                 ft.Column([
-                    ft.Text('Texto Mecanografiado'),
+                    ft.Text('Texto Mecanografiado'), # TODO Quitar y gestionar visualización o con un manager
                     ft.Row([texto_escrito], wrap=True),
                 ],
                 ft.MainAxisAlignment.START,
                 ),
-                bgcolor='blue',
-                border_radius=8, # TODO en estilos meter esto tambien
                 width=800,
-                height=150,
-                alignment=ft.alignment.top_center
+                height=100,
+                **styles.contenedor_mecanografiar
             )
     contenedor_finish_stats = ft.Container(
         ft.Row([
@@ -307,10 +297,9 @@ def main(page: ft.Page) -> None:
         ],
         alignment=ft.MainAxisAlignment.CENTER,
         ),
-        bgcolor='blue',
-        border_radius=8,
+        **styles.contenedor_stats
     )
-    boton_guardar = ft.FloatingActionButton('Guardar', disabled=True)
+
 
     contenedor_global = ft.Container(
         ft.Column([
@@ -324,7 +313,6 @@ def main(page: ft.Page) -> None:
                 width=contenedor_mecanografiar.width),
             contenedor_texto_escrito,
             contenedor_finish_stats,
-            boton_guardar,
         ],
         alignment=ft.CrossAxisAlignment.CENTER
         ),

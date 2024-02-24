@@ -12,11 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Union
+from typing import Union
 
 import flet as ft
 
+import mecanodei.styles.styles as styles
+
 class StatBox(ft.UserControl):
+    """Clase que agrupa la visualización
+    de las estadisticas y la lógica relacionada con ello
+    como mostrar o resetear
+
+    Parameters
+    ----------
+    ft : _type_
+        _description_
+    """
     def __init__(self, cabecera: str) -> None: # TODO agregar posiblidad de tooltip
         super().__init__()
         self.cabecera = cabecera
@@ -24,22 +35,22 @@ class StatBox(ft.UserControl):
         self.box = ft.Container(
             ft.Column([
                 ft.Row([
-                    ft.Text(self.cabecera)
+                    ft.Text(
+                        self.cabecera,
+                        size=styles.TextSize.MEDIUM.value),
                     ],
                     ft.MainAxisAlignment.CENTER),
                 ft.Row([
                     ft.Text(
                         self.init,
-                        size=20,
+                        size=styles.TextSize.BIG.value,
                         text_align=ft.TextAlign.CENTER)
                     ],
                     ft.MainAxisAlignment.CENTER),
             ],
+            spacing=0
             ),
-            margin=3, # TODO Meter en styles
-            bgcolor='red',
-            border_radius=6,
-            padding=5,
+            **styles.box_stats
         )
 
     def show_stat(self, stat: Union[int, float]) -> None:

@@ -44,4 +44,4 @@ class Timer:
         str
             _description_
         """
-        return f'{self.finish:.2f}s'
+        return f'{self.finish:.1f}s'

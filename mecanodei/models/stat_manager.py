@@ -18,30 +18,37 @@ from dataclasses import dataclass
 
 @dataclass
 class CharTrack:
+    indice: int
     actual: str
     typed: str
     prev: str
     next: str
 
+# TODO Hay que pensar en el add_correct asociandolo con el indice
 class StatManager:
     """Clase para gestionar, manejar y
-    crear estadisticas
+    crear estadisticas.
+    No tiene sentido trackear el numero de correctas
+    porque siempre va a coincidir con el total.
+    No tiene sentido tampoco recoger la tecla anterior y posterior
+    porque coincidirá siempre con el texto original
     """
-    correctas: int = 0
-    errores: int = 0
+    """ errores: int = 0
     totales: int = 0
     aciertos: float = 0
-    ppm: int = 0
+    ppm: int = 0 """
     lista_fallos: list[CharTrack] = []
-    lista_aciertos: list[CharTrack] = []
+    lista_total: list[CharTrack] = [] # todas las teclas buenas presionadas
 
-    def add_correct(self,
+    def add_char(self,
+                    indice: int,
                     actual: str,
                     prev: str,
                     next: str
                     ) -> None:
-        self.lista_aciertos.append(
+        self.lista_total.append(
             CharTrack(
+                indice=indice,
                 actual=actual,
                 typed=actual,
                 prev=prev,
@@ -51,6 +58,7 @@ class StatManager:
 
 
     def add_incorrect(self,
+                        indice: int,
                         actual: str,
                         typed: str,
                         prev: str,
@@ -58,6 +66,7 @@ class StatManager:
                         ) -> None:
         self.lista_fallos.append(
             CharTrack(
+                indice=indice,
                 actual=actual,
                 typed=typed,
                 prev=prev,
@@ -68,15 +77,17 @@ class StatManager:
 
     def get_corrects(self) -> int:
         """Devuelve el numero
-        de caracteres correctos
+        de caracteres correctos.
+        Hay que sacarlo restando los totales
+        a los fallos
 
         Returns
         -------
         int
             _description_
         """
-        return len(self.lista_aciertos)
-    
+        return self.get_totals() - self.get_incorrects()
+
 
     def get_incorrects(self) -> int:
         """Devuelve el numero
@@ -98,7 +109,7 @@ class StatManager:
         int
             _description_
         """
-        return self.get_corrects() + self.get_incorrects()
+        return len(self.lista_total)
 
 
     def calc_aciertos(self) -> str:
@@ -145,3 +156,13 @@ class StatManager:
             return int(words // minutes)
         else:
             return 0
+
+
+    def reset(self) -> None:
+        """Resetea todas las stats
+        """
+        self.correctas = self.errores = self.aciertos = self.totales = \
+        self.ppm = 0
+        self.lista_total.clear()
+        self.lista_fallos.clear()
+
