@@ -18,6 +18,7 @@ from enum import Enum
 import flet as ft
 
 class PaddingSize(Enum):
+    SMALLER = 1
     SMALL = 2
     MEDIUM = 4
     LARGE = 8
@@ -32,6 +33,14 @@ class TextSize(Enum):
     MEDIUM = 8
     LARGE = 16
     BIG = 32
+
+class BorderWidth(Enum):
+    SMALLEST = 0.25
+    SMALLER = 0.5
+    SMALL = 1
+    MEDIUM = 2
+    LARGE = 4
+    BIG = 8
 
 
 class Colors:

@@ -54,8 +54,8 @@ def main(page: ft.Page) -> None:
         font_family="RobotoSlab", 
         color_scheme_seed=ft.colors.YELLOW)
     #page.bgcolor = ft.colors.AMBER_300
-    page.window_width = 600
-    page.window_height = 730
+    page.window_width = 900
+    page.window_height = 710
     page.window_resizable = False
     page.horizontal_alignment = ft.MainAxisAlignment.CENTER
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
@@ -129,7 +129,7 @@ def main(page: ft.Page) -> None:
             # Borramos las visualizaciones anteriores
             borrar_stats()
             # Mostramos un contador de 3 segundos
-            for n in range(3, 0, -1):
+            for n in range(3, 0, -1): # TODO Meter en componente
                 texto_cuenta_atras.value = str(n)
                 page.update()
                 time.sleep(0.9)
@@ -157,22 +157,22 @@ def main(page: ft.Page) -> None:
         prev_char = text_manager.get_char(max(0, idx-1))
         next_char = text_manager.get_char(min(idx+1, text_manager.text_len-1))
         # Añadimos el caracter pulsado al texto al text manager
-        text_manager.add_typed_char(caracter) 
+        text_manager.add_typed_char(caracter)
         # Compara tecla con índice de marcar en texto
+        # Si acierta
         if actual_char == caracter.lower():
             # Pintamos el fondo del caracter en verde
             texto_mecanografiar.paint_green(idx)
             # Avanzamos el puntero de referencia
             pointer.step()
             # Añadimos el caracter al stat manager
-            # TODO hay que verificar el índice
-            stat_manager.add_char(
+            stat_manager.add_correct(
                 indice=idx,
                 actual=actual_char.upper(),
                 prev=prev_char.upper(),
                 next=next_char.upper())
         else:
-            # Pintamos de rojo el fondo
+            # Pintamos de rojo el fondo => No ha acertado
             texto_mecanografiar.paint_red(idx)
             # Añadimos estadisticas al stat manager
             stat_manager.add_incorrect(
@@ -209,7 +209,7 @@ def main(page: ft.Page) -> None:
                 # Poblamos las estadisticas para mostrar
                 box_num_correctos.show_stat(stat_manager.get_corrects())
                 box_num_errores.show_stat(stat_manager.get_incorrects())
-                box_num_caracteres.show_stat(text_manager.text_len)
+                box_num_caracteres.show_stat(stat_manager.get_totals())
                 box_tiempo_tardado.show_stat(timer.finish_timer().format())
                 box_num_aciertos.show_stat(stat_manager.calc_aciertos())
                 box_velocidad_ppm.show_stat(stat_manager.calc_words_per_minute(
@@ -218,8 +218,6 @@ def main(page: ft.Page) -> None:
                 # Habilitamos botones carga de texto
                 # TODO Meter esta funcionalidad en función con setattr
                 boton_cargar_archivo.disabled = False
-                #! DEBUG
-                print(stat_manager.get_corrects())
         page.update()
 
 
@@ -256,12 +254,12 @@ def main(page: ft.Page) -> None:
     texto_mecanografiar = RefTextBox()
     contenedor_mecanografiar = ft.Container(
         texto_mecanografiar,
-        height=380,
-        width=720,
+        height=440,
+        width=page.width,
         **styles.contenedor_mecanografiar
         )
 
-
+    # TODO meter en componente CountDown con un fondo y que muevan las letras
     texto_cuenta_atras = ft.Text(size=60, color=ft.colors.AMBER_500, weight=ft.FontWeight.BOLD)
     box_num_aciertos = StatBox('Aciertos')
     box_num_caracteres = StatBox('Totales')
@@ -273,13 +271,15 @@ def main(page: ft.Page) -> None:
     texto_escrito = ft.Text("") # TODO esto pasar a listview
     contenedor_texto_escrito = ft.Container(
                 ft.Column([
-                    ft.Text('Texto Mecanografiado'), # TODO Quitar y gestionar visualización o con un manager
+                    ft.Text(
+                        'Texto Mecanografiado',
+                        size=styles.TextSize.MEDIUM.value), # TODO Quitar y gestionar visualización o con un manager
                     ft.Row([texto_escrito], wrap=True),
                 ],
-                ft.MainAxisAlignment.START,
+                ft.MainAxisAlignment.CENTER,
                 ),
-                width=800,
                 height=100,
+                expand=True,
                 **styles.contenedor_mecanografiar
             )
     contenedor_finish_stats = ft.Container(
@@ -297,7 +297,16 @@ def main(page: ft.Page) -> None:
         ],
         alignment=ft.MainAxisAlignment.CENTER,
         ),
+        height=contenedor_texto_escrito.height,
+        width=page.width // 3,
         **styles.contenedor_stats
+    )
+    contenedor_footer = ft.Container(
+        ft.Row([
+            contenedor_texto_escrito,
+            contenedor_finish_stats
+        ],
+        alignment=ft.MainAxisAlignment.CENTER)
     )
 
 
@@ -311,8 +320,7 @@ def main(page: ft.Page) -> None:
                     alignment=ft.MainAxisAlignment.CENTER)
                 ],
                 width=contenedor_mecanografiar.width),
-            contenedor_texto_escrito,
-            contenedor_finish_stats,
+            contenedor_footer,
         ],
         alignment=ft.CrossAxisAlignment.CENTER
         ),

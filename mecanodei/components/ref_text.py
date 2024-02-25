@@ -57,6 +57,7 @@ class RefTextBox(ft.UserControl):
                             weight=ft.FontWeight.BOLD
                             ),
                         border_radius=1,
+                        padding=styles.PaddingSize.SMALLER.value
                         ) for letra in text
                     ]
         self.update()
@@ -74,9 +75,8 @@ class RefTextBox(ft.UserControl):
         self.texto_mecanografiar.controls[idx].bgcolor = styles.Colors \
                                                         .verde_texto_correcto
         # pintamos también el borde sutilmente
-        self.texto_mecanografiar.controls[idx].border = ft.border.only(
-                            bottom=ft.BorderSide(0.3),
-                            top=ft.BorderSide(0.3))
+        self.texto_mecanografiar.controls[idx].border = ft.border.all(
+                            width=styles.BorderWidth.SMALLEST.value)
 
         self.update()
 

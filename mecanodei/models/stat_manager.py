@@ -28,33 +28,78 @@ class CharTrack:
 class StatManager:
     """Clase para gestionar, manejar y
     crear estadisticas.
-    No tiene sentido trackear el numero de correctas
-    porque siempre va a coincidir con el total.
-    No tiene sentido tampoco recoger la tecla anterior y posterior
-    porque coincidirá siempre con el texto original
+    Un caracter correcto es aquel que se ha acertado a la primera
     """
     """ errores: int = 0
     totales: int = 0
     aciertos: float = 0
     ppm: int = 0 """
+    num_caracteres: int = 0
     lista_fallos: list[CharTrack] = []
-    lista_total: list[CharTrack] = [] # todas las teclas buenas presionadas
+    lista_aciertos: list[CharTrack] = []
 
-    def add_char(self,
+
+    def get_fail_indexes(self) -> list[int]:
+        """Devuelve una lista de integer correspondientes
+        a los índices de las teclas incorrectas
+
+        Returns
+        -------
+        list[int]
+            _description_
+        """
+        return [int(idx.indice) for idx in self.lista_fallos]
+
+
+    def _add_char(self) -> None:
+        """Esta función se encarga de llevar el
+        contador de los caracteres totales del texto
+
+        Parameters
+        ----------
+        char : _type_
+            _description_
+        """
+        self.num_caracteres += 1
+
+
+    def add_correct(self,
                     indice: int,
                     actual: str,
                     prev: str,
                     next: str
                     ) -> None:
-        self.lista_total.append(
-            CharTrack(
-                indice=indice,
-                actual=actual,
-                typed=actual,
-                prev=prev,
-                next=next
+        """Esta función se encarga
+        de añadir a la lista de caracteres correctos
+        siempre y cuando se hayan dado a la primera.
+        Verifica primero que para el indice dado no se
+        haya dado un error.
+        Lleva el registro también del numero total de caracteres.
+
+        Parameters
+        ----------
+        indice : int
+            _description_
+        actual : str
+            _description_
+        prev : str
+            _description_
+        next : str
+            _description_
+        """
+        # Sumamos uno para llevar registro del numero total de caracteres
+        self._add_char()
+        # Verificamos si índice no está en fallos
+        if indice not in self.get_fail_indexes():
+            self.lista_aciertos.append(
+                CharTrack(
+                    indice=indice,
+                    actual=actual,
+                    typed=actual,
+                    prev=prev,
+                    next=next
+                )
             )
-        )
 
 
     def add_incorrect(self,
@@ -78,20 +123,18 @@ class StatManager:
     def get_corrects(self) -> int:
         """Devuelve el numero
         de caracteres correctos.
-        Hay que sacarlo restando los totales
-        a los fallos
 
         Returns
         -------
         int
             _description_
         """
-        return self.get_totals() - self.get_incorrects()
+        return len(self.lista_aciertos)
 
 
     def get_incorrects(self) -> int:
         """Devuelve el numero
-        de caracteres correctos
+        de caracteres incorrectos
 
         Returns
         -------
@@ -102,18 +145,20 @@ class StatManager:
 
 
     def get_totals(self) -> int:
-        """Devuelve el total de caracteres
+        """Devuelve el número total de caracteres
 
         Returns
         -------
         int
             _description_
         """
-        return len(self.lista_total)
+        return self.num_caracteres
 
 
     def calc_aciertos(self) -> str:
         """Calcula el % de aciertos.
+        Siendo un acierto cuando se acierta
+        a la primera una letra
 
         Parameters
         ----------
@@ -128,7 +173,7 @@ class StatManager:
             aciertos en porcentaje,
             redondeado
         """
-        return f'{self.get_corrects() / self.get_totals():.1%}'
+        return f'{(self.get_corrects() / self.get_totals()):.1%}'
 
 
     def calc_words_per_minute(self,
@@ -161,8 +206,7 @@ class StatManager:
     def reset(self) -> None:
         """Resetea todas las stats
         """
-        self.correctas = self.errores = self.aciertos = self.totales = \
-        self.ppm = 0
-        self.lista_total.clear()
+        self.num_caracteres = 0
+        self.lista_aciertos.clear()
         self.lista_fallos.clear()
 
