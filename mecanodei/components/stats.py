@@ -43,8 +43,8 @@ class StatBox(ft.UserControl):
                 ft.Row([
                     ft.Text(
                         self.init,
-                        size=styles.TextSize.BIG.value,
-                        text_align=ft.TextAlign.CENTER)
+                        size=styles.TextSize.LARGER.value,
+                        text_align=ft.TextAlign.START)
                     ],
                     ft.MainAxisAlignment.CENTER),
             ],

@@ -15,7 +15,12 @@
 import flet as ft
 
 import mecanodei.styles.styles as styles
+from mecanodei.utils.text import Batcher
 
+# TODO Convertir en listview
+# TODO Dividir en un numero de palabras por frases.
+# TODO usar una key para cada linea de la listview
+# TODO utilizar el método scroll_to a medida que se va escribiendo
 class RefTextBox(ft.UserControl):
     """Componente que recoge la compartimentalizacion
     del texto en componentes y las funciones de pintado
@@ -28,16 +33,43 @@ class RefTextBox(ft.UserControl):
     """
     def __init__(self) -> None:
         super().__init__()
-        self.texto_mecanografiar = ft.Row(
+        self.palabras_linea = 7
+        self.texto_mecanografiar = ft.ListView(
             controls=[], 
-            spacing=0, 
-            wrap=True,
-            alignment=ft.MainAxisAlignment.CENTER,
+            spacing=0,
         )
 
 
     def build(self):
         return self.texto_mecanografiar
+
+
+    def get_n_rows(self) -> int:
+        """Devuelve el numero de filas de la listview
+
+        Returns
+        -------
+        int
+            _description_
+        """
+        return len(self.texto_mecanografiar.controls)
+
+
+    def get_n_char(self, row: int) -> int:
+        """Devuelve el numero de caracteres
+        que tiene la lina
+
+        Parameters
+        ----------
+        row : int
+            _description_
+
+        Returns
+        -------
+        int
+            _description_
+        """
+        return len(self.texto_mecanografiar.controls[row].content.controls)
 
 
     def create_text(self, text: str) -> None:
@@ -49,7 +81,35 @@ class RefTextBox(ft.UserControl):
         text : str
             _description_
         """
-        self.texto_mecanografiar.controls = [
+        # Limpiamos el texto anterior
+        self.texto_mecanografiar.controls.clear()
+        # Inicializamos el batcher
+        batcher = Batcher(text, self.palabras_linea)
+        # Iteramos sobre cada linea
+        for idx, linea in enumerate(batcher):
+            # Creamos contenedores por caracter
+            self.texto_mecanografiar.controls.append(
+                ft.Container(
+                    ft.Row(
+                        [
+                            ft.Container(
+                                ft.Text(
+                                    letra,
+                                    size=styles.TextSize.BIG.value,
+                                    weight=ft.FontWeight.BOLD
+                                    ),
+                                border_radius=1,
+                                padding=1,
+                                border=ft.border.all(0.3)
+                                ) for letra in " ".join(linea)],
+                            spacing=0,
+                            wrap=True,
+                        ),
+                    key=f'linea_{idx}' # Referencia para el scroll_to
+                    )
+                )
+
+        """ self.texto_mecanografiar.controls = [
                     ft.Container(
                         ft.Text(
                             letra, 
@@ -57,9 +117,9 @@ class RefTextBox(ft.UserControl):
                             weight=ft.FontWeight.BOLD
                             ),
                         border_radius=1,
-                        padding=styles.PaddingSize.SMALLER.value
+                        padding=0,
                         ) for letra in text
-                    ]
+                    ] """
         self.update()
 
 

@@ -17,7 +17,8 @@ from mecanodei.utils.text import quitar_tildes
 class TextManager:
     """Clase para gestionar los textos
     tanto el cargado por archivo
-    como el mecanografiado por usuario
+    como el mecanografiado por usuario.
+    Proporciona preprocesado al texto
     """
     all_texts: list[str] = []
     destilled_ref_text: str

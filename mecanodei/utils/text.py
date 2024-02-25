@@ -14,6 +14,8 @@
 
 # Script que recoge las funciones responsables de procesar texto.
 
+from collections.abc import Sequence
+import math
 import unicodedata
 
 def quitar_tildes(texto: str) -> str:
@@ -37,6 +39,33 @@ def quitar_tildes(texto: str) -> str:
     return unicodedata.normalize('NFC', texto_sin_tildes)
 
 
+class Batcher(Sequence):
+    def __init__(self, text: str, palabras_linea: int) -> None:
+        if palabras_linea <= 0:
+            raise ValueError("palabras_linea debe ser mayor que 0")
+        self.text = text
+        self.lista_palabras = self.text.split()
+        self.palabras_linea = palabras_linea
+
+    def __len__(self) -> int:
+        # Retorna el número total de lineas
+        return math.ceil(len(self.lista_palabras) / self.palabras_linea)
+
+    def __getitem__(self, idx: int) -> list[str]:
+        if isinstance(idx, slice):
+            # Manejo básico de slicing; se puede mejorar.
+            start, stop, step = idx.indices(len(self))
+            return [self.__getitem__(i) for i in range(start, stop, step)]
+        elif isinstance(idx, int):
+            if idx < 0:
+                # Convierte índice negativo a positivo.
+                idx += len(self)
+            if idx < 0 or idx >= self.__len__():
+                raise IndexError("Índice fuera de rango")
+            return self.lista_palabras[
+                idx * self.palabras_linea : self.palabras_linea * (idx + 1)]
+        else:
+            raise TypeError("Índices deben ser enteros o slices")
 
 
 

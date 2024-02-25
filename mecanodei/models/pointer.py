@@ -13,8 +13,8 @@
 # limitations under the License.
 
 class Pointer:
-    """Puntero que da un índice
-    y guarda los errores"""
+    """Clase para registrar la posición
+    del texto"""
     def __init__(self) -> None:
         self._count: int = 0
 

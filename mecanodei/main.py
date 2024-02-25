@@ -32,7 +32,7 @@ from mecanodei.components.ref_text import RefTextBox
 # TODO y practicar
 # TODO Hacer que escape sea para escapar del writing y pase a ready ?
 
-MAX_LEN_CHAR = 500
+MAX_LEN_CHAR = 350
 NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Escape']
 
 def main(page: ft.Page) -> None:
@@ -45,16 +45,16 @@ def main(page: ft.Page) -> None:
 
     # TODO Meter en config
     page.fonts = {
-        "Kanit": "https://raw.githubusercontent.com/google/fonts/master/ofl/kanit/Kanit-Bold.ttf",
+        "Kanit": """https://raw.githubusercontent.com/google/fonts/master/
+        ofl/kanit/Kanit-Bold.ttf""",
         "vt323": "fonts/vt323-latin-400-normal.ttf",
-        "RobotoSlab": "https://github.com/google/fonts/raw/main/apache/robotoslab/RobotoSlab%5Bwght%5D.ttf",
+        "RobotoSlab": """https://github.com/google/fonts/raw/main/apache/
+        robotoslab/RobotoSlab%5Bwght%5D.ttf""",
     }
     page.title = 'MecanOdei'
     page.theme = ft.Theme(
-        font_family="RobotoSlab", 
-        color_scheme_seed=ft.colors.YELLOW)
-    #page.bgcolor = ft.colors.AMBER_300
-    page.window_width = 900
+        font_family="RobotoSlab")
+    page.window_width = 1000
     page.window_height = 710
     page.window_resizable = False
     page.horizontal_alignment = ft.MainAxisAlignment.CENTER
@@ -74,7 +74,7 @@ def main(page: ft.Page) -> None:
             if e.files is not None:
                 path_txt = e.files[0].path
                 texto_path_fichero.value = path_txt
-                # Abrir el texto
+                # Abrir el texto # TODO Meter en un FileManager ?
                 with open(path_txt, 'r', encoding='utf-8') as file:
                     texto = file.read()
                 # Procesamos primero el texto. Lo añadimos al text manager
@@ -83,15 +83,22 @@ def main(page: ft.Page) -> None:
                 if len(texto) <= MAX_LEN_CHAR:
                     # Ponemos ready la app y mostramos
                     texto_app_state.value = app.ready_mode()
+                    # Mostramos el número de caracteres
+                    texto_mensajes.value = f'{len(texto)} caracteres'
                     # Cargamos el texto en el contenedor de referencia
                     texto_mecanografiar.create_text(texto)
                     # Habilitamos boton empezar
                     boton_empezar.disabled = False
-                    # Metemos el texto en el manager para poder tener acceso a él
+                    # Metemos el texto en el manager para 
+                    # poder tener acceso a él
                     text_manager.add_ref_text(texto)
                 else:
-                    pass
-                # TODO mostrar mensaje de error
+                    # Mostramos mensaje de error
+                    texto_mensajes.value = f"""El archivo supera los 
+                    {MAX_LEN_CHAR} caracteres. Tiene {len(texto)}"""
+                #! DEBUG
+                print(texto_mecanografiar.get_n_rows())
+                print(texto_mecanografiar.get_n_char(0))
             page.update()
 
 
@@ -222,7 +229,8 @@ def main(page: ft.Page) -> None:
 
 
     # Estado de la app
-    texto_app_state = ft.Text(app.state)
+    texto_app_state = ft.Text(app.state, size=styles.TextSize.LARGE.value)
+    texto_mensajes = ft.Text()
     ### Zona de carga de fichero ###
     boton_cargar_archivo = ft.ElevatedButton(
         'Cargar txt', 
@@ -236,14 +244,16 @@ def main(page: ft.Page) -> None:
     contenedor_zona_carga = ft.Container(
         ft.Column([
             ft.Row([
-                texto_app_state
+                texto_app_state,
+                texto_mensajes,
             ],
-            alignment=ft.MainAxisAlignment.CENTER),
+            alignment=ft.MainAxisAlignment.SPACE_EVENLY),
             ft.Row([
                 boton_cargar_archivo,
+                texto_path_fichero,
                 boton_empezar,
             ],
-            alignment=ft.MainAxisAlignment.CENTER)
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
         ],
         alignment=ft.CrossAxisAlignment.CENTER
         ),

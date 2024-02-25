@@ -24,16 +24,12 @@ class CharTrack:
     prev: str
     next: str
 
-# TODO Hay que pensar en el add_correct asociandolo con el indice
+
 class StatManager:
     """Clase para gestionar, manejar y
     crear estadisticas.
     Un caracter correcto es aquel que se ha acertado a la primera
     """
-    """ errores: int = 0
-    totales: int = 0
-    aciertos: float = 0
-    ppm: int = 0 """
     num_caracteres: int = 0
     lista_fallos: list[CharTrack] = []
     lista_aciertos: list[CharTrack] = []

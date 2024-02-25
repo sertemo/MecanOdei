@@ -32,6 +32,7 @@ class TextSize(Enum):
     SMALL = 4
     MEDIUM = 8
     LARGE = 16
+    LARGER = 24
     BIG = 32
 
 class BorderWidth(Enum):
