@@ -20,11 +20,9 @@ class TextManager:
     como el mecanografiado por usuario.
     Proporciona preprocesado al texto
     """
-    all_texts: list[str] = []
-    destilled_ref_text: str
     current_typed_text: str = ''
 
-    def add_ref_text(self, text: str) -> None:
+    def add_ref_text(self, text: str) -> str:
         """Crea un raw text quitando retornos de carro
         y destila el texto pasando a minusculas
         y quitando puntuaciones para poder comparar
@@ -40,10 +38,8 @@ class TextManager:
         _type_
             _description_
         """
-        self.raw_text = text.replace('\n', ' ')
         # Gestionamos los retornos de carro.
-        self.all_texts.append(self.raw_text)
-        self.destilled_ref_text = quitar_tildes(text).lower()
+        self.raw_text = text.replace('\n', ' ')
         return self.raw_text
 
 

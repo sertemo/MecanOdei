@@ -52,20 +52,17 @@ class Batcher(Sequence):
         return math.ceil(len(self.lista_palabras) / self.palabras_linea)
 
     def __getitem__(self, idx: int) -> list[str]:
-        if isinstance(idx, slice):
-            # Manejo básico de slicing; se puede mejorar.
-            start, stop, step = idx.indices(len(self))
-            return [self.__getitem__(i) for i in range(start, stop, step)]
-        elif isinstance(idx, int):
-            if idx < 0:
-                # Convierte índice negativo a positivo.
-                idx += len(self)
-            if idx < 0 or idx >= self.__len__():
-                raise IndexError("Índice fuera de rango")
-            return self.lista_palabras[
-                idx * self.palabras_linea : self.palabras_linea * (idx + 1)]
-        else:
-            raise TypeError("Índices deben ser enteros o slices")
+        if idx < 0 or idx >= self.__len__():
+            raise IndexError("Índice fuera de rango")
+        
+        if idx == 0:
+            return " ".join(self.lista_palabras[
+                idx * self.palabras_linea : self.palabras_linea * (idx + 1)])
 
+        # Para índices mayores a 0 metemos un caracter en blanco al principio
+        linea = self.lista_palabras[
+            idx * self.palabras_linea : self.palabras_linea * (idx + 1)]
+        # Añadimos un espacio en blanco al principio
+        return " " + " ".join(linea)
 
 

@@ -31,6 +31,7 @@ class BorderRadiusSize(Enum):
 class TextSize(Enum):
     SMALL = 4
     MEDIUM = 8
+    DEFAULT = 10
     LARGE = 16
     LARGER = 24
     BIG = 32
@@ -74,5 +75,5 @@ box_stats = dict(
     bgcolor=Colors.fondo_contenedores,
     border_radius=BorderRadiusSize.SMALL.value,
     padding=PaddingSize.SMALL.value,
-    border=ft.border.all(0.8, color=Colors.borde_stats)
+    border=ft.border.all(0.8, color=Colors.borde_contenedores)
 )

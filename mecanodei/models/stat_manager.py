@@ -18,11 +18,11 @@ from dataclasses import dataclass
 
 @dataclass
 class CharTrack:
-    indice: int
+    indice: tuple[int]
     actual: str
     typed: str
-    prev: str
-    next: str
+    prev: str = None
+    next: str = None
 
 
 class StatManager:
@@ -44,7 +44,7 @@ class StatManager:
         list[int]
             _description_
         """
-        return [int(idx.indice) for idx in self.lista_fallos]
+        return [idx.indice for idx in self.lista_fallos]
 
 
     def _add_char(self) -> None:
@@ -62,8 +62,8 @@ class StatManager:
     def add_correct(self,
                     indice: int,
                     actual: str,
-                    prev: str,
-                    next: str
+                    prev: str = None,
+                    next: str = None
                     ) -> None:
         """Esta función se encarga
         de añadir a la lista de caracteres correctos
@@ -102,8 +102,8 @@ class StatManager:
                         indice: int,
                         actual: str,
                         typed: str,
-                        prev: str,
-                        next: str
+                        prev: str = None,
+                        next: str = None
                         ) -> None:
         self.lista_fallos.append(
             CharTrack(
@@ -173,7 +173,7 @@ class StatManager:
 
 
     def calc_words_per_minute(self,
-                                text: str, 
+                                n_words: int, 
                                 time: float) -> int:
         """Calcula la velocidad de mecanografiado
         en palabras por minuto
@@ -192,9 +192,8 @@ class StatManager:
         """
         # Para contemplar el caso de time 0
         if time:
-            words = len(text.split())
             minutes = time / 60
-            return int(words // minutes)
+            return int(n_words // minutes)
         else:
             return 0
 

@@ -34,31 +34,31 @@ class StatBox(ft.UserControl):
         self.init = 0
         self.box = ft.Container(
             ft.Column([
-                ft.Row([
                     ft.Text(
                         self.cabecera,
-                        size=styles.TextSize.MEDIUM.value),
-                    ],
-                    ft.MainAxisAlignment.CENTER),
-                ft.Row([
+                        size=styles.TextSize.DEFAULT.value,
+                        text_align=ft.TextAlign.CENTER
+                        ),
                     ft.Text(
                         self.init,
-                        size=styles.TextSize.LARGER.value,
-                        text_align=ft.TextAlign.START)
+                        size=styles.TextSize.BIG.value,
+                        text_align=ft.TextAlign.CENTER
+                        )
                     ],
-                    ft.MainAxisAlignment.CENTER),
-            ],
-            spacing=0
+            spacing=0,
+            alignment=ft.MainAxisAlignment.CENTER,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER
             ),
-            **styles.box_stats
+            **styles.box_stats,
+            alignment=ft.alignment.center
         )
 
     def show_stat(self, stat: Union[int, float]) -> None:
-        self.box.content.controls[1].controls[0].value = stat
+        self.box.content.controls[1].value = stat
         self.update()
 
     def reset_stat(self) -> None:
-        self.box.content.controls[1].controls[0].value = self.init
+        self.box.content.controls[1].value = self.init
         self.update()
 
     def build(self) -> ft.Container:
