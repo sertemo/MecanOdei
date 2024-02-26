@@ -14,15 +14,17 @@
 
 from mecanodei.utils.text import quitar_tildes
 
-class TextManager:
-    """Clase para gestionar los textos
-    tanto el cargado por archivo
-    como el mecanografiado por usuario.
-    Proporciona preprocesado al texto
+class TypedTextManager:
+    """Clase que gestiona el texto tecleado
+    También encapsula el texto bruto cargado
+    cambiando los retornos de carro por '. '
     """
-    current_typed_text: str = ''
+    def __init__(self) -> None:
+        self.enter_replacement: str = ' '
+        self.current_typed_text: str = ''
+        self.raw_text: str = ''
 
-    def add_ref_text(self, text: str) -> str:
+    def add_and_process_ref_text(self, text: str) -> str:
         """Crea un raw text quitando retornos de carro
         y destila el texto pasando a minusculas
         y quitando puntuaciones para poder comparar
@@ -36,10 +38,11 @@ class TextManager:
         Returns
         -------
         _type_
-            _description_
+            Devuelve el texto bruto sin retornos 
+            de carro
         """
         # Gestionamos los retornos de carro.
-        self.raw_text = text.replace('\n', ' ')
+        self.raw_text = text.replace('\n', self.enter_replacement)
         return self.raw_text
 
 
@@ -49,24 +52,3 @@ class TextManager:
 
     def reset_typed_text(self) -> None:
         self.current_typed_text = ''
-
-
-    def get_char(self, idx: int) -> str:
-        """Devuelve el caracter del text
-        correspondiente con el indice idx
-
-        Parameters
-        ----------
-        idx : int
-            _description_
-
-        Returns
-        -------
-        str
-            _description_
-        """
-        return self.destilled_ref_text[idx]
-
-    @property
-    def text_len(self) -> int:
-        return len(self.destilled_ref_text)

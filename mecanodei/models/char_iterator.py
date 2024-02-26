@@ -13,14 +13,14 @@
 # limitations under the License.
 
 
-from mecanodei.components.ref_text import RefTextBox
+from mecanodei.components.ref_text import ListViewTextBox
 
 class CharIterator:
     """Clase que encapsula el iterador
     de caracteres y la posición
     """
 
-    def build_iterator(self, texto_mecanografiar: RefTextBox) -> None:
+    def build_iterator(self, texto_mecanografiar: ListViewTextBox) -> None:
         """Crea un iterador (iter) a partir del componente texto_mecanografiar
 
         Parameters

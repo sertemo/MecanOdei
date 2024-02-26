@@ -22,8 +22,8 @@ from mecanodei.utils.text import Batcher, quitar_tildes
 
 # TODO usar una key para cada linea de la listview
 # TODO utilizar el método scroll_to a medida que se va escribiendo
-# TODO Solucionar falta de espacio en blanco al romper linea
-class RefTextBox(ft.UserControl):
+
+class ListViewTextBox(ft.UserControl):
     """Componente que recoge la compartimentalizacion
     del texto en componentes y las funciones de pintado
     de caracteres etc.
@@ -33,17 +33,18 @@ class RefTextBox(ft.UserControl):
     ft : _type_
         _description_
     """
-    def __init__(self) -> None:
+    def __init__(self, text_size: styles.TextSize) -> None:
         super().__init__()
+        self.text_size = text_size
         self.palabras_linea = 7
-        self.texto_mecanografiar = ft.ListView(
+        self.texto = ft.ListView(
             controls=[], 
             spacing=0,
         )
 
 
-    def build(self):
-        return self.texto_mecanografiar
+    def build(self) -> ft.ListView:
+        return self.texto
 
 
     def get_n_rows(self) -> int:
@@ -65,7 +66,7 @@ class RefTextBox(ft.UserControl):
         for n_fila in range(self.get_n_rows()):
             for n_char in range(self.get_n_char(n_fila)):
                 posicion = (n_fila, n_char)
-                char = self.texto_mecanografiar.controls[n_fila].content \
+                char = self.texto.controls[n_fila].content \
                     .controls[n_char].content.value
                 yield quitar_tildes(char).lower(), posicion
 
@@ -84,7 +85,7 @@ class RefTextBox(ft.UserControl):
         int
             _description_
         """
-        return len(self.texto_mecanografiar.controls[row].content.controls)
+        return len(self.texto.controls[row].content.controls)
 
 
     def create_text(self, text: str) -> None:
@@ -99,25 +100,25 @@ class RefTextBox(ft.UserControl):
         # Guardamos numero de palabras del texto
         self.num_palabras = len(text.split())
         # Limpiamos el texto anterior
-        self.texto_mecanografiar.controls.clear()
+        self.texto.controls.clear()
         # Inicializamos el batcher
         self.batcher = Batcher(text, self.palabras_linea)
         # Iteramos sobre cada linea
         for idx, linea in enumerate(self.batcher):
             # Creamos contenedores por caracter
-            self.texto_mecanografiar.controls.append(
+            self.texto.controls.append(
                 ft.Container(
                     ft.Row(
                         [
                             ft.Container(
                                 content=ft.Text(
                                     letra,
-                                    size=styles.TextSize.BIG.value,
+                                    size=self.text_size,
                                     weight=ft.FontWeight.BOLD
                                     ),
-                                border_radius=2,
-                                padding=1,
-                                border=ft.border.all(0.3)
+                                border_radius=1,
+                                padding=0,
+                                #border=ft.border.all(0.3)
                                 ) for letra in linea],
                             spacing=0,
                             wrap=True,
@@ -125,6 +126,12 @@ class RefTextBox(ft.UserControl):
                     key=f'linea_{idx}' # Referencia para el scroll_to
                     )
                 )
+        self.update()
+
+
+    def clean_text(self) -> None:
+        """Limpia la listview"""
+        self.texto.controls.clear()
         self.update()
 
 
@@ -138,14 +145,12 @@ class RefTextBox(ft.UserControl):
             _description_
         """
         pos_linea, pos_char = posicion
-        self.texto_mecanografiar \
-            .controls[pos_linea].content.controls[pos_char] \
+        self.texto.controls[pos_linea].content.controls[pos_char] \
                 .bgcolor = styles.Colors.verde_texto_correcto
         # pintamos también el borde sutilmente
-        self.texto_mecanografiar \
-            .controls[pos_linea].content.controls[pos_char] \
+        """ self.texto.controls[pos_linea].content.controls[pos_char] \
                 .border = ft.border.all(
-                            width=styles.BorderWidth.SMALLEST.value)
+                            width=styles.BorderWidth.SMALLEST.value) """
         self.update()
 
 
@@ -159,7 +164,6 @@ class RefTextBox(ft.UserControl):
             _description_
         """
         pos_linea, pos_char = posicion
-        self.texto_mecanografiar \
-            .controls[pos_linea].content.controls[pos_char] \
+        self.texto.controls[pos_linea].content.controls[pos_char] \
                 .bgcolor = styles.Colors.rojo_letra_incorrecta
         self.update()

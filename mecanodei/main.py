@@ -21,17 +21,14 @@ import flet as ft
 from models.state import State, AppState
 from models.stat_manager import StatManager
 from models.timer import Timer
-from mecanodei.models.text_manager import TextManager
+from mecanodei.models.text_manager import TypedTextManager
 from mecanodei.models.char_iterator import CharIterator
 import mecanodei.styles.styles as styles
 from mecanodei.components.stats import StatBox
-from mecanodei.components.ref_text import RefTextBox
+from mecanodei.components.ref_text import ListViewTextBox
 
-# TODO Agregar Navbar
-# TODO Agregar navegación a 3 paginas: Configuracion, Menu, Estadisticas,
-# TODO y practicar
 # TODO Hacer que escape sea para escapar del writing y pase a ready ?
-# TODO Borrar pointer
+# TODO Crear las diferentes secciones en Views independientes
 
 MAX_LEN_CHAR = 350
 NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Escape']
@@ -39,7 +36,7 @@ NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Escape']
 def main(page: ft.Page) -> None:
 
     app = AppState()
-    text_manager = TextManager()
+    text_manager = TypedTextManager()
     timer = Timer()
     stat_manager = StatManager()
     char_iterator = CharIterator()
@@ -54,13 +51,15 @@ def main(page: ft.Page) -> None:
     }
     page.title = 'MecanOdei'
     page.theme = ft.Theme(
-        font_family="RobotoSlab")
-    page.window_min_width = 1000
-    page.window_min_height = 710
+        font_family="RobotoSlab",
+        )
+    page.window_min_width = 1024
+    page.window_min_height = 760
     page.window_resizable = True
     page.horizontal_alignment = ft.MainAxisAlignment.CENTER
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.bgcolor = ft.colors.BLUE_50
+
 
     # Funciones
     def abrir_fichero_texto(e: ft.FilePickerResultEvent) -> None:
@@ -80,7 +79,7 @@ def main(page: ft.Page) -> None:
                     texto = file.read()
                 # Procesamos primero el texto. Lo añadimos al text manager
                 # Gestiona solamente los retornos de carro
-                texto = text_manager.add_ref_text(texto)
+                texto = text_manager.add_and_process_ref_text(texto)
                 # Validar el texto
                 if len(texto) <= MAX_LEN_CHAR:
                     # Ponemos ready la app y mostramos
@@ -117,7 +116,7 @@ def main(page: ft.Page) -> None:
         # Borramos el texto del manager
         text_manager.reset_typed_text()
         # Borramos la visualización del texto escrito
-        texto_escrito.value = ""
+        texto_escrito.clean_text()
 
 
     def clic_empezar(e: ft.ControlEvent) -> None:
@@ -218,7 +217,7 @@ def main(page: ft.Page) -> None:
                 # Ya se ha acabado el texto de ref. Ponemos en modo finish
                 texto_app_state.value = app.finish_mode()
                 # Mostramos el texto escrito
-                texto_escrito.value = text_manager.current_typed_text
+                texto_escrito.create_text(text_manager.current_typed_text)
                 # Poblamos las estadisticas para mostrar
                 box_num_correctos.show_stat(stat_manager.get_corrects())
                 box_num_errores.show_stat(stat_manager.get_incorrects())
@@ -236,6 +235,7 @@ def main(page: ft.Page) -> None:
 
 
     # Estado de la app
+    # TODO : Meter en componente tipo luz de estado
     texto_app_state = ft.Text(app.state, size=styles.TextSize.LARGE.value)
     texto_mensaje = ft.Text()
 
@@ -256,7 +256,7 @@ def main(page: ft.Page) -> None:
                 texto_app_state,
                 texto_mensaje,
             ],
-            alignment=ft.MainAxisAlignment.SPACE_EVENLY),
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             ft.Row([
                 boton_cargar_archivo,
                 texto_path_fichero,
@@ -271,7 +271,9 @@ def main(page: ft.Page) -> None:
 
 
     ### Zona de mecanografiado ###
-    texto_mecanografiar = RefTextBox()
+    texto_mecanografiar = ListViewTextBox(
+        text_size=styles.TextSize.BIG.value
+        )
     contenedor_mecanografiar = ft.Container(
         texto_mecanografiar,
         height=440,
@@ -295,18 +297,13 @@ def main(page: ft.Page) -> None:
     box_velocidad_ppm = StatBox('PPM')   
 
 
-    texto_escrito = ft.Text("") # TODO esto pasar a listview
+    texto_escrito = ListViewTextBox(
+        text_size=styles.TextSize.LARGE.value
+        )
     contenedor_texto_escrito = ft.Container(
-                ft.Column([
-                    ft.Text(
-                        'Texto Mecanografiado',
-                        size=styles.TextSize.DEFAULT.value), # TODO Quitar y gestionar visualización o con un manager
-                    ft.Row([texto_escrito], wrap=True),
-                ],
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                ),
+                texto_escrito,
                 height=100,
-                expand=True,
+                width=450,
                 **styles.contenedor_mecanografiar
             )
     contenedor_finish_stats = ft.Container(
@@ -320,6 +317,7 @@ def main(page: ft.Page) -> None:
                 box_velocidad_ppm,
         ],
         alignment=ft.MainAxisAlignment.CENTER,
+        expand=True,
         ),
         height=contenedor_texto_escrito.height,
         expand=True,
@@ -330,7 +328,8 @@ def main(page: ft.Page) -> None:
             contenedor_texto_escrito,
             contenedor_finish_stats
         ],
-        alignment=ft.MainAxisAlignment.CENTER)
+        alignment=ft.MainAxisAlignment.CENTER,
+        vertical_alignment=ft.CrossAxisAlignment.START)
     )
 
 
@@ -353,12 +352,41 @@ def main(page: ft.Page) -> None:
     page.overlay.append(file_picker)
     page.on_keyboard_event = on_keyboard
     page.update()
+
+    t = ft.Tabs(
+        selected_index=1,
+        animation_duration=100,
+        indicator_color=ft.colors.BLUE_500,
+        indicator_tab_size=True,
+        label_color=ft.colors.BLUE_600,
+        tab_alignment=ft.TabAlignment.CENTER,
+        tabs=[
+            ft.Tab(
+                tab_content=ft.Icon(ft.icons.MENU),
+                content=ft.Text("Menú")
+            ),
+            ft.Tab(
+                tab_content=ft.Icon(ft.icons.KEYBOARD),
+                content=contenedor_global,
+            ),
+            ft.Tab(
+                tab_content=ft.Icon(ft.icons.AUTO_GRAPH_OUTLINED),
+                content=ft.Text("Estadísticas"),
+            ),
+            ft.Tab(
+                tab_content=ft.Icon(ft.icons.SETTINGS),
+                content=ft.Text("Configuración"),
+            ),
+        ],
+        expand=1,
+    )
+
     page.add(
-        contenedor_global
+        t
     )
 
 if __name__ == '__main__':
     ft.app(
         target=main,
         assets_dir="assets",
-        upload_dir='assets/uploads')
+        )

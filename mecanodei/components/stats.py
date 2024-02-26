@@ -47,10 +47,12 @@ class StatBox(ft.UserControl):
                     ],
             spacing=0,
             alignment=ft.MainAxisAlignment.CENTER,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            expand=True
             ),
             **styles.box_stats,
-            alignment=ft.alignment.center
+            alignment=ft.alignment.center,
+            expand=True,
         )
 
     def show_stat(self, stat: Union[int, float]) -> None:
