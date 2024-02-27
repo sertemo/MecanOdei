@@ -51,6 +51,7 @@ class Colors:
     fondo_contenedores = ft.colors.WHITE12
     borde_contenedores = ft.colors.BLUE_500
     borde_stats = ft.colors.RED_600
+    fondo_mecano = ft.colors.WHITE70
 
 class ColorBorders:
     borde_contenedores = ft.colors.BLACK26
@@ -58,22 +59,36 @@ class ColorBorders:
 # Estilo del contenedor mecanografiar
 contenedor_mecanografiar = dict(
     padding=PaddingSize.LARGE.value,
+    bgcolor=Colors.fondo_mecano,
+    border_radius=BorderRadiusSize.MEDIUM.value,
+    #border=ft.border.all(0.8, color=Colors.borde_contenedores)
+)
+
+contenedor_load = dict(
+    padding=PaddingSize.LARGE.value,
     bgcolor=Colors.fondo_contenedores,
     border_radius=BorderRadiusSize.MEDIUM.value,
-    border=ft.border.all(0.8, color=Colors.borde_contenedores)
+    #border=ft.border.all(0.8, color=Colors.borde_contenedores)
+)
+
+contenedor_txt_escrito = dict(
+    padding=PaddingSize.LARGE.value,
+    bgcolor=Colors.fondo_contenedores,
+    border_radius=BorderRadiusSize.MEDIUM.value,
+    #border=ft.border.all(0.8, color=Colors.borde_contenedores)
 )
 
 contenedor_stats = dict(
     bgcolor=Colors.fondo_contenedores,
     border_radius=BorderRadiusSize.MEDIUM.value,
     padding=PaddingSize.SMALL.value,
-    border=ft.border.all(0.8, color=Colors.borde_contenedores)
+    #border=ft.border.all(0.8, color=Colors.borde_contenedores)
 )
 
 box_stats = dict(
     margin=3,
     bgcolor=Colors.fondo_contenedores,
     border_radius=BorderRadiusSize.SMALL.value,
-    padding=PaddingSize.SMALL.value,
-    border=ft.border.all(0.8, color=Colors.borde_contenedores)
+    padding=PaddingSize.MEDIUM.value,
+    #border=ft.border.all(0.8, color=Colors.borde_contenedores)
 )

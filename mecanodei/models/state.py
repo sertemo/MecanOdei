@@ -16,11 +16,13 @@ import enum
 
 class State(enum.Enum):
     writing = enum.auto()  # aplicación en estado de mecanografía
+    reproducing = enum.auto() # Reproduce el audio
+    transcribing = enum.auto() # escribiendo el audio
     resting = enum.auto()  # Terminada mecano viendo stats
     ready = enum.auto()  # Texto cargado listo para mecanografiar
     finish = enum.auto()  # Texto terminado de mecanografiar
 
-class AppState:
+class AppState: # TODO Añadir resto de modos
     """Clase para llevar registro
     del estado de la app
 

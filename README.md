@@ -31,3 +31,12 @@ Poner un teclado virtual y mostrar las stats en el teclado ?
 Meter alguans configuraciones para la app que pueda
 personalizar el usuario: paleta de colores ?, carga de archivos?
 etc
+
+- 27/02/2024
+Odei me explica cómo será su examen y me detalla que en él, escuchará un audio (de 1 min) y tras él, tendrá un tiempo limitado para transcribir el contenido del mismo lo más fielmente posible.
+Esto hace que me plantee lo siguiente:
+    - Posibilidad de una nueva modalidad en la aplicación que sea **Examinar**
+    - Buscar IA de text to speech que reproduzca el contenido de un archivo.
+    - Cargar en la app un directorio con archivos .**txt** y que al hacer clic en **empezar** la app aleatoriamente escoja uno.
+    - Al terminar enviar el texto original y la transcripción para que chatgpt la evalúe.
+    - chatgpt devolverá en formato **json** la puntuación del 1 al 10 de la calidad de la transcripción en relación a la cantidad de información retenida y los fallos encontrados o las mejoras a realizar.

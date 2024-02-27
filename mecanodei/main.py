@@ -30,6 +30,8 @@ from mecanodei.components.ref_text import ListViewTextBox
 # TODO Hacer que escape sea para escapar del writing y pase a ready ?
 # TODO Crear las diferentes secciones en Views independientes
 # TODO El timer que devuelva minutos si mas de 60 s
+# TODO boton repetir para repetir el mismo texto ya cargado ?
+# TODO Crear funcionalidad transcripción de audio
 
 MAX_LEN_CHAR = 350
 NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Escape']
@@ -60,7 +62,7 @@ def main(page: ft.Page) -> None:
     page.window_resizable = False
     page.horizontal_alignment = ft.MainAxisAlignment.CENTER
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
-    #page.bgcolor = ft.colors.BLUE_50
+
 
 
     # Funciones
@@ -235,7 +237,7 @@ def main(page: ft.Page) -> None:
                 boton_cargar_archivo.disabled = False
         page.update()
 
-
+    ### INICIO VIEW MECANOGRAFIAR #############################################
     # Estado de la app
     # TODO : Meter en componente tipo luz de estado
     texto_app_state = ft.Text(app.state, size=styles.TextSize.LARGE.value)
@@ -268,11 +270,11 @@ def main(page: ft.Page) -> None:
         ],
         alignment=ft.CrossAxisAlignment.CENTER
         ),
-        **styles.contenedor_mecanografiar
+        **styles.contenedor_load
     )
 
 
-    ### Zona de mecanografiado ###
+    ### Zona de Texto Referencia ###
     texto_mecanografiar = ListViewTextBox(
         text_size=styles.TextSize.BIG.value
         )
@@ -289,24 +291,31 @@ def main(page: ft.Page) -> None:
     texto_cuenta_atras = ft.Text(
         size=60,
         color=ft.colors.AMBER_500,
-        weight=ft.FontWeight.BOLD)
-    box_num_aciertos = StatBox('Aciertos')
+        weight=ft.FontWeight.BOLD,
+        )
+    box_num_aciertos = StatBox(
+        'Aciertos',
+        ayuda="""Porcentaje de caracteres acertados
+        respecto al total""")
     box_num_caracteres = StatBox('Totales')
     box_num_correctos = StatBox('Correctas')
     box_num_errores = StatBox('Errores')
-    box_tiempo_tardado = StatBox('Tiempo')
+    box_tiempo_tardado = StatBox(
+        'Tiempo',
+        text_size=styles.TextSize.LARGER.value,
+        )
     box_num_palabras = StatBox('Palabras')
-    box_velocidad_ppm = StatBox('PPM')   
-
+    box_velocidad_ppm = StatBox('PPM')
 
     texto_escrito = ListViewTextBox(
-        text_size=styles.TextSize.LARGE.value
+        text_size=styles.TextSize.LARGE.value,
+        text_color=styles.Colors.fondo_mecano
         )
     contenedor_texto_escrito = ft.Container(
                 texto_escrito,
                 height=100,
-                width=450,
-                **styles.contenedor_mecanografiar
+                width=400,
+                **styles.contenedor_txt_escrito
             )
     contenedor_finish_stats = ft.Container(
         ft.Row([        
@@ -318,7 +327,7 @@ def main(page: ft.Page) -> None:
                 box_num_palabras,
                 box_velocidad_ppm,
         ],
-        alignment=ft.MainAxisAlignment.CENTER,
+        alignment=ft.MainAxisAlignment.SPACE_EVENLY,
         expand=True,
         ),
         height=contenedor_texto_escrito.height,
@@ -355,8 +364,43 @@ def main(page: ft.Page) -> None:
     page.on_keyboard_event = on_keyboard
     page.update()
 
+    ### FIN VIEW MECANOGRAFIAR ##############################################
+
+    ### INICIO VIEW EXAMINAR ################################################
+    # TODO Zona de carga de directorio
+    # TODO directorio con muchos txt, FileManager para cargar uno aleatorio
+    # TODO Boton empezar: reproduce audio y bloquea la entrada de texto
+
+    ### ZONA CARGA ###
+    cont_load = ft.Container(
+        ft.Row([
+            ft.ElevatedButton('Cargar Directorio'),
+            ft.ElevatedButton('Reproducir')
+        ])
+    )
+
+    ### ZONA TRANSCRIPCION TEXT ###
+    cont_trans = ft.Container(
+        ft.TextField(
+            width=600,
+            expand=True,
+            multiline=True,
+        ),
+        bgcolor=styles.Colors.fondo_mecano
+    )
+
+    contenedor_transcripcion_global = ft.Container(
+        ft.Column([
+            cont_load,
+            cont_trans
+        ])
+    )
+
+    ### FIN VIEW EXAMINAR ###################################################
+
+    ### TABS ###
     t = ft.Tabs(
-        selected_index=1,
+        selected_index=2,
         animation_duration=100,
         indicator_color=ft.colors.BLUE_500,
         indicator_tab_size=True,
@@ -370,6 +414,10 @@ def main(page: ft.Page) -> None:
             ft.Tab(
                 tab_content=ft.Icon(ft.icons.KEYBOARD),
                 content=contenedor_global,
+            ),
+            ft.Tab(
+                tab_content=ft.Icon(ft.icons.TRANSCRIBE),
+                content=contenedor_transcripcion_global,
             ),
             ft.Tab(
                 tab_content=ft.Icon(ft.icons.AUTO_GRAPH_OUTLINED),

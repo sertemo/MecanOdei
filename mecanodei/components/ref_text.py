@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Generator
+from typing import Generator, Any
 
 import flet as ft
 
@@ -20,7 +20,6 @@ import mecanodei.styles.styles as styles
 from mecanodei.utils.text import Batcher, quitar_tildes
 
 
-# TODO usar una key para cada linea de la listview
 # TODO utilizar el método scroll_to a medida que se va escribiendo
 
 class ListViewTextBox(ft.UserControl):
@@ -33,9 +32,12 @@ class ListViewTextBox(ft.UserControl):
     ft : _type_
         _description_
     """
-    def __init__(self, text_size: styles.TextSize) -> None:
+    def __init__(self,
+                text_size: styles.TextSize,
+                text_color: Any = ft.colors.BLACK87) -> None:
         super().__init__()
         self.text_size = text_size
+        self.text_color = text_color
         self.char_linea = 52 # Número de caracteres a mostrar por linea
         self.texto = ft.ListView(
             controls=[], 
@@ -114,9 +116,10 @@ class ListViewTextBox(ft.UserControl):
                                 content=ft.Text(
                                     letra,
                                     size=self.text_size,
-                                    weight=ft.FontWeight.BOLD
+                                    weight=ft.FontWeight.BOLD,
+                                    color=self.text_color,
                                     ),
-                                border_radius=1,
+                                border_radius=0,
                                 padding=0,
                                 #border=ft.border.all(0.3)
                                 ) for letra in linea],
@@ -152,12 +155,12 @@ class ListViewTextBox(ft.UserControl):
         self.texto.controls[pos_linea].content.controls[pos_char] \
                 .content.color = ft.colors.BLACK
         # pintamos también el borde sutilmente
-        self.texto.controls[pos_linea].content.controls[pos_char] \
+        """ self.texto.controls[pos_linea].content.controls[pos_char] \
                 .border = ft.border.only(
                             bottom=ft.BorderSide(
                                 color=ft.colors.BLACK,
                                 width=styles.BorderWidth.SMALL.value),
-                )
+                ) """
         self.update()
 
 

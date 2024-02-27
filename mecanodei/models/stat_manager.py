@@ -169,7 +169,7 @@ class StatManager:
             aciertos en porcentaje,
             redondeado
         """
-        return f'{(self.get_corrects() / self.get_totals()):.1%}'
+        return f'{(self.get_corrects() / self.get_totals())}'
 
 
     def calc_words_per_minute(self,
