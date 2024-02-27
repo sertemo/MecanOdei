@@ -29,6 +29,7 @@ from mecanodei.components.ref_text import ListViewTextBox
 
 # TODO Hacer que escape sea para escapar del writing y pase a ready ?
 # TODO Crear las diferentes secciones en Views independientes
+# TODO El timer que devuelva minutos si mas de 60 s
 
 MAX_LEN_CHAR = 350
 NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Escape']
@@ -50,15 +51,16 @@ def main(page: ft.Page) -> None:
         robotoslab/RobotoSlab%5Bwght%5D.ttf""",
     }
     page.title = 'MecanOdei'
+    page.theme_mode = 'dark'
     page.theme = ft.Theme(
         font_family="RobotoSlab",
         )
-    page.window_min_width = 1024
-    page.window_min_height = 760
-    page.window_resizable = True
+    page.window_width = 1024
+    page.window_height = 760
+    page.window_resizable = False
     page.horizontal_alignment = ft.MainAxisAlignment.CENTER
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
-    page.bgcolor = ft.colors.BLUE_50
+    #page.bgcolor = ft.colors.BLUE_50
 
 
     # Funciones

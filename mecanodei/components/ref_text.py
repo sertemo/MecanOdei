@@ -36,7 +36,7 @@ class ListViewTextBox(ft.UserControl):
     def __init__(self, text_size: styles.TextSize) -> None:
         super().__init__()
         self.text_size = text_size
-        self.palabras_linea = 7
+        self.char_linea = 52 # Número de caracteres a mostrar por linea
         self.texto = ft.ListView(
             controls=[], 
             spacing=0,
@@ -102,7 +102,7 @@ class ListViewTextBox(ft.UserControl):
         # Limpiamos el texto anterior
         self.texto.controls.clear()
         # Inicializamos el batcher
-        self.batcher = Batcher(text, self.palabras_linea)
+        self.batcher = Batcher(text, self.char_linea)
         # Iteramos sobre cada linea
         for idx, linea in enumerate(self.batcher):
             # Creamos contenedores por caracter
@@ -145,12 +145,19 @@ class ListViewTextBox(ft.UserControl):
             _description_
         """
         pos_linea, pos_char = posicion
+        # Pintamos fondo de verde
         self.texto.controls[pos_linea].content.controls[pos_char] \
                 .bgcolor = styles.Colors.verde_texto_correcto
+        # Pintamos letra en negro para mayor contraste
+        self.texto.controls[pos_linea].content.controls[pos_char] \
+                .content.color = ft.colors.BLACK
         # pintamos también el borde sutilmente
-        """ self.texto.controls[pos_linea].content.controls[pos_char] \
-                .border = ft.border.all(
-                            width=styles.BorderWidth.SMALLEST.value) """
+        self.texto.controls[pos_linea].content.controls[pos_char] \
+                .border = ft.border.only(
+                            bottom=ft.BorderSide(
+                                color=ft.colors.BLACK,
+                                width=styles.BorderWidth.SMALL.value),
+                )
         self.update()
 
 

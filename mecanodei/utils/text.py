@@ -40,29 +40,38 @@ def quitar_tildes(texto: str) -> str:
 
 
 class Batcher(Sequence):
-    def __init__(self, text: str, palabras_linea: int) -> None:
-        if palabras_linea <= 0:
-            raise ValueError("palabras_linea debe ser mayor que 0")
+    def __init__(self, text: str, caracteres_linea: int) -> None:
         self.text = text
         self.lista_palabras = self.text.split()
-        self.palabras_linea = palabras_linea
+        self.caracteres_linea = caracteres_linea
+        self.idx = 0
+        self.dataset = []
+        self._build_dataset()
+
+    def _build_dataset(self) -> None:
+        while self.idx < len(self.lista_palabras):
+            row = [] # lista con las palabras
+            caracteres = 0 # caracteres de la linea
+            # Meter la primera palabra
+            while (caracteres < self.caracteres_linea) \
+                and (self.idx < len(self.lista_palabras)):
+                row.append(self.lista_palabras[self.idx])
+                self.idx += 1
+                # Comprobar si se alcanza el maximo de char
+                # Añadimos 1 espacio por palabra
+                caracteres = sum([len(char) + 1 for char in row])
+            self.dataset.append(row)
 
     def __len__(self) -> int:
-        # Retorna el número total de lineas
-        return math.ceil(len(self.lista_palabras) / self.palabras_linea)
+        # Retorna el número total de "líneas"
+        return len(self.dataset)
 
     def __getitem__(self, idx: int) -> list[str]:
         if idx < 0 or idx >= self.__len__():
             raise IndexError("Índice fuera de rango")
-        
-        if idx == 0:
-            return " ".join(self.lista_palabras[
-                idx * self.palabras_linea : self.palabras_linea * (idx + 1)])
-
-        # Para índices mayores a 0 metemos un caracter en blanco al principio
-        linea = self.lista_palabras[
-            idx * self.palabras_linea : self.palabras_linea * (idx + 1)]
-        # Añadimos un espacio en blanco al principio
-        return " " + " ".join(linea)
+        # A la última línea no le agregamos un espacio al final
+        if idx == self.__len__() - 1: 
+            return " ".join(self.dataset[idx])
+        return " ".join(self.dataset[idx]) + " "
 
 
