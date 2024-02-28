@@ -32,7 +32,7 @@ class StatBox(ft.UserControl):
     def __init__(self,
                 cabecera: str,
                 ayuda: str = "",
-                text_size: int = styles.TextSize.BIG.value) -> None: # TODO agregar posiblidad de tooltip
+                text_size: int = styles.TextSize.BIG.value) -> None:
         super().__init__()
         self.cabecera = cabecera
         self.init = ""
@@ -59,7 +59,7 @@ class StatBox(ft.UserControl):
             **styles.box_stats,
             alignment=ft.alignment.center,
             #expand=True,
-            width=76,
+            width=108,
             tooltip=self.ayuda
         )
 

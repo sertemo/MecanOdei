@@ -14,7 +14,6 @@
 
 from dataclasses import dataclass
 
-# TODO Crear un protocol o abstractclass?
 
 @dataclass
 class CharTrack:
@@ -22,7 +21,6 @@ class CharTrack:
     actual: str
     typed: str
     prev: str = None
-    next: str = None
 
 
 class StatManager:
@@ -63,7 +61,6 @@ class StatManager:
                     indice: int,
                     actual: str,
                     prev: str = None,
-                    next: str = None
                     ) -> None:
         """Esta función se encarga
         de añadir a la lista de caracteres correctos
@@ -93,7 +90,6 @@ class StatManager:
                     actual=actual,
                     typed=actual,
                     prev=prev,
-                    next=next
                 )
             )
 
@@ -103,7 +99,6 @@ class StatManager:
                         actual: str,
                         typed: str,
                         prev: str = None,
-                        next: str = None
                         ) -> None:
         self.lista_fallos.append(
             CharTrack(
@@ -111,7 +106,6 @@ class StatManager:
                 actual=actual,
                 typed=typed,
                 prev=prev,
-                next=next
             )
         )
 
@@ -169,7 +163,7 @@ class StatManager:
             aciertos en porcentaje,
             redondeado
         """
-        return f'{(self.get_corrects() / self.get_totals())}'
+        return f'{(self.get_corrects() / self.get_totals()):.1%}'
 
 
     def calc_words_per_minute(self,

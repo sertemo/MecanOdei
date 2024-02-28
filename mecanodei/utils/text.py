@@ -15,7 +15,6 @@
 # Script que recoge las funciones responsables de procesar texto.
 
 from collections.abc import Sequence
-import math
 import unicodedata
 
 def quitar_tildes(texto: str) -> str:

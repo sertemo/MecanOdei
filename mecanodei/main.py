@@ -26,12 +26,14 @@ from mecanodei.models.char_iterator import CharIterator
 import mecanodei.styles.styles as styles
 from mecanodei.components.stats import StatBox
 from mecanodei.components.ref_text import ListViewTextBox
+from mecanodei.components.custom_button import CustomButton
 
 # TODO Hacer que escape sea para escapar del writing y pase a ready ?
 # TODO Crear las diferentes secciones en Views independientes
 # TODO El timer que devuelva minutos si mas de 60 s
 # TODO boton repetir para repetir el mismo texto ya cargado ?
 # TODO Crear funcionalidad transcripción de audio
+# TODO Poner iconos en las stats
 
 MAX_LEN_CHAR = 350
 NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Escape']
@@ -91,8 +93,9 @@ def main(page: ft.Page) -> None:
                     # Cargamos el texto en el contenedor de referencia
                     texto_mecanografiar.create_text(texto)
                     # Mostramos el número de caracteres
-                    texto_mensaje.value = f"""{len(texto)} caracteres\
-                    {texto_mecanografiar.num_palabras} palabras"""
+                    texto_caracteres.text = f"{len(texto)}"
+                    texto_palabras.text = \
+                        f'{texto_mecanografiar.num_palabras}'
                     # Habilitamos boton empezar
                     boton_empezar.disabled = False
                     # Creamos el iterador que devolverá caracteres y posiciones
@@ -114,13 +117,28 @@ def main(page: ft.Page) -> None:
         box_num_correctos.reset_stat()
         box_num_errores.reset_stat()
         box_num_aciertos.reset_stat()
-        box_num_caracteres.reset_stat()
         box_tiempo_tardado.reset_stat()
         box_velocidad_ppm.reset_stat()
         # Borramos el texto del manager
         text_manager.reset_typed_text()
         # Borramos la visualización del texto escrito
         texto_escrito.clean_text()
+
+    # TODO esta lógica no funciona
+    def clic_repetir(e: ft.ControlEvent) -> None:
+        """Lógica para el botón repetir.
+
+        Parameters
+        ----------
+        e : ft.ControlEvent
+            _description_
+        """
+        # Ponemos la app en ready
+        app.ready_mode()
+        # Volvemos a instanciar el componente ref text
+        texto_mecanografiar.create_text(text_manager.raw_text)
+        # clicamos empezar
+        clic_empezar(e)
 
 
     def clic_empezar(e: ft.ControlEvent) -> None:
@@ -147,7 +165,7 @@ def main(page: ft.Page) -> None:
             # Iniciamos contador interno
             timer.start_timer()
             # Desabilitamos carga de archivo
-            boton_cargar_archivo.disabled = True # TODO meter en función con setattr?
+            boton_cargar_archivo.disable()
             # Deshabilitamos boton empezar
             boton_empezar.disabled = True
             # Crea el siguiente caracter de la lista (no lo devuelve)
@@ -166,7 +184,7 @@ def main(page: ft.Page) -> None:
         y actualizando el contador de posición y errores según corresponda.
         posicion es (linea, caracter en la linea)
         """
-        # TODO Ver como poder ahora sacar el caracter previo y siguiente
+        # TODO Ver como poder ahora sacar el caracter previo
         # Sacamos el previo y el siguiente para las stats
         # prev_char = text_manager.get_char(max(0, idx-1))
         # next_char = text_manager.get_char(min(idx+1, text_manager.text_len-1))
@@ -225,51 +243,99 @@ def main(page: ft.Page) -> None:
                 # Poblamos las estadisticas para mostrar
                 box_num_correctos.show_stat(stat_manager.get_corrects())
                 box_num_errores.show_stat(stat_manager.get_incorrects())
-                box_num_caracteres.show_stat(stat_manager.get_totals())
                 box_tiempo_tardado.show_stat(timer.finish_timer().format())
                 box_num_aciertos.show_stat(stat_manager.calc_aciertos())
                 box_velocidad_ppm.show_stat(stat_manager.calc_words_per_minute(
                     texto_mecanografiar.num_palabras,
                     timer.finish))
-                box_num_palabras.show_stat(texto_mecanografiar.num_palabras)
-                # Habilitamos botones carga de texto
+                # Habilitamos botones carga de texto y reptir
                 # TODO Meter esta funcionalidad en función con setattr
-                boton_cargar_archivo.disabled = False
+                boton_cargar_archivo.enable()
+                boton_repetir.disabled = False
         page.update()
 
     ### INICIO VIEW MECANOGRAFIAR #############################################
     # Estado de la app
     # TODO : Meter en componente tipo luz de estado
     texto_app_state = ft.Text(app.state, size=styles.TextSize.LARGE.value)
+    
+    # TODO MEter en componente tambien
+    texto_caracteres = ft.Badge(
+        content=ft.Icon(
+            ft.icons.ABC,
+            size=40,
+            tooltip='Número de caracteres'),
+        text=0
+    )
+    texto_palabras = ft.Badge(
+        content= ft.Icon(
+            ft.icons.MENU_BOOK,
+            size=30,
+            tooltip='Número de palabras'
+            ),
+        text=0,
+    )
     texto_mensaje = ft.Text()
 
-
     ### Zona de carga de fichero ###
-    boton_cargar_archivo = ft.ElevatedButton(
-        'Cargar txt', 
-        on_click=lambda _: file_picker.pick_files(allowed_extensions=['txt']))
+    boton_cargar_archivo = CustomButton(
+        icono=ft.icons.UPLOAD_FILE,
+        texto='Cargar',
+        ayuda='Carga un archivo txt',
+        funcion=lambda _: file_picker.pick_files(allowed_extensions=['txt'])
+        )
+
     texto_path_fichero = ft.Text()
     file_picker = ft.FilePicker(on_result=abrir_fichero_texto)
+
     boton_empezar = ft.ElevatedButton(
         'Empezar',
         on_click=clic_empezar,
         disabled=True)
-    contenedor_zona_carga = ft.Container(
+    boton_repetir = ft.ElevatedButton(
+        'Repetir',
+        on_click=clic_repetir,
+        disabled=True)
+
+    contenedor_palabras = ft.Container(
         ft.Column([
-            ft.Row([
-                texto_app_state,
-                texto_mensaje,
-            ],
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-            ft.Row([
-                boton_cargar_archivo,
-                texto_path_fichero,
-                boton_empezar,
-            ],
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
+            texto_caracteres,
+            texto_palabras
         ],
-        alignment=ft.CrossAxisAlignment.CENTER
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER)
+    )
+    contenedor_zona_izquierda = ft.Container(
+        ft.Row([
+            boton_cargar_archivo,
+            ft.VerticalDivider(width=9, thickness=3, color=ft.colors.WHITE),
+            contenedor_palabras
+        ])
+    )
+    contenedor_zona_central = ft.Container(
+        ft.Column([
+            texto_app_state,
+            # TODO Meter aqui logo ?
+            texto_mensaje
+        ]),
+        bgcolor=styles.Colors.fondo_contenedores
+    )
+    contenedor_empezar = ft.Container(
+        ft.Column([
+            boton_empezar,
+            boton_repetir
+        ],
+        alignment=ft.MainAxisAlignment.START,
         ),
+        bgcolor=styles.Colors.fondo_contenedores
+    )
+
+    contenedor_zona_carga = ft.Container(
+        ft.Row([
+            contenedor_zona_izquierda,
+            contenedor_zona_central,
+            contenedor_empezar
+        ],
+        alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
         **styles.contenedor_load
     )
 
@@ -297,15 +363,19 @@ def main(page: ft.Page) -> None:
         'Aciertos',
         ayuda="""Porcentaje de caracteres acertados
         respecto al total""")
-    box_num_caracteres = StatBox('Totales')
-    box_num_correctos = StatBox('Correctas')
-    box_num_errores = StatBox('Errores')
+    #box_num_caracteres = StatBox('Totales')
+    box_num_correctos = StatBox(
+        'Correctas',
+        ayuda='Caracteres correctos')
+    box_num_errores = StatBox(
+        'Errores',
+        ayuda='Caracteres no acertados a la primera')
     box_tiempo_tardado = StatBox(
         'Tiempo',
-        text_size=styles.TextSize.LARGER.value,
         )
-    box_num_palabras = StatBox('Palabras')
-    box_velocidad_ppm = StatBox('PPM')
+    box_velocidad_ppm = StatBox(
+        'PPM',
+        ayuda='Palabras por minuto')
 
     texto_escrito = ListViewTextBox(
         text_size=styles.TextSize.LARGE.value,
@@ -321,10 +391,8 @@ def main(page: ft.Page) -> None:
         ft.Row([        
                 box_num_correctos,
                 box_num_errores,
-                box_num_caracteres,                    
                 box_num_aciertos,
                 box_tiempo_tardado,
-                box_num_palabras,
                 box_velocidad_ppm,
         ],
         alignment=ft.MainAxisAlignment.SPACE_EVENLY,
@@ -400,7 +468,7 @@ def main(page: ft.Page) -> None:
 
     ### TABS ###
     t = ft.Tabs(
-        selected_index=2,
+        selected_index=1,
         animation_duration=100,
         indicator_color=ft.colors.BLUE_500,
         indicator_tab_size=True,

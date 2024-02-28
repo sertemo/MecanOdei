@@ -65,7 +65,7 @@ contenedor_mecanografiar = dict(
 )
 
 contenedor_load = dict(
-    padding=PaddingSize.LARGE.value,
+    padding=PaddingSize.SMALL.value,
     bgcolor=Colors.fondo_contenedores,
     border_radius=BorderRadiusSize.MEDIUM.value,
     #border=ft.border.all(0.8, color=Colors.borde_contenedores)
@@ -81,7 +81,7 @@ contenedor_txt_escrito = dict(
 contenedor_stats = dict(
     bgcolor=Colors.fondo_contenedores,
     border_radius=BorderRadiusSize.MEDIUM.value,
-    padding=PaddingSize.SMALL.value,
+    padding=PaddingSize.MEDIUM.value,
     #border=ft.border.all(0.8, color=Colors.borde_contenedores)
 )
 
@@ -89,6 +89,6 @@ box_stats = dict(
     margin=3,
     bgcolor=Colors.fondo_contenedores,
     border_radius=BorderRadiusSize.SMALL.value,
-    padding=PaddingSize.MEDIUM.value,
+    padding=PaddingSize.SMALL.value,
     #border=ft.border.all(0.8, color=Colors.borde_contenedores)
 )
