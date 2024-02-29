@@ -61,9 +61,11 @@ class Batcher(Sequence):
                 caracteres = sum([len(char) + 1 for char in row])
             self.dataset.append(row)
 
+
     def __len__(self) -> int:
         # Retorna el número total de "líneas"
         return len(self.dataset)
+
 
     def __getitem__(self, idx: int) -> list[str]:
         if idx < 0 or idx >= self.__len__():

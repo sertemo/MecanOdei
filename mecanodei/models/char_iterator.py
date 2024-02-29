@@ -19,6 +19,9 @@ class CharIterator:
     """Clase que encapsula el iterador
     de caracteres y la posición
     """
+    def __init__(self) -> None:
+        self._prev_char = ""
+        self._next_char = ""
 
     def build_iterator(self, texto_mecanografiar: ListViewTextBox) -> None:
         """Crea un iterador (iter) a partir del componente texto_mecanografiar
@@ -36,17 +39,23 @@ class CharIterator:
         """Crea el self.next y self.posicion
         los extrae pidiendole al generador de RefText
         Si se ha agotado el iterador los asigna a None
-
+        el iterador va a devolver una namedtuple con:
+        current_char
+        current_char_pos
+        prev_char
         """
         try:
+            self._prev_char = self._next_char
             self._next_char, self._next_pos = next(self.iter)
         except StopIteration:
             self._next_char = self._next_pos = None
 
 
-    def get_next(self) -> tuple[str, tuple[int]] | None:
-        """Devuelve el siguiente caracter y su
+    def get_next(self) -> tuple[str, tuple[int], str] | None:
+        """Devuelve:
+        el siguiente caracter y su
         posicion extraidos del generador
+        y el caracter previo
 
         Returns
         -------
@@ -54,4 +63,4 @@ class CharIterator:
             Devuelve None cuando el generado se ha agotado,
             es decir no hay más caracteres en el texto
         """
-        return self._next_char, self._next_pos
+        return self._next_char, self._next_pos, self._prev_char

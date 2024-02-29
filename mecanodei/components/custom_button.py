@@ -34,7 +34,7 @@ class CustomButton(ft.UserControl):
         self.ayuda = ayuda
         self.icono = icono
         self.texto = texto
-        self.bgcolor = ft.colors.BLACK38
+        self.bgcolor = ft.colors.BLACK87
         self.funcion = funcion
         self.boton = ft.Container(
             content=ft.Row([
@@ -47,6 +47,7 @@ class CustomButton(ft.UserControl):
             tooltip=self.ayuda,
             on_hover=self.hover,
             ink=True,
+            border=ft.border.all(0.8, color=ft.colors.WHITE70),
             # TODO Meter en estilos 
             height=85,
             width=100,

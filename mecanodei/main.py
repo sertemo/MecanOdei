@@ -27,15 +27,20 @@ import mecanodei.styles.styles as styles
 from mecanodei.components.stats import StatBox
 from mecanodei.components.ref_text import ListViewTextBox
 from mecanodei.components.custom_button import CustomButton
+from mecanodei.components.app_state import AppStateLight
 
 # TODO Hacer que escape sea para escapar del writing y pase a ready ?
 # TODO Crear las diferentes secciones en Views independientes
 # TODO El timer que devuelva minutos si mas de 60 s
 # TODO boton repetir para repetir el mismo texto ya cargado ?
 # TODO Crear funcionalidad transcripción de audio
-# TODO Poner iconos en las stats
+# TODO Gestionar mensaje de error
+# TODO Agrupar bien en estilos y configuracion
+# TODO Añadir en view Menu desplegable con usuarios: ligado a las tablas de la DB
 
-MAX_LEN_CHAR = 350
+# TODO Meter en config
+USERS = ['Odei Bilbao']
+MAX_LEN_CHAR = 600
 NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Escape']
 
 def main(page: ft.Page) -> None:
@@ -60,7 +65,7 @@ def main(page: ft.Page) -> None:
         font_family="RobotoSlab",
         )
     page.window_width = 1024
-    page.window_height = 760
+    page.window_height = 770
     page.window_resizable = False
     page.horizontal_alignment = ft.MainAxisAlignment.CENTER
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
@@ -89,7 +94,7 @@ def main(page: ft.Page) -> None:
                 # Validar el texto
                 if len(texto) <= MAX_LEN_CHAR:
                     # Ponemos ready la app y mostramos
-                    texto_app_state.value = app.ready_mode()                    
+                    light_app_state.to(app.ready_mode())
                     # Cargamos el texto en el contenedor de referencia
                     texto_mecanografiar.create_text(texto)
                     # Mostramos el número de caracteres
@@ -102,9 +107,11 @@ def main(page: ft.Page) -> None:
                     char_iterator.build_iterator(texto_mecanografiar)
 
                 else:
+                    # Ponemos app en modo error
+                    light_app_state.to(app.error_mode())
                     # Mostramos mensaje de error
-                    texto_mensaje.value = f"""El archivo supera los 
-                    {MAX_LEN_CHAR} caracteres. Tiene {len(texto)}"""
+                    err_msg = f'{len(texto)} caracteres > {MAX_LEN_CHAR}'
+                    texto_mensaje.value = err_msg
             page.update()
 
 
@@ -133,12 +140,13 @@ def main(page: ft.Page) -> None:
         e : ft.ControlEvent
             _description_
         """
-        # Ponemos la app en ready
-        app.ready_mode()
-        # Volvemos a instanciar el componente ref text
-        texto_mecanografiar.create_text(text_manager.raw_text)
-        # clicamos empezar
-        clic_empezar(e)
+        if app.state == State.finish:
+            # Ponemos la app en ready
+            light_app_state.to(app.ready_mode())
+            # Volvemos a instanciar el componente ref text
+            texto_mecanografiar.create_text(text_manager.raw_text)
+            # clicamos empezar
+            clic_empezar(e)
 
 
     def clic_empezar(e: ft.ControlEvent) -> None:
@@ -161,13 +169,13 @@ def main(page: ft.Page) -> None:
                 time.sleep(0.9)
             texto_cuenta_atras.value = ""
             # Ponemos el texto del estado de la app
-            texto_app_state.value = app.write_mode()
+            light_app_state.to(app.write_mode())
             # Iniciamos contador interno
             timer.start_timer()
             # Desabilitamos carga de archivo
             boton_cargar_archivo.disable()
             # Deshabilitamos boton empezar
-            boton_empezar.disabled = True
+            boton_empezar.disable()
             # Crea el siguiente caracter de la lista (no lo devuelve)
             char_iterator.retrieve_next()
             page.update()
@@ -176,7 +184,8 @@ def main(page: ft.Page) -> None:
     def procesar_tecla(
             tecleado: str,
             posicion: tuple[int],
-            char_referencia: str
+            char_referencia: str,
+            prev_char: str
             ):
         """
         Procesa la tecla presionada, actualizando el texto escrito,
@@ -184,12 +193,16 @@ def main(page: ft.Page) -> None:
         y actualizando el contador de posición y errores según corresponda.
         posicion es (linea, caracter en la linea)
         """
-        # TODO Ver como poder ahora sacar el caracter previo
-        # Sacamos el previo y el siguiente para las stats
-        # prev_char = text_manager.get_char(max(0, idx-1))
-        # next_char = text_manager.get_char(min(idx+1, text_manager.text_len-1))
         # Añadimos el caracter pulsado al text manager
         text_manager.add_typed_char(tecleado)
+        # Vamos a la linea en cuestión haciendo scroll si superamos la linea 10
+        # Solo hace falta hacer scroll la primera vez
+        if (fila := posicion[0] >= 8) and (posicion[1] == 0):
+            fila_ir = max(fila, texto_mecanografiar.get_n_rows() - 1)
+            texto_mecanografiar.texto.scroll_to(
+                key=f'linea_{fila_ir}',
+                duration=0,
+                curve=ft.AnimationCurve.SLOW_MIDDLE)
         # Compara tecla con índice de marcar en texto
         # Si acierta
         if char_referencia == tecleado.lower():
@@ -199,10 +212,10 @@ def main(page: ft.Page) -> None:
             stat_manager.add_correct(
                 indice=posicion,
                 actual=char_referencia.upper(),
-                # prev=prev_char.upper(),
-                # next=next_char.upper()
+                prev=prev_char.upper(),
                 )
             # Le pedimos al iterador que extraiga el siguiente caracter
+            # Corre una posicion en el texto
             char_iterator.retrieve_next()
         else:
             # Pintamos de rojo el fondo => No ha acertado
@@ -212,8 +225,7 @@ def main(page: ft.Page) -> None:
                 indice=posicion,
                 actual=char_referencia.upper(),
                 typed=tecleado.upper(),
-                # prev=prev_char.upper(),
-                # next=next_char.upper()
+                prev=prev_char.upper(),
                 )
 
 
@@ -228,16 +240,19 @@ def main(page: ft.Page) -> None:
         # Comprobamos que la app esté en modo writing
         if app.state == State.writing:
             # Tenemos sacados el siguiente char y posicion
-            char_referencia, pos = char_iterator.get_next()
+            char_referencia, pos, prev_char = char_iterator.get_next()
             # Si no son None significa que aun tenemos caracteres
             if char_referencia is not None:
                 # Guardamos en variable el caracter tecleado
                 tecleado = str(e.key)
                 if tecleado not in NOT_SHOWN_KEYS:
-                    procesar_tecla(tecleado, pos, char_referencia)
+                    procesar_tecla(tecleado,
+                                    pos,
+                                    char_referencia,
+                                    prev_char)
             else:
                 # Ya se ha acabado el texto de ref. Ponemos en modo finish
-                texto_app_state.value = app.finish_mode()
+                light_app_state.to(app.finish_mode())
                 # Mostramos el texto escrito
                 texto_escrito.create_text(text_manager.current_typed_text)
                 # Poblamos las estadisticas para mostrar
@@ -248,18 +263,18 @@ def main(page: ft.Page) -> None:
                 box_velocidad_ppm.show_stat(stat_manager.calc_words_per_minute(
                     texto_mecanografiar.num_palabras,
                     timer.finish))
-                # Habilitamos botones carga de texto y reptir
+                # Habilitamos botones carga de texto y repetir
                 # TODO Meter esta funcionalidad en función con setattr
                 boton_cargar_archivo.enable()
-                boton_repetir.disabled = False
+                boton_repetir.enable()
         page.update()
+
 
     ### INICIO VIEW MECANOGRAFIAR #############################################
     # Estado de la app
-    # TODO : Meter en componente tipo luz de estado
-    texto_app_state = ft.Text(app.state, size=styles.TextSize.LARGE.value)
+    light_app_state = AppStateLight()
     
-    # TODO MEter en componente tambien
+    # TODO Meter en componente tambien
     texto_caracteres = ft.Badge(
         content=ft.Icon(
             ft.icons.ABC,
@@ -275,7 +290,11 @@ def main(page: ft.Page) -> None:
             ),
         text=0,
     )
-    texto_mensaje = ft.Text()
+    texto_mensaje = ft.Text(
+        'El archivo bla bla bla',
+        color=ft.colors.RED,
+        weight=ft.FontWeight.BOLD,
+        expand=True)
 
     ### Zona de carga de fichero ###
     boton_cargar_archivo = CustomButton(
@@ -288,45 +307,71 @@ def main(page: ft.Page) -> None:
     texto_path_fichero = ft.Text()
     file_picker = ft.FilePicker(on_result=abrir_fichero_texto)
 
-    boton_empezar = ft.ElevatedButton(
+    """ boton_empezar = ft.ElevatedButton(
         'Empezar',
         on_click=clic_empezar,
-        disabled=True)
-    boton_repetir = ft.ElevatedButton(
+        disabled=True) """
+    boton_empezar = CustomButton(
+        icono=ft.icons.NOT_STARTED_OUTLINED,
+        texto='Empezar',
+        ayuda='Empezar la mecanografía',
+        funcion=clic_empezar
+    )
+    """ boton_repetir = ft.ElevatedButton(
         'Repetir',
         on_click=clic_repetir,
-        disabled=True)
+        disabled=True) """
+    boton_repetir = CustomButton(
+        icono=ft.icons.RESTART_ALT,
+        texto='Repetir',
+        ayuda='Repite el texto',
+        funcion=clic_repetir
+    )
 
     contenedor_palabras = ft.Container(
         ft.Column([
             texto_caracteres,
             texto_palabras
         ],
-        horizontal_alignment=ft.CrossAxisAlignment.CENTER)
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+        alignment=ft.MainAxisAlignment.CENTER
+        ),        
     )
     contenedor_zona_izquierda = ft.Container(
         ft.Row([
             boton_cargar_archivo,
-            ft.VerticalDivider(width=9, thickness=3, color=ft.colors.WHITE),
-            contenedor_palabras
+            ft.VerticalDivider(**styles.vertical_divier),
+            contenedor_palabras,
+            ft.VerticalDivider(**styles.vertical_divier)
         ])
     )
     contenedor_zona_central = ft.Container(
         ft.Column([
-            texto_app_state,
-            # TODO Meter aqui logo ?
-            texto_mensaje
-        ]),
-        bgcolor=styles.Colors.fondo_contenedores
+            light_app_state,
+            # TODO Meter aqui logo ?            
+            ft.Container(
+                texto_mensaje,
+                bgcolor=styles.Colors.fondo_contenedores,
+                alignment=ft.alignment.center,
+                padding=styles.PaddingSize.MEDIUM.value,
+                border_radius=styles.BorderRadiusSize.SMALL.value,
+                width=600,                
+                )
+        ],
+        alignment=ft.MainAxisAlignment.CENTER,
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+        spacing=6,
+        ),       
+        width=500
     )
     contenedor_empezar = ft.Container(
-        ft.Column([
+        ft.Row([
+            ft.VerticalDivider(**styles.vertical_divier),
             boton_empezar,
             boton_repetir
         ],
         alignment=ft.MainAxisAlignment.START,
         ),
-        bgcolor=styles.Colors.fondo_contenedores
     )
 
     contenedor_zona_carga = ft.Container(
@@ -336,6 +381,7 @@ def main(page: ft.Page) -> None:
             contenedor_empezar
         ],
         alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+        height=100,
         **styles.contenedor_load
     )
 
@@ -360,25 +406,27 @@ def main(page: ft.Page) -> None:
         weight=ft.FontWeight.BOLD,
         )
     box_num_aciertos = StatBox(
-        'Aciertos',
+        icono=ft.icons.PERCENT,
         ayuda="""Porcentaje de caracteres acertados
         respecto al total""")
     #box_num_caracteres = StatBox('Totales')
     box_num_correctos = StatBox(
-        'Correctas',
+        icono=ft.icons.GPP_GOOD_OUTLINED,
         ayuda='Caracteres correctos')
     box_num_errores = StatBox(
-        'Errores',
+        icono=ft.icons.GPP_BAD_OUTLINED,
         ayuda='Caracteres no acertados a la primera')
     box_tiempo_tardado = StatBox(
-        'Tiempo',
+        icono=ft.icons.ACCESS_TIME,
+        ayuda='Tiempo tardado'
         )
     box_velocidad_ppm = StatBox(
-        'PPM',
+        icono=ft.icons.SPEED,
         ayuda='Palabras por minuto')
 
     texto_escrito = ListViewTextBox(
-        text_size=styles.TextSize.LARGE.value,
+        text_size=styles.TextSize.NORMAL.value,
+        char_linea=35,
         text_color=styles.Colors.fondo_mecano
         )
     contenedor_texto_escrito = ft.Container(
@@ -424,7 +472,7 @@ def main(page: ft.Page) -> None:
                 width=contenedor_mecanografiar.width),
             contenedor_footer,
         ],
-        alignment=ft.MainAxisAlignment.CENTER,
+        alignment=ft.MainAxisAlignment.SPACE_EVENLY,
         ),
     )
 
@@ -466,6 +514,35 @@ def main(page: ft.Page) -> None:
 
     ### FIN VIEW EXAMINAR ###################################################
 
+    ### INICIO VIEW MENU ################################################
+    user_dropdown = ft.Dropdown(
+        width=300,
+        options=[
+            ft.dropdown.Option(user) for user in USERS
+            ]
+        )
+    cont_menu_usuario = ft.Container(
+        ft.Column([
+            ft.Text('Usuario'),
+            user_dropdown
+        ],
+        alignment=ft.MainAxisAlignment.CENTER,
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER
+        ),
+        width=400,
+        margin=5,
+        **styles.contenedor_stats
+    )
+    cont_menu_principal = ft.Container(
+        ft.Row([
+            cont_menu_usuario
+            ],
+        alignment=ft.MainAxisAlignment.CENTER,
+        )
+    )
+    ### FIN VIEW MENU ###################################################
+
+
     ### TABS ###
     t = ft.Tabs(
         selected_index=1,
@@ -477,7 +554,7 @@ def main(page: ft.Page) -> None:
         tabs=[
             ft.Tab(
                 tab_content=ft.Icon(ft.icons.MENU),
-                content=ft.Text("Menú")
+                content= cont_menu_principal
             ),
             ft.Tab(
                 tab_content=ft.Icon(ft.icons.KEYBOARD),

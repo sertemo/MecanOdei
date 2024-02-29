@@ -32,6 +32,7 @@ class TextSize(Enum):
     SMALL = 4
     MEDIUM = 8
     DEFAULT = 10
+    NORMAL = 14
     LARGE = 16
     LARGER = 24
     BIG = 32
@@ -46,7 +47,7 @@ class BorderWidth(Enum):
 
 
 class Colors:
-    verde_texto_correcto = '#9DC183'
+    verde_texto_correcto = '#00b300'
     rojo_letra_incorrecta = '#CB3242'
     fondo_contenedores = ft.colors.WHITE12
     borde_contenedores = ft.colors.BLUE_500
@@ -91,4 +92,10 @@ box_stats = dict(
     border_radius=BorderRadiusSize.SMALL.value,
     padding=PaddingSize.SMALL.value,
     #border=ft.border.all(0.8, color=Colors.borde_contenedores)
+)
+
+vertical_divier = dict(
+    width=2,
+    thickness=0.8,
+    color=ft.colors.WHITE
 )

@@ -20,8 +20,6 @@ import mecanodei.styles.styles as styles
 from mecanodei.utils.text import Batcher, quitar_tildes
 
 
-# TODO utilizar el método scroll_to a medida que se va escribiendo
-
 class ListViewTextBox(ft.UserControl):
     """Componente que recoge la compartimentalizacion
     del texto en componentes y las funciones de pintado
@@ -34,11 +32,12 @@ class ListViewTextBox(ft.UserControl):
     """
     def __init__(self,
                 text_size: styles.TextSize,
+                char_linea: int = 52,
                 text_color: Any = ft.colors.BLACK87) -> None:
         super().__init__()
         self.text_size = text_size
         self.text_color = text_color
-        self.char_linea = 52 # Número de caracteres a mostrar por linea
+        self.char_linea = char_linea # Número de caracteres a mostrar por linea
         self.texto = ft.ListView(
             controls=[], 
             spacing=0,
@@ -62,15 +61,17 @@ class ListViewTextBox(ft.UserControl):
 
 
     def iterchar(self) -> Generator:
-        """Devuelve el siguiente caracter
-        del texto y su posición absoluta.
+        """Devuelve una namedtuple CharInfo con:
+        caracter actual,
+        posicion caracter actual
         Quita la puntuación y lo devuelve en minúsculas"""
         for n_fila in range(self.get_n_rows()):
             for n_char in range(self.get_n_char(n_fila)):
                 posicion = (n_fila, n_char)
                 char = self.texto.controls[n_fila].content \
                     .controls[n_char].content.value
-                yield quitar_tildes(char).lower(), posicion
+                char = quitar_tildes(char).lower()
+                yield char, posicion
 
 
     def get_n_char(self, row: int) -> int:

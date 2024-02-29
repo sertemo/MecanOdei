@@ -18,7 +18,6 @@ import flet as ft
 
 import mecanodei.styles.styles as styles
 
-# TODO Hacer stats contenedores de mismo tamaño
 class StatBox(ft.UserControl):
     """Clase que agrupa la visualización
     de las estadisticas y la lógica relacionada con ello
@@ -30,21 +29,17 @@ class StatBox(ft.UserControl):
         _description_
     """
     def __init__(self,
-                cabecera: str,
+                icono: str,
                 ayuda: str = "",
-                text_size: int = styles.TextSize.BIG.value) -> None:
+                text_size: int = styles.TextSize.LARGER.value) -> None:
         super().__init__()
-        self.cabecera = cabecera
+        self.icono = icono
         self.init = ""
         self.ayuda = ayuda
         self.text_size = text_size
         self.box = ft.Container(
-            ft.Column([
-                    ft.Text(
-                        self.cabecera,
-                        size=styles.TextSize.DEFAULT.value,
-                        text_align=ft.TextAlign.CENTER
-                        ),
+            ft.Row([
+                    ft.Icon(self.icono, size=50),
                     ft.Text(
                         self.init,
                         size=self.text_size,
@@ -53,7 +48,7 @@ class StatBox(ft.UserControl):
                     ],
             spacing=0,
             alignment=ft.MainAxisAlignment.START,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
             expand=True
             ),
             **styles.box_stats,

@@ -21,6 +21,7 @@ class State(enum.Enum):
     resting = enum.auto()  # Terminada mecano viendo stats
     ready = enum.auto()  # Texto cargado listo para mecanografiar
     finish = enum.auto()  # Texto terminado de mecanografiar
+    error = enum.auto()
 
 class AppState: # TODO Añadir resto de modos
     """Clase para llevar registro
@@ -35,6 +36,11 @@ class AppState: # TODO Añadir resto de modos
 
     def write_mode(self) -> State:
         self.state = State.writing
+        return self.state
+
+
+    def error_mode(self) -> State:
+        self.state = State.error
         return self.state
 
 
