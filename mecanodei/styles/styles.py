@@ -95,7 +95,7 @@ box_stats = dict(
 )
 
 vertical_divier = dict(
-    width=2,
+    width=20,
     thickness=0.8,
     color=ft.colors.WHITE
 )

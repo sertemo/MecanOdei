@@ -18,6 +18,7 @@ import time
 
 import flet as ft
 
+import config as conf
 from models.state import State, AppState
 from models.stat_manager import StatManager
 from models.timer import Timer
@@ -36,12 +37,8 @@ from mecanodei.components.app_state import AppStateLight
 # TODO Crear funcionalidad transcripción de audio
 # TODO Gestionar mensaje de error
 # TODO Agrupar bien en estilos y configuracion
-# TODO Añadir en view Menu desplegable con usuarios: ligado a las tablas de la DB
+# TODO Gestionar usuario
 
-# TODO Meter en config
-USERS = ['Odei Bilbao']
-MAX_LEN_CHAR = 600
-NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Escape']
 
 def main(page: ft.Page) -> None:
 
@@ -51,26 +48,78 @@ def main(page: ft.Page) -> None:
     stat_manager = StatManager()
     char_iterator = CharIterator()
 
-    # TODO Meter en config
-    page.fonts = {
-        "Kanit": """https://raw.githubusercontent.com/google/fonts/master/
-        ofl/kanit/Kanit-Bold.ttf""",
-        "vt323": "fonts/vt323-latin-400-normal.ttf",
-        "RobotoSlab": """https://github.com/google/fonts/raw/main/apache/
-        robotoslab/RobotoSlab%5Bwght%5D.ttf""",
-    }
+    page.fonts = conf.APP_FONTS
     page.title = 'MecanOdei'
     page.theme_mode = 'dark'
     page.theme = ft.Theme(
         font_family="RobotoSlab",
         )
-    page.window_width = 1024
-    page.window_height = 770
+    page.window_width = conf.WIDTH
+    page.window_height = conf.HEIGHT
     page.window_resizable = False
     page.horizontal_alignment = ft.MainAxisAlignment.CENTER
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
 
 
+    ### INICIO VIEW MENU ################################################
+
+    # Funciones
+
+    def definir_usuario(e: ft.ControlEvent) -> None:
+        """Funcion que se ejecuta al cambiar de usuario en el menú
+        establece el usuario al que se le van a guardar las
+        estadisticas
+
+        Parameters
+        ----------
+        e : ft.ControlEvent
+            _description_
+        """
+        texto_usuario.value = user_dropdown.value
+        page.update()
+
+    user_dropdown = ft.Dropdown(
+        value=conf.USERS[0],
+        width=300,
+        border_radius=styles.BorderRadiusSize.MEDIUM.value,
+        text_size=styles.TextSize.LARGE.value,
+        alignment=ft.alignment.center,
+        filled=True,
+        bgcolor=styles.Colors.fondo_contenedores,
+        content_padding=styles.PaddingSize.SMALLER.value,
+        options=[
+            ft.dropdown.Option(user) for user in conf.USERS
+            ],
+        on_change=definir_usuario,
+        )
+    
+    cont_menu_usuario = ft.Container(
+        ft.Column([
+            ft.Text(
+                'Usuario',
+                font_family='Consolas',
+                size=styles.TextSize.BIG.value,
+                weight=ft.FontWeight.BOLD,
+                ),
+            user_dropdown,
+        ],
+        alignment=ft.MainAxisAlignment.CENTER,
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER
+        ),
+        width=400,
+        margin=20,
+        **styles.contenedor_stats
+    )
+    cont_menu_principal = ft.Container(
+        ft.Row([
+            cont_menu_usuario
+            ],
+        alignment=ft.MainAxisAlignment.CENTER,
+        )
+    )
+    ### FIN VIEW MENU ###################################################
+
+    ### INICIO VIEW MECANOGRAFIAR #############################################
 
     # Funciones
     def abrir_fichero_texto(e: ft.FilePickerResultEvent) -> None:
@@ -92,7 +141,9 @@ def main(page: ft.Page) -> None:
                 # Gestiona solamente los retornos de carro
                 texto = text_manager.add_and_process_ref_text(texto)
                 # Validar el texto
-                if len(texto) <= MAX_LEN_CHAR:
+                if len(texto) <= conf.MAX_LEN_CHAR:
+                    # Quitamos el mensaje de error si lo hubiera
+                    texto_mensaje.value = ""
                     # Ponemos ready la app y mostramos
                     light_app_state.to(app.ready_mode())
                     # Cargamos el texto en el contenedor de referencia
@@ -110,7 +161,7 @@ def main(page: ft.Page) -> None:
                     # Ponemos app en modo error
                     light_app_state.to(app.error_mode())
                     # Mostramos mensaje de error
-                    err_msg = f'{len(texto)} caracteres > {MAX_LEN_CHAR}'
+                    err_msg = f'{len(texto)} caracteres > {conf.MAX_LEN_CHAR}'
                     texto_mensaje.value = err_msg
             page.update()
 
@@ -159,7 +210,7 @@ def main(page: ft.Page) -> None:
         """
         # Si estamos ready ( archivo cargado )
         # pasamos a writing
-        if app.state == State.ready:
+        if app.state == State.ready: #TODO comprobar que haya usuario seleccionado y sea válido en db
             # Borramos las visualizaciones anteriores
             borrar_stats()
             # Mostramos un contador de 3 segundos
@@ -245,7 +296,7 @@ def main(page: ft.Page) -> None:
             if char_referencia is not None:
                 # Guardamos en variable el caracter tecleado
                 tecleado = str(e.key)
-                if tecleado not in NOT_SHOWN_KEYS:
+                if tecleado not in conf.NOT_SHOWN_KEYS:
                     procesar_tecla(tecleado,
                                     pos,
                                     char_referencia,
@@ -270,7 +321,6 @@ def main(page: ft.Page) -> None:
         page.update()
 
 
-    ### INICIO VIEW MECANOGRAFIAR #############################################
     # Estado de la app
     light_app_state = AppStateLight()
     
@@ -291,10 +341,10 @@ def main(page: ft.Page) -> None:
         text=0,
     )
     texto_mensaje = ft.Text(
-        'El archivo bla bla bla',
         color=ft.colors.RED,
         weight=ft.FontWeight.BOLD,
         expand=True)
+    texto_usuario = ft.Text(user_dropdown.value)
 
     ### Zona de carga de fichero ###
     boton_cargar_archivo = CustomButton(
@@ -307,20 +357,14 @@ def main(page: ft.Page) -> None:
     texto_path_fichero = ft.Text()
     file_picker = ft.FilePicker(on_result=abrir_fichero_texto)
 
-    """ boton_empezar = ft.ElevatedButton(
-        'Empezar',
-        on_click=clic_empezar,
-        disabled=True) """
+
     boton_empezar = CustomButton(
         icono=ft.icons.NOT_STARTED_OUTLINED,
         texto='Empezar',
         ayuda='Empezar la mecanografía',
         funcion=clic_empezar
     )
-    """ boton_repetir = ft.ElevatedButton(
-        'Repetir',
-        on_click=clic_repetir,
-        disabled=True) """
+
     boton_repetir = CustomButton(
         icono=ft.icons.RESTART_ALT,
         texto='Repetir',
@@ -350,12 +394,15 @@ def main(page: ft.Page) -> None:
             light_app_state,
             # TODO Meter aqui logo ?            
             ft.Container(
-                texto_mensaje,
+                ft.Row([
+                    texto_usuario,
+                    texto_mensaje,
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                ),
                 bgcolor=styles.Colors.fondo_contenedores,
-                alignment=ft.alignment.center,
                 padding=styles.PaddingSize.MEDIUM.value,
                 border_radius=styles.BorderRadiusSize.SMALL.value,
-                width=600,                
                 )
         ],
         alignment=ft.MainAxisAlignment.CENTER,
@@ -398,7 +445,7 @@ def main(page: ft.Page) -> None:
         )
 
 
-        ### Bloque inferior Texto mecanografiado y stats ###
+    ### Bloque inferior Texto mecanografiado y stats ###
     # TODO meter en componente CountDown con un fondo y que muevan las letras
     texto_cuenta_atras = ft.Text(
         size=60,
@@ -514,38 +561,10 @@ def main(page: ft.Page) -> None:
 
     ### FIN VIEW EXAMINAR ###################################################
 
-    ### INICIO VIEW MENU ################################################
-    user_dropdown = ft.Dropdown(
-        width=300,
-        options=[
-            ft.dropdown.Option(user) for user in USERS
-            ]
-        )
-    cont_menu_usuario = ft.Container(
-        ft.Column([
-            ft.Text('Usuario'),
-            user_dropdown
-        ],
-        alignment=ft.MainAxisAlignment.CENTER,
-        horizontal_alignment=ft.CrossAxisAlignment.CENTER
-        ),
-        width=400,
-        margin=5,
-        **styles.contenedor_stats
-    )
-    cont_menu_principal = ft.Container(
-        ft.Row([
-            cont_menu_usuario
-            ],
-        alignment=ft.MainAxisAlignment.CENTER,
-        )
-    )
-    ### FIN VIEW MENU ###################################################
-
 
     ### TABS ###
     t = ft.Tabs(
-        selected_index=1,
+        selected_index=0,
         animation_duration=100,
         indicator_color=ft.colors.BLUE_500,
         indicator_tab_size=True,
