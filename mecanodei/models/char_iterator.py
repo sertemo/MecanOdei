@@ -64,3 +64,8 @@ class CharIterator:
             es decir no hay más caracteres en el texto
         """
         return self._next_char, self._next_pos, self._prev_char
+
+
+    def reset(self) -> None:
+        """Devuelve los valores a inicio"""
+        self._prev_char = self._next_char = ""

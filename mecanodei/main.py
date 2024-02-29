@@ -15,6 +15,7 @@
 # Script para desarrollar el código principal de la app con Flet
 
 import time
+from pathlib import Path
 
 import flet as ft
 
@@ -37,7 +38,8 @@ from mecanodei.components.app_state import AppStateLight
 # TODO Crear funcionalidad transcripción de audio
 # TODO Gestionar mensaje de error
 # TODO Agrupar bien en estilos y configuracion
-# TODO Gestionar usuario
+# TODO Gestionar usuario y DB
+# TODO en configuracion dar eleccion de tipo de letras?
 
 
 def main(page: ft.Page) -> None:
@@ -49,10 +51,10 @@ def main(page: ft.Page) -> None:
     char_iterator = CharIterator()
 
     page.fonts = conf.APP_FONTS
-    page.title = 'MecanOdei'
+    page.title = conf.APP_NAME
     page.theme_mode = 'dark'
     page.theme = ft.Theme(
-        font_family="RobotoSlab",
+        font_family= "RobotoSlab",
         )
     page.window_width = conf.WIDTH
     page.window_height = conf.HEIGHT
@@ -75,7 +77,7 @@ def main(page: ft.Page) -> None:
         e : ft.ControlEvent
             _description_
         """
-        texto_usuario.value = user_dropdown.value
+        texto_usuario.content.value = user_dropdown.value
         page.update()
 
     user_dropdown = ft.Dropdown(
@@ -102,6 +104,7 @@ def main(page: ft.Page) -> None:
                 weight=ft.FontWeight.BOLD,
                 ),
             user_dropdown,
+            # TODO Meter icono o logo de app
         ],
         alignment=ft.MainAxisAlignment.CENTER,
         horizontal_alignment=ft.CrossAxisAlignment.CENTER
@@ -133,7 +136,8 @@ def main(page: ft.Page) -> None:
         if app.state != State.writing:
             if e.files is not None:
                 path_txt = e.files[0].path
-                texto_path_fichero.value = path_txt
+                path_txt = Path(path_txt)
+                texto_path_fichero.value = path_txt.name
                 # Abrir el texto # TODO Meter en un FileManager ?
                 with open(path_txt, 'r', encoding='utf-8') as file:
                     texto = file.read()
@@ -142,6 +146,9 @@ def main(page: ft.Page) -> None:
                 texto = text_manager.add_and_process_ref_text(texto)
                 # Validar el texto
                 if len(texto) <= conf.MAX_LEN_CHAR:
+                    # Reseteamos el char iterator para que prev_char sea nulo
+                    # Por si teníamos otro texto cargado
+                    char_iterator.reset()
                     # Quitamos el mensaje de error si lo hubiera
                     texto_mensaje.value = ""
                     # Ponemos ready la app y mostramos
@@ -153,7 +160,7 @@ def main(page: ft.Page) -> None:
                     texto_palabras.text = \
                         f'{texto_mecanografiar.num_palabras}'
                     # Habilitamos boton empezar
-                    boton_empezar.disabled = False
+                    boton_empezar.enable()
                     # Creamos el iterador que devolverá caracteres y posiciones
                     char_iterator.build_iterator(texto_mecanografiar)
 
@@ -344,7 +351,14 @@ def main(page: ft.Page) -> None:
         color=ft.colors.RED,
         weight=ft.FontWeight.BOLD,
         expand=True)
-    texto_usuario = ft.Text(user_dropdown.value)
+    texto_usuario = ft.Container(
+        ft.Text(
+            user_dropdown.value,
+            ),
+            bgcolor=ft.colors.BLACK45,
+            border_radius=styles.BorderRadiusSize.SMALL.value,
+            padding=styles.PaddingSize.MEDIUM.value
+        )
 
     ### Zona de carga de fichero ###
     boton_cargar_archivo = CustomButton(
@@ -354,7 +368,7 @@ def main(page: ft.Page) -> None:
         funcion=lambda _: file_picker.pick_files(allowed_extensions=['txt'])
         )
 
-    texto_path_fichero = ft.Text()
+    texto_path_fichero = ft.Text(size=styles.TextSize.DEFAULT.value)
     file_picker = ft.FilePicker(on_result=abrir_fichero_texto)
 
 
@@ -375,12 +389,14 @@ def main(page: ft.Page) -> None:
     contenedor_palabras = ft.Container(
         ft.Column([
             texto_caracteres,
-            texto_palabras
-        ],
-        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-        alignment=ft.MainAxisAlignment.CENTER
-        ),        
-    )
+            texto_palabras,
+            ],
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            alignment=ft.MainAxisAlignment.CENTER
+            ),
+                            
+        )
+
     contenedor_zona_izquierda = ft.Container(
         ft.Row([
             boton_cargar_archivo,
@@ -392,13 +408,14 @@ def main(page: ft.Page) -> None:
     contenedor_zona_central = ft.Container(
         ft.Column([
             light_app_state,
-            # TODO Meter aqui logo ?            
             ft.Container(
                 ft.Row([
                     texto_usuario,
                     texto_mensaje,
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
+                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                spacing=5,
                 ),
                 bgcolor=styles.Colors.fondo_contenedores,
                 padding=styles.PaddingSize.MEDIUM.value,
@@ -421,16 +438,30 @@ def main(page: ft.Page) -> None:
         ),
     )
 
-    contenedor_zona_carga = ft.Container(
-        ft.Row([
-            contenedor_zona_izquierda,
-            contenedor_zona_central,
-            contenedor_empezar
-        ],
-        alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-        height=100,
-        **styles.contenedor_load
+
+    contenedor_texto_path = ft.Container(
+        texto_path_fichero,
+        width=200,
+        left=225,
+        top=35,
     )
+
+    contenedor_zona_carga = ft.Container(
+        ft.Stack([
+            ft.Container(
+                ft.Row([
+                    contenedor_zona_izquierda,
+                    contenedor_zona_central,
+                    contenedor_empezar
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                height=100,
+                **styles.contenedor_load
+            ),
+            contenedor_texto_path
+        ])
+    )
+
 
 
     ### Zona de Texto Referencia ###
@@ -454,18 +485,17 @@ def main(page: ft.Page) -> None:
         )
     box_num_aciertos = StatBox(
         icono=ft.icons.PERCENT,
-        ayuda="""Porcentaje de caracteres acertados
-        respecto al total""")
+        ayuda="""Precisión""")
     #box_num_caracteres = StatBox('Totales')
     box_num_correctos = StatBox(
         icono=ft.icons.GPP_GOOD_OUTLINED,
         ayuda='Caracteres correctos')
     box_num_errores = StatBox(
         icono=ft.icons.GPP_BAD_OUTLINED,
-        ayuda='Caracteres no acertados a la primera')
+        ayuda='Caracteres fallados')
     box_tiempo_tardado = StatBox(
         icono=ft.icons.ACCESS_TIME,
-        ayuda='Tiempo tardado'
+        ayuda='Tiempo'
         )
     box_velocidad_ppm = StatBox(
         icono=ft.icons.SPEED,

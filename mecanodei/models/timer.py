@@ -33,7 +33,7 @@ class Timer:
         self.finish = time.perf_counter() - self.start
         return self
 
-# TODO Formatear para mostrar minutos tambien 1'30"
+
     def format(self) -> str:
         """Formatea el tiempo
         para que se vea con la unidad
@@ -44,4 +44,7 @@ class Timer:
         str
             _description_
         """
-        return f'{self.finish:.1f}"'
+        minutos = int(self.finish // 60)
+        segundos = int(self.finish % 60)
+        mins = f"{minutos}'" if minutos else ""
+        return f'{mins}{segundos}"'
