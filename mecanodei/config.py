@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pathlib import Path
+
 # Usuarios
 USERS = [
     'Odei Bilbao',
@@ -28,7 +30,7 @@ APP_FONTS = {
 APP_NAME = 'MecanOdei'
 # Ventana
 WIDTH =1024
-HEIGHT = 770
+HEIGHT = 800
 
 # Texto importado
 MAX_LEN_CHAR = 540
@@ -37,4 +39,7 @@ MAX_LEN_CHAR = 540
 NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Escape']
 
 # DB
-DB_PATH = 'db/stats'
+DB_NAME = "stats.db"
+RUTA_RAIZ = Path.home() / Path(APP_NAME)
+FOLDER_DB = RUTA_RAIZ / Path("db")
+RUTA_COMPLETA_DB = FOLDER_DB / DB_NAME

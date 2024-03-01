@@ -38,6 +38,25 @@ def quitar_tildes(texto: str) -> str:
     return unicodedata.normalize('NFC', texto_sin_tildes)
 
 
+def create_username_for_table_db(nombre_y_apellido: str) -> str:
+    """Coge el nombre y apellidos del usuario,
+    lo transforma en minusculas y sustituye el espacio
+    por _
+
+    Parameters
+    ----------
+    nombre_y_apellido : str
+        _description_
+
+    Returns
+    -------
+    str
+        _description_
+
+    """
+    return quitar_tildes(nombre_y_apellido.lower()).replace(' ', '_')
+
+
 class Batcher(Sequence):
     def __init__(self, text: str, caracteres_linea: int) -> None:
         self.text = text

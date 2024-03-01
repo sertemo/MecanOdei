@@ -20,7 +20,7 @@ mapping_state = {
     State.ready.value: ft.colors.GREEN,
     State.writing.value: ft.colors.AMBER,
     State.resting.value: ft.colors.GREY,
-    State.finish.value: ft.colors.GREY,
+    State.finish.value: ft.colors.BLUE,
     State.error.value: ft.colors.RED
 }
 
@@ -42,8 +42,8 @@ class AppStateLight(ft.UserControl):
             content=ft.Text(""),
             shape=ft.BoxShape.CIRCLE,
             bgcolor=mapping_state[State.resting.value],
-            height=50,
-            width=50,
+            height=40,
+            width=40,
             border=ft.border.all(2, ft.colors.WHITE)
         )
 

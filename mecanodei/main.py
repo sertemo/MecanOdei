@@ -30,11 +30,10 @@ from mecanodei.components.stats import StatBox
 from mecanodei.components.ref_text import ListViewTextBox
 from mecanodei.components.custom_button import CustomButton
 from mecanodei.components.app_state import AppStateLight
+from mecanodei.db.db import SQLManager, iniciar_db
 
 # TODO Hacer que escape sea para escapar del writing y pase a ready ?
 # TODO Crear las diferentes secciones en Views independientes
-# TODO El timer que devuelva minutos si mas de 60 s
-# TODO boton repetir para repetir el mismo texto ya cargado ?
 # TODO Crear funcionalidad transcripción de audio
 # TODO Gestionar mensaje de error
 # TODO Agrupar bien en estilos y configuracion
@@ -113,13 +112,19 @@ def main(page: ft.Page) -> None:
         margin=20,
         **styles.contenedor_stats
     )
-    cont_menu_principal = ft.Container(
-        ft.Row([
-            cont_menu_usuario
-            ],
-        alignment=ft.MainAxisAlignment.CENTER,
+    cont_menu_principal = ft.Column([
+        ft.Text('Menú'),
+        ft.Container(
+            ft.Row([
+                cont_menu_usuario
+                ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            ),
+            expand=True
         )
+    ],
     )
+    
     ### FIN VIEW MENU ###################################################
 
     ### INICIO VIEW MECANOGRAFIAR #############################################
@@ -146,6 +151,8 @@ def main(page: ft.Page) -> None:
                 texto = text_manager.add_and_process_ref_text(texto)
                 # Validar el texto
                 if len(texto) <= conf.MAX_LEN_CHAR:
+                    # Verificamos si existe tabla en db
+                    iniciar_db(texto_usuario.content.value)
                     # Reseteamos el char iterator para que prev_char sea nulo
                     # Por si teníamos otro texto cargado
                     char_iterator.reset()
@@ -189,7 +196,7 @@ def main(page: ft.Page) -> None:
         # Borramos la visualización del texto escrito
         texto_escrito.clean_text()
 
-    # TODO esta lógica no funciona
+
     def clic_repetir(e: ft.ControlEvent) -> None:
         """Lógica para el botón repetir.
 
@@ -199,10 +206,15 @@ def main(page: ft.Page) -> None:
             _description_
         """
         if app.state == State.finish:
+            # Simulamos la lógica de abrir archivo
             # Ponemos la app en ready
             light_app_state.to(app.ready_mode())
+            # Reseteamos el chat iterator
+            char_iterator.reset()            
             # Volvemos a instanciar el componente ref text
             texto_mecanografiar.create_text(text_manager.raw_text)
+            # volvemos a generar un iterador
+            char_iterator.build_iterator(texto_mecanografiar)
             # clicamos empezar
             clic_empezar(e)
 
@@ -539,6 +551,7 @@ def main(page: ft.Page) -> None:
 
     contenedor_global = ft.Container(
         ft.Column([
+            ft.Text('Practicar'),
             contenedor_zona_carga,
                 ft.Stack([                
                 contenedor_mecanografiar,
@@ -584,6 +597,7 @@ def main(page: ft.Page) -> None:
 
     contenedor_transcripcion_global = ft.Container(
         ft.Column([
+            ft.Text('Transcribir'),
             cont_load,
             cont_trans
         ])

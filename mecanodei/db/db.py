@@ -18,6 +18,37 @@ import sqlite3
 from typing import Any
 
 import mecanodei.config as conf
+from mecanodei.utils.text import create_username_for_table_db
+
+# TODO DEFINIR ESQUEMA DE DB
+def iniciar_db(nombre_usuario_raw: str) -> None:
+    """Función que crea las rutas dentro de la carpeta de usuario
+    y construye la base de datos y crea una table con el usuario
+    seleccionado
+    """
+    nombre_tabla = create_username_for_table_db(nombre_usuario_raw)
+    # Creamos la carpeta si no existe
+    if not conf.RUTA_RAIZ.exists():
+        (conf.RUTA_COMPLETA_DB).mkdir(parents=True)
+        # Creamos Base de Datos con tabla
+        SQLManager.create_table(
+            db_filename=conf.RUTA_COMPLETA_DB,
+            nombre_tabla=nombre_tabla, # TODO: tabla por usuario ?
+            columnas=(
+                'id INTEGER PRIMARY KEY AUTOINCREMENT',
+                'sector TEXT',
+                'pagina INTEGER',
+                'lista INTEGER',
+                'elemento INTEGER',
+                'paginas_totales INTEGER',
+                'listas_totales INTEGER',
+                'elementos_totales INTEGER',
+                'fecha TEXT',
+            )            
+        )
+    else:
+        pass
+    # TODO Si la ruta existe tenemos que verificar si la tabla existe?
 
 
 class SQLContext:
@@ -40,10 +71,9 @@ class SQLManager:
     """ORM de lenguaje SQL con métodos para hacer operaciones
     con sqlite
     """
-    def __init__(self,
-                 *,
+    def __init__(self, *,
                 nombre_tabla: str,
-                db_filename: str = conf.NOMBRE_DB_SQLITE
+                db_filename: str = conf.RUTA_COMPLETA_DB
                 ) -> None:
         self.db_filename = db_filename
         self.tabla = nombre_tabla
@@ -53,7 +83,7 @@ class SQLManager:
         """Devuelve una lista de tuplas conteniendo 
         cada tupla los campos de cada columna
             para cada registro de la tabla dada"""
-        with SQLManager(self.db_filename) as c:
+        with SQLContext(self.db_filename) as c:
             results = c.execute(
                 f"""SELECT * from {self.tabla}"""
                 )
@@ -79,7 +109,7 @@ class SQLManager:
         list[str]
             _description_
         """
-        with SQLManager(self.db_filename) as c:
+        with SQLContext(self.db_filename) as c:
             c.execute(
                 f"PRAGMA table_info({self.tabla})"
                 )
@@ -89,7 +119,7 @@ class SQLManager:
 
 
     def add_column(self, *, nombre_columna: str, tipo_dato: str) -> None:
-        with SQLManager(self.db_filename) as c:
+        with SQLContext(self.db_filename) as c:
             c.execute(
                 f"""ALTER TABLE 
                 {self.tabla} ADD COLUMN {nombre_columna} {tipo_dato}
@@ -102,7 +132,7 @@ class SQLManager:
             nombre_columna: str,
             tipo_dato: str
             ) -> None:
-        with SQLManager(self.db_filename) as c:
+        with SQLContext(self.db_filename) as c:
             c.execute(
                 f"""ALTER TABLE 
                 {self.tabla} ADD COLUMN {nombre_columna} {tipo_dato} NULL""")
@@ -110,11 +140,12 @@ class SQLManager:
 
     def insert_one(self, columnas: dict) -> None:
         """inserta un registro en la tabla dada."""
-        with SQLManager(self.db_filename) as c:
+        with SQLContext(self.db_filename) as c:
             query = f"""
             INSERT INTO {self.tabla} ({", ".join(columnas.keys())}) 
             VALUES ({", ".join('?' * len(columnas))})"""
             c.execute(query, tuple(columnas.values()))
+
 
     def find_one(self,
                  *,
@@ -137,7 +168,7 @@ class SQLManager:
         _type_
             _description_
         """
-        with SQLManager(self.db_filename) as c:
+        with SQLContext(self.db_filename) as c:
             consulta = f"SELECT * FROM {self.tabla} WHERE {campo_buscado} = ?"
             results = c.execute(consulta, (valor_buscado,))
             return results.fetchone()
@@ -164,7 +195,7 @@ class SQLManager:
         _type_
             _description_
         """
-        with SQLManager(self.db_filename) as c:
+        with SQLContext(self.db_filename) as c:
             consulta = f"""SELECT {campo_a_retornar} 
             FROM {self.tabla} 
             WHERE {campo_buscado} = ?"""
@@ -183,14 +214,16 @@ class SQLManager:
         nombre_tabla: str,
         columnas: tuple[str]
         ) -> None:
-        with SQLManager(db_filename) as c:
+        #!debug
+        print(db_filename)
+        with SQLContext(db_filename) as c:
             c.execute(f"""
         CREATE TABLE IF NOT EXISTS {nombre_tabla} ({", ".join(columnas)})""")
         return cls
 
 
     def delete_table(self) -> None:
-        with SQLManager(self.db_filename) as c:
+        with SQLContext(self.db_filename) as c:
             c.execute(f"DELETE from {self.tabla}")
             c.execute(f"""
                     DELETE FROM sqlite_sequence WHERE name = '{self.tabla}'
@@ -198,7 +231,7 @@ class SQLManager:
 
 
     def delete_one(self, *, campo_buscado:str, valor_buscado:str) -> None:
-        with SQLManager(self.db_filename) as c:
+        with SQLContext(self.db_filename) as c:
             consulta = f"DELETE FROM {self.tabla} WHERE {campo_buscado} = ?"
             c.execute(consulta, (valor_buscado,))
 
@@ -211,7 +244,7 @@ class SQLManager:
         campo_buscado: str,
         valor_buscado: str
         ) -> None:
-        with SQLManager(self.db_filename) as c:
+        with SQLContext(self.db_filename) as c:
             consulta = f"""
             UPDATE {self.tabla} 
             SET {columna_a_actualizar} = ? WHERE {campo_buscado} = ?
@@ -234,13 +267,14 @@ class SQLManager:
             if col not in columnas:
                 raise ValueError(f"La columna {col}\
                                 no existe en la base de datos")
-        with SQLManager(self.db_filename) as c:
+        with SQLContext(self.db_filename) as c:
             consulta = f"""
             UPDATE {self.tabla} 
             SET {", ".join(col + ' = ?' for col in columnas_a_actualizar)}
             WHERE {campo_buscado} = ?;
             """
             c.execute(consulta, (*nuevos_valores, valor_campo_buscado))
+
 
 if __name__ == '__main__':
     """ SQLContext.create_table(
@@ -258,12 +292,14 @@ if __name__ == '__main__':
             'fecha TEXT',
         )
     ) """
-    db_busquedas = SQLManager(nombre_tabla='busquedas')
+    #db_busquedas = SQLContext(nombre_tabla='busquedas')
     #db_busquedas.delete_table()
     """  db_busquedas.add_column_nullable(
         nombre_columna="empresas_totales",
         tipo_dato="INTEGER"
     ) """
-    print(db_busquedas.show_table_columns())
+    """ print(db_busquedas.show_table_columns())
     print(db_busquedas.get_table())
-    print(db_busquedas.get_number_of_records())
+    print(db_busquedas.get_number_of_records()) """
+
+    iniciar_db('Odei Bilbao')
