@@ -17,10 +17,11 @@ from dataclasses import dataclass
 
 @dataclass
 class CharTrack:
-    indice: tuple[int]
-    actual: str
-    typed: str
-    prev: str = None
+    indice: tuple[int] # índice
+    actual: str # Caracter de referencia
+    typed: str # Caracter tecleado
+    prev: str = None # Caracter previo
+    word: str = None # Palabra a la que pertenece el caracter tecleado
 
 
 class StatManager:
@@ -99,6 +100,7 @@ class StatManager:
                         actual: str,
                         typed: str,
                         prev: str = None,
+                        word: str = None,
                         ) -> None:
         self.lista_fallos.append(
             CharTrack(
@@ -106,6 +108,7 @@ class StatManager:
                 actual=actual,
                 typed=typed,
                 prev=prev,
+                word=word
             )
         )
 
@@ -199,3 +202,14 @@ class StatManager:
         self.lista_aciertos.clear()
         self.lista_fallos.clear()
 
+
+if __name__ == '__main__':
+    char = CharTrack(
+        indice=(1, 1),
+        actual='g',
+        typed='h',
+        prev=' ',
+        word='gracias'
+    )
+
+    print(char.__dict__)

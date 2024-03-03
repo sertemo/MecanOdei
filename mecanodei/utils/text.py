@@ -66,6 +66,7 @@ class Batcher(Sequence):
         self.dataset = []
         self._build_dataset()
 
+
     def _build_dataset(self) -> None:
         while self.idx < len(self.lista_palabras):
             row = [] # lista con las palabras

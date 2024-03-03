@@ -34,11 +34,11 @@ from mecanodei.db.db import SQLManager, iniciar_db
 
 # TODO Hacer que escape sea para escapar del writing y pase a ready ?
 # TODO Crear las diferentes secciones en Views independientes
-# TODO Crear funcionalidad transcripción de audio
 # TODO Gestionar mensaje de error
 # TODO Agrupar bien en estilos y configuracion
 # TODO Gestionar usuario y DB
 # TODO en configuracion dar eleccion de tipo de letras?
+# TODO gestionar el shift para parentesis y : etc.
 
 
 def main(page: ft.Page) -> None:
@@ -255,7 +255,8 @@ def main(page: ft.Page) -> None:
             tecleado: str,
             posicion: tuple[int],
             char_referencia: str,
-            prev_char: str
+            prev_char: str,
+            word: str,
             ):
         """
         Procesa la tecla presionada, actualizando el texto escrito,
@@ -263,6 +264,8 @@ def main(page: ft.Page) -> None:
         y actualizando el contador de posición y errores según corresponda.
         posicion es (linea, caracter en la linea)
         """
+        # Caso especial de tecla Ñ: cambiamos ` -> ñ
+        tecleado = 'Ñ' if ord(tecleado) == 96 else tecleado
         # Añadimos el caracter pulsado al text manager
         text_manager.add_typed_char(tecleado)
         # Vamos a la linea en cuestión haciendo scroll si superamos la linea 10
@@ -288,6 +291,7 @@ def main(page: ft.Page) -> None:
             # Corre una posicion en el texto
             char_iterator.retrieve_next()
         else:
+            # Solo recogemos la palabra si falla en el caracter
             # Pintamos de rojo el fondo => No ha acertado
             texto_mecanografiar.paint_red(posicion)
             # Añadimos estadisticas al stat manager
@@ -296,6 +300,7 @@ def main(page: ft.Page) -> None:
                 actual=char_referencia.upper(),
                 typed=tecleado.upper(),
                 prev=prev_char.upper(),
+                word=word,
                 )
 
 
@@ -309,8 +314,9 @@ def main(page: ft.Page) -> None:
         """
         # Comprobamos que la app esté en modo writing
         if app.state == State.writing:
-            # Tenemos sacados el siguiente char y posicion
-            char_referencia, pos, prev_char = char_iterator.get_next()
+            # Tenemos sacados el siguiente char y posicion y palabra
+            char_referencia, pos, \
+                prev_char, word = char_iterator.get_next()
             # Si no son None significa que aun tenemos caracteres
             if char_referencia is not None:
                 # Guardamos en variable el caracter tecleado
@@ -319,7 +325,8 @@ def main(page: ft.Page) -> None:
                     procesar_tecla(tecleado,
                                     pos,
                                     char_referencia,
-                                    prev_char)
+                                    prev_char,
+                                    word)
             else:
                 # Ya se ha acabado el texto de ref. Ponemos en modo finish
                 light_app_state.to(app.finish_mode())
@@ -337,6 +344,9 @@ def main(page: ft.Page) -> None:
                 # TODO Meter esta funcionalidad en función con setattr
                 boton_cargar_archivo.enable()
                 boton_repetir.enable()
+                #! debug
+                print(stat_manager.lista_fallos)
+
         page.update()
 
 

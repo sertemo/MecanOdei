@@ -29,7 +29,7 @@ def iniciar_db(nombre_usuario_raw: str) -> None:
     nombre_tabla = create_username_for_table_db(nombre_usuario_raw)
     # Creamos la carpeta si no existe
     if not conf.RUTA_RAIZ.exists():
-        (conf.RUTA_COMPLETA_DB).mkdir(parents=True)
+        (conf.FOLDER_DB).mkdir(parents=True)
         # Creamos Base de Datos con tabla
         SQLManager.create_table(
             db_filename=conf.RUTA_COMPLETA_DB,
@@ -219,7 +219,6 @@ class SQLManager:
         with SQLContext(db_filename) as c:
             c.execute(f"""
         CREATE TABLE IF NOT EXISTS {nombre_tabla} ({", ".join(columnas)})""")
-        return cls
 
 
     def delete_table(self) -> None:

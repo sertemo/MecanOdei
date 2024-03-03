@@ -22,6 +22,8 @@ class CharIterator:
     def __init__(self) -> None:
         self._prev_char = ""
         self._next_char = ""
+        self._next_word = ""
+
 
     def build_iterator(self, texto_mecanografiar: ListViewTextBox) -> None:
         """Crea un iterador (iter) a partir del componente texto_mecanografiar
@@ -46,9 +48,9 @@ class CharIterator:
         """
         try:
             self._prev_char = self._next_char
-            self._next_char, self._next_pos = next(self.iter)
+            self._next_char, self._next_pos, self._next_word = next(self.iter)
         except StopIteration:
-            self._next_char = self._next_pos = None
+            self._next_char = self._next_pos = self._next_word = None
 
 
     def get_next(self) -> tuple[str, tuple[int], str] | None:
@@ -63,7 +65,8 @@ class CharIterator:
             Devuelve None cuando el generado se ha agotado,
             es decir no hay más caracteres en el texto
         """
-        return self._next_char, self._next_pos, self._prev_char
+        return self._next_char, \
+            self._next_pos, self._prev_char, self._next_word
 
 
     def reset(self) -> None:

@@ -38,6 +38,7 @@ class ListViewTextBox(ft.UserControl):
         self.text_size = text_size
         self.text_color = text_color
         self.char_linea = char_linea # Número de caracteres a mostrar por linea
+        self.ref_palabras: list[dict[list, str]] = [] 
         self.texto = ft.ListView(
             controls=[], 
             spacing=0,
@@ -60,18 +61,37 @@ class ListViewTextBox(ft.UserControl):
         return len(self.batcher)
 
 
-    def iterchar(self) -> Generator:
-        """Devuelve una namedtuple CharInfo con:
-        caracter actual,
-        posicion caracter actual
-        Quita la puntuación y lo devuelve en minúsculas"""
+    def _get_current_word(self, posicion: tuple[int]) -> str:
+        """Devuelve la palabra de una determinada posición
+
+        Parameters
+        ----------
+        posicion : tuple[int]
+            _description_
+
+        Returns
+        -------
+        str
+            _description_
+        """
+        fila, caracter = posicion
+        for ref_dict in self.ref_palabras[fila]:
+            if caracter in ref_dict:
+                return self.ref_palabras[fila][ref_dict]
+
+
+    def iterchar(self) -> Generator: # TODO añadir aqui lógica para sacar la palabra ?
+        """Devuelve el caracter y la posicion actuales
+        el caracter lo pasa por un procesado que quita tildes
+        y pasa a minusculas"""
         for n_fila in range(self.get_n_rows()):
             for n_char in range(self.get_n_char(n_fila)):
                 posicion = (n_fila, n_char)
                 char = self.texto.controls[n_fila].content \
                     .controls[n_char].content.value
                 char = quitar_tildes(char).lower()
-                yield char, posicion
+                word = self._get_current_word((n_fila, n_char))
+                yield char, posicion, word
 
 
     def get_n_char(self, row: int) -> int:
@@ -91,6 +111,21 @@ class ListViewTextBox(ft.UserControl):
         return len(self.texto.controls[row].content.controls)
 
 
+    def _get_word_init(self, frase: str) -> list[int]:
+        """Devuelve una lista de los indices de comienzo
+        de cada palabra"""
+        indices = [0]  # La primera palabra siempre empieza en el índice 0
+
+        # Recorremos la frase empezando por el índice 1
+        for i in range(1, len(frase)):
+            # Si el carácter anterior es un espacio, entonces el carácter actual
+            # es el inicio de una nueva palabra
+            if frase[i-1] == ' ':
+                indices.append(i)
+        
+        return indices
+
+
     def create_text(self, text: str) -> None:
         """Crea contenedores para cada letra y
         los introduce en la Fila principal
@@ -101,13 +136,31 @@ class ListViewTextBox(ft.UserControl):
             _description_
         """
         # Guardamos numero de palabras del texto
-        self.num_palabras = len(text.split())
+        self.num_palabras = len(self.ref_palabras)
         # Limpiamos el texto anterior
         self.texto.controls.clear()
         # Inicializamos el batcher
         self.batcher = Batcher(text, self.char_linea)
         # Iteramos sobre cada linea
         for idx, linea in enumerate(self.batcher):
+            # Creamos un mapa que mapee los inicios de cada palabra
+            # en forma de range(0,5): 'palabra' etc
+            palabras_linea = linea.split()
+            num_pal_linea = len(palabras_linea)
+            # Sacamos lista con inicios de palabras
+            lista_indices_principios = self._get_word_init(linea)
+            # Creamos un dict con clave range(indice palabra)
+            # y valor la palabra
+            refs = {}
+            for idx in range(num_pal_linea):
+                indice_inicio_palabra = lista_indices_principios[idx]
+                indice_final_palabra = lista_indices_principios[idx] \
+                    + len(palabras_linea[idx])
+                refs[range(indice_inicio_palabra, indice_final_palabra)] = \
+                    palabras_linea[idx]
+            # Por cada linea hemos creado un dict que vincula caracteres
+            # con palabras
+            self.ref_palabras.append(refs)
             # Creamos contenedores por caracter
             self.texto.controls.append(
                 ft.Container(

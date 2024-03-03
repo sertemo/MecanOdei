@@ -40,3 +40,8 @@ Esto hace que me plantee lo siguiente:
     - Cargar en la app un directorio con archivos .**txt** y que al hacer clic en **empezar** la app aleatoriamente escoja uno.
     - Al terminar enviar el texto original y la transcripción para que chatgpt la evalúe.
     - chatgpt devolverá en formato **json** la puntuación del 1 al 10 de la calidad de la transcripción en relación a la cantidad de información retenida y los fallos encontrados o las mejoras a realizar.
+
+## Mejoras a implementar
+### 03/03/2024
+- En la partede Estadísticas, trackear la palabra perteneciente a las letras falladas
+- [x] Hay un problema capturando la **Ñ**

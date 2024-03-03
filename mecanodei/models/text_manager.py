@@ -24,12 +24,10 @@ class TypedTextManager:
         self.current_typed_text: str = ''
         self.raw_text: str = ''
 
+
     def add_and_process_ref_text(self, text: str) -> str:
         """Crea un raw text quitando retornos de carro
-        y destila el texto pasando a minusculas
-        y quitando puntuaciones para poder comparar
-        con los caracteres pulsados
-
+        
         Parameters
         ----------
         text : str
