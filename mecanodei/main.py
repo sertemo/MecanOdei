@@ -32,13 +32,15 @@ from mecanodei.components.custom_button import CustomButton
 from mecanodei.components.app_state import AppStateLight
 from mecanodei.db.db import SQLManager, iniciar_db
 
-# TODO Hacer que escape sea para escapar del writing y pase a ready ?
 # TODO Crear las diferentes secciones en Views independientes
 # TODO Gestionar mensaje de error
 # TODO Agrupar bien en estilos y configuracion
 # TODO Gestionar usuario y DB
 # TODO en configuracion dar eleccion de tipo de letras?
-# TODO gestionar el shift para parentesis y : etc.
+# TODO gestionar el Enter:
+# TODO arreglar los retornos de carro del Batcher
+# TODO pintar de verde el enter
+# TODO repasar el scroll, no funciona
 
 
 def main(page: ft.Page) -> None:
@@ -147,7 +149,7 @@ def main(page: ft.Page) -> None:
                 with open(path_txt, 'r', encoding='utf-8') as file:
                     texto = file.read()
                 # Procesamos primero el texto. Lo añadimos al text manager
-                # Gestiona solamente los retornos de carro
+                # Gestiona sustituciones
                 texto = text_manager.add_and_process_ref_text(texto)
                 # Validar el texto
                 if len(texto) <= conf.MAX_LEN_CHAR:
@@ -232,6 +234,8 @@ def main(page: ft.Page) -> None:
         if app.state == State.ready: #TODO comprobar que haya usuario seleccionado y sea válido en db
             # Borramos las visualizaciones anteriores
             borrar_stats()
+            # Quitamos mensajes de error
+            texto_mensaje.value = ""
             # Mostramos un contador de 3 segundos
             for n in range(3, 0, -1): # TODO Meter en componente
                 texto_cuenta_atras.value = str(n)
@@ -263,9 +267,7 @@ def main(page: ft.Page) -> None:
         marcando el texto de referencia como correcto o incorrecto,
         y actualizando el contador de posición y errores según corresponda.
         posicion es (linea, caracter en la linea)
-        """
-        # Caso especial de tecla Ñ: cambiamos ` -> ñ
-        tecleado = 'Ñ' if ord(tecleado) == 96 else tecleado
+        """        
         # Añadimos el caracter pulsado al text manager
         text_manager.add_typed_char(tecleado)
         # Vamos a la linea en cuestión haciendo scroll si superamos la linea 10
@@ -319,14 +321,25 @@ def main(page: ft.Page) -> None:
                 prev_char, word = char_iterator.get_next()
             # Si no son None significa que aun tenemos caracteres
             if char_referencia is not None:
-                # Guardamos en variable el caracter tecleado
-                tecleado = str(e.key)
+                tecleado = str(e.key)                
+                # Comprobamos si shift:
+                if e.shift:
+                    # Cambiamos la tecla tecleada por la buena
+                    tecleado = conf.SHIFT_CHAR_DICT.get(tecleado, tecleado)
+                # Casos especiales de tecla Ñ o Enter:
+                tecleado = conf.SPECIAL_CHAR_DICT.get(tecleado, tecleado)
                 if tecleado not in conf.NOT_SHOWN_KEYS:
                     procesar_tecla(tecleado,
                                     pos,
                                     char_referencia,
                                     prev_char,
                                     word)
+                elif tecleado == 'Escape':
+                    # Cambiamos a modo finish
+                    light_app_state.to(app.finish_mode())
+                    boton_cargar_archivo.enable()
+                    # Mostramos mensaje de aborto de proceso
+                    texto_mensaje.value = 'Abortada escritura por el usuario'
             else:
                 # Ya se ha acabado el texto de ref. Ponemos en modo finish
                 light_app_state.to(app.finish_mode())
@@ -344,7 +357,6 @@ def main(page: ft.Page) -> None:
                 # TODO Meter esta funcionalidad en función con setattr
                 boton_cargar_archivo.enable()
                 boton_repetir.enable()
-                #! debug
                 print(stat_manager.lista_fallos)
 
         page.update()
@@ -526,7 +538,8 @@ def main(page: ft.Page) -> None:
     texto_escrito = ListViewTextBox(
         text_size=styles.TextSize.NORMAL.value,
         char_linea=35,
-        text_color=styles.Colors.fondo_mecano
+        text_color=styles.Colors.fondo_mecano,
+        container_heigth=30
         )
     contenedor_texto_escrito = ft.Container(
                 texto_escrito,

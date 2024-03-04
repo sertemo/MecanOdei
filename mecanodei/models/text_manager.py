@@ -16,11 +16,12 @@ from mecanodei.utils.text import quitar_tildes
 
 class TypedTextManager:
     """Clase que gestiona el texto tecleado
-    También encapsula el texto bruto cargado
-    cambiando los retornos de carro por '. '
+    También encapsula el texto bruto cargado.
+    Puede cambiar cualquier caracter por otro
     """
     def __init__(self) -> None:
-        self.enter_replacement: str = ' '
+        self.char_replacement: str = None
+        self.char_to_replace: str = None
         self.current_typed_text: str = ''
         self.raw_text: str = ''
 
@@ -40,7 +41,13 @@ class TypedTextManager:
             de carro
         """
         # Gestionamos los retornos de carro.
-        self.raw_text = text.replace('\n', self.enter_replacement)
+        if (self.char_replacement is not None) and \
+            (self.char_to_replace is not None):
+            self.raw_text = text.replace(
+                self.char_to_replace,
+                self.char_replacement)
+        else:
+            self.raw_text = text
         return self.raw_text
 
 

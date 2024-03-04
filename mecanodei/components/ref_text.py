@@ -33,15 +33,17 @@ class ListViewTextBox(ft.UserControl):
     def __init__(self,
                 text_size: styles.TextSize,
                 char_linea: int = 52,
-                text_color: Any = ft.colors.BLACK87) -> None:
+                text_color: Any = ft.colors.BLACK87,
+                container_heigth: int = 55) -> None:
         super().__init__()
+        self.cont_heigth = container_heigth
         self.text_size = text_size
         self.text_color = text_color
         self.char_linea = char_linea # Número de caracteres a mostrar por linea
         self.ref_palabras: list[dict[list, str]] = [] 
         self.texto = ft.ListView(
             controls=[], 
-            spacing=0,
+            padding=0,
         )
 
 
@@ -80,7 +82,7 @@ class ListViewTextBox(ft.UserControl):
                 return self.ref_palabras[fila][ref_dict]
 
 
-    def iterchar(self) -> Generator: # TODO añadir aqui lógica para sacar la palabra ?
+    def iterchar(self) -> Generator:
         """Devuelve el caracter y la posicion actuales
         el caracter lo pasa por un procesado que quita tildes
         y pasa a minusculas"""
@@ -136,11 +138,12 @@ class ListViewTextBox(ft.UserControl):
             _description_
         """
         # Guardamos numero de palabras del texto
-        self.num_palabras = len(self.ref_palabras)
+        self.num_palabras = len(text.split())
         # Limpiamos el texto anterior
         self.texto.controls.clear()
         # Inicializamos el batcher
         self.batcher = Batcher(text, self.char_linea)
+        print(self.batcher.dataset)
         # Iteramos sobre cada linea
         for idx, linea in enumerate(self.batcher):
             # Creamos un mapa que mapee los inicios de cada palabra
@@ -175,12 +178,14 @@ class ListViewTextBox(ft.UserControl):
                                     ),
                                 border_radius=0,
                                 padding=0,
+                                height=self.cont_heigth,
                                 #border=ft.border.all(0.3)
                                 ) for letra in linea],
                             spacing=0,
                             wrap=True,
                         ),
-                    key=f'linea_{idx}' # Referencia para el scroll_to
+                    key=f'linea_{idx}', # Referencia para el scroll_to
+                    height=self.cont_heigth,
                     )
                 )
         self.update()

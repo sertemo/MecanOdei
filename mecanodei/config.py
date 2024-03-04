@@ -37,6 +37,17 @@ MAX_LEN_CHAR = 540
 
 # Texto escrito
 NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Escape']
+SHIFT_CHAR_DICT = {
+    '.': ':',
+    '8': '(',
+    '9': ')',
+    '0': '=',
+    '`': 'Ñ',
+}
+SPECIAL_CHAR_DICT = {
+    '`': 'Ñ',
+    'Enter': '\n'
+}
 
 # DB
 DB_NAME = "stats.db"

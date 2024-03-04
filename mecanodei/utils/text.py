@@ -62,23 +62,39 @@ class Batcher(Sequence):
         self.text = text
         self.lista_palabras = self.text.split()
         self.caracteres_linea = caracteres_linea
-        self.idx = 0
+        self.idx_word = 0
+        self.idx_char = 0
         self.dataset = []
+        self.end_of_line_char = '\n'
         self._build_dataset()
 
 
     def _build_dataset(self) -> None:
-        while self.idx < len(self.lista_palabras):
+        while self.idx_word < len(self.lista_palabras):
             row = [] # lista con las palabras
             caracteres = 0 # caracteres de la linea
             # Meter la primera palabra
             while (caracteres < self.caracteres_linea) \
-                and (self.idx < len(self.lista_palabras)):
-                row.append(self.lista_palabras[self.idx])
-                self.idx += 1
+                and (self.idx_word < len(self.lista_palabras)):
+                # Sacamos la palabra siguiente a añadir a la linea
+                next_word = self.lista_palabras[self.idx_word]
+                next_word_len = len(next_word)
+                print(f'{next_word_len=}')
+                # Añadimos la palabra
+                row.append(next_word)
+                # Añadimos 1 al índice de palabra
+                self.idx_word += 1
+                # Añadimos los char de la palabra mas 1 del espacio
+                self.idx_char += next_word_len + (len(row) - 1) # los espacios
+                self.idx_char = min(self.idx_char, len(self.text) -1 )
+                print(f'{self.idx_char=}')
                 # Comprobar si se alcanza el maximo de char
                 # Añadimos 1 espacio por palabra
                 caracteres = sum([len(char) + 1 for char in row])
+                # Si el caracter es un retorno de carro rompemos la linea
+                print(f'{self.text[self.idx_char]=}')
+                if self.text[self.idx_char] == '\n':
+                    break
             self.dataset.append(row)
 
 
@@ -93,6 +109,6 @@ class Batcher(Sequence):
         # A la última línea no le agregamos un espacio al final
         if idx == self.__len__() - 1: 
             return " ".join(self.dataset[idx])
-        return " ".join(self.dataset[idx]) + " "
+        return " ".join(self.dataset[idx]) + self.end_of_line_char
 
 
