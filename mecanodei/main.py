@@ -31,16 +31,15 @@ from mecanodei.components.ref_text import ListViewTextBox
 from mecanodei.components.custom_button import CustomButton
 from mecanodei.components.app_state import AppStateLight
 from mecanodei.db.db import SQLManager, iniciar_db
+from mecanodei.utils.text import get_total_num_char
 
 # TODO Crear las diferentes secciones en Views independientes
 # TODO Gestionar mensaje de error
 # TODO Agrupar bien en estilos y configuracion
 # TODO Gestionar usuario y DB
 # TODO en configuracion dar eleccion de tipo de letras?
-# TODO gestionar el Enter:
-# TODO arreglar los retornos de carro del Batcher
-# TODO pintar de verde el enter
 # TODO repasar el scroll, no funciona
+# TODO pintar linea debajo de la letra siguiente -> iterchar
 
 
 def main(page: ft.Page) -> None:
@@ -147,12 +146,15 @@ def main(page: ft.Page) -> None:
                 texto_path_fichero.value = path_txt.name
                 # Abrir el texto # TODO Meter en un FileManager ?
                 with open(path_txt, 'r', encoding='utf-8') as file:
-                    texto = file.read()
+                    text_lines: list[str] = file.readlines()
                 # Procesamos primero el texto. Lo añadimos al text manager
-                # Gestiona sustituciones
-                texto = text_manager.add_and_process_ref_text(texto)
+                # Gestiona sustituciones si queremos
+                text_lines: list[str] = \
+                    text_manager.add_and_process_ref_text(text_lines)
+                # Calculamos caracteres totales
+                len_texto = get_total_num_char(text_lines)
                 # Validar el texto
-                if len(texto) <= conf.MAX_LEN_CHAR:
+                if len_texto <= conf.MAX_LEN_CHAR:
                     # Verificamos si existe tabla en db
                     iniciar_db(texto_usuario.content.value)
                     # Reseteamos el char iterator para que prev_char sea nulo
@@ -163,9 +165,9 @@ def main(page: ft.Page) -> None:
                     # Ponemos ready la app y mostramos
                     light_app_state.to(app.ready_mode())
                     # Cargamos el texto en el contenedor de referencia
-                    texto_mecanografiar.create_text(texto)
+                    texto_mecanografiar.create_text(text_lines)
                     # Mostramos el número de caracteres
-                    texto_caracteres.text = f"{len(texto)}"
+                    texto_caracteres.text = f"{len_texto}"
                     texto_palabras.text = \
                         f'{texto_mecanografiar.num_palabras}'
                     # Habilitamos boton empezar
@@ -177,7 +179,7 @@ def main(page: ft.Page) -> None:
                     # Ponemos app en modo error
                     light_app_state.to(app.error_mode())
                     # Mostramos mensaje de error
-                    err_msg = f'{len(texto)} caracteres > {conf.MAX_LEN_CHAR}'
+                    err_msg = f'{len_texto} caracteres > {conf.MAX_LEN_CHAR}'
                     texto_mensaje.value = err_msg
             page.update()
 
@@ -236,6 +238,8 @@ def main(page: ft.Page) -> None:
             borrar_stats()
             # Quitamos mensajes de error
             texto_mensaje.value = ""
+            # Pintamos el primer caracter a marcar
+            texto_mecanografiar.underline((0, 0))
             # Mostramos un contador de 3 segundos
             for n in range(3, 0, -1): # TODO Meter en componente
                 texto_cuenta_atras.value = str(n)
@@ -272,7 +276,7 @@ def main(page: ft.Page) -> None:
         text_manager.add_typed_char(tecleado)
         # Vamos a la linea en cuestión haciendo scroll si superamos la linea 10
         # Solo hace falta hacer scroll la primera vez
-        if (fila := posicion[0] >= 8) and (posicion[1] == 0):
+        if (fila := posicion[0] >= 6) and (posicion[1] == 0):
             fila_ir = max(fila, texto_mecanografiar.get_n_rows() - 1)
             texto_mecanografiar.texto.scroll_to(
                 key=f'linea_{fila_ir}',

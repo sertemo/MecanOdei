@@ -18,6 +18,7 @@ import flet as ft
 
 import mecanodei.styles.styles as styles
 from mecanodei.utils.text import Batcher, quitar_tildes
+import mecanodei.config as conf
 
 
 class ListViewTextBox(ft.UserControl):
@@ -43,7 +44,7 @@ class ListViewTextBox(ft.UserControl):
         self.ref_palabras: list[dict[list, str]] = [] 
         self.texto = ft.ListView(
             controls=[], 
-            padding=0,
+            padding=10,
         )
 
 
@@ -82,7 +83,7 @@ class ListViewTextBox(ft.UserControl):
                 return self.ref_palabras[fila][ref_dict]
 
 
-    def iterchar(self) -> Generator:
+    def iterchar(self) -> Generator: # TODO devolver aqui la siguiente posición para pintar una rallita
         """Devuelve el caracter y la posicion actuales
         el caracter lo pasa por un procesado que quita tildes
         y pasa a minusculas"""
@@ -128,7 +129,49 @@ class ListViewTextBox(ft.UserControl):
         return indices
 
 
-    def create_text(self, text: str) -> None:
+    def _build_dataset(self, text: str) -> None:
+        """Construye una lista de listas con palabras
+        a partir del texto entero en str
+
+        Parameters
+        ----------
+        text : str
+            _description_
+        """
+        idx_word = 0
+        idx_char = 0
+        caracteres_linea = conf.MAX_CHAR_LINE
+        dataset = []
+        while idx_word < len(self.lista_palabras):
+            row = [] # lista con las palabras
+            caracteres = 0 # caracteres de la linea
+            # Meter la primera palabra
+            while (caracteres < caracteres_linea) \
+                and (idx_word < len(self.lista_palabras)):
+                # Sacamos la palabra siguiente a añadir a la linea
+                next_word = self.lista_palabras[idx_word]
+                next_word_len = len(next_word)
+                # Añadimos la palabra
+                row.append(next_word)
+                # Añadimos 1 al índice de palabra
+                idx_word += 1
+                # Añadimos los char de la palabra mas 1 del espacio
+                idx_char += next_word_len + (len(row) - 1) # los espacios
+                idx_char = min(idx_char, len(text) -1 )
+                print(f'{idx_char=}')
+                # Comprobar si se alcanza el maximo de char
+                # Añadimos 1 espacio por palabra
+                caracteres = sum([len(char) + 1 for char in row])
+                # Si el caracter es un retorno de carro rompemos la linea
+                print(f'{text[idx_char]=}')
+                if text[idx_char] == conf.EOP_CHAR:
+                    break
+            dataset.append(" ".join(row))
+
+        return dataset
+
+
+    def create_text(self, text_lines: list[str] | str) -> None:
         """Crea contenedores para cada letra y
         los introduce en la Fila principal
 
@@ -137,13 +180,22 @@ class ListViewTextBox(ft.UserControl):
         text : str
             _description_
         """
-        # Guardamos numero de palabras del texto
-        self.num_palabras = len(text.split())
+        if isinstance(text_lines, list):
+            # Guardamos numero de palabras del texto
+            self.num_palabras = sum(len(line.split()) for line in text_lines)
+        elif isinstance(text_lines, str):
+            self.lista_palabras = text_lines.split()
+            self.num_palabras = len(self.lista_palabras)
+            # Transformar en frases
+            text_lines = self._build_dataset(text_lines)
+
         # Limpiamos el texto anterior
         self.texto.controls.clear()
         # Inicializamos el batcher
-        self.batcher = Batcher(text, self.char_linea)
-        print(self.batcher.dataset)
+        self.batcher = Batcher(
+            text_lines,
+            self.char_linea,
+            )
         # Iteramos sobre cada linea
         for idx, linea in enumerate(self.batcher):
             # Creamos un mapa que mapee los inicios de cada palabra
@@ -178,14 +230,12 @@ class ListViewTextBox(ft.UserControl):
                                     ),
                                 border_radius=0,
                                 padding=0,
-                                height=self.cont_heigth,
-                                #border=ft.border.all(0.3)
                                 ) for letra in linea],
                             spacing=0,
                             wrap=True,
                         ),
                     key=f'linea_{idx}', # Referencia para el scroll_to
-                    height=self.cont_heigth,
+                    expand=True,
                     )
                 )
         self.update()
@@ -235,4 +285,20 @@ class ListViewTextBox(ft.UserControl):
         pos_linea, pos_char = posicion
         self.texto.controls[pos_linea].content.controls[pos_char] \
                 .bgcolor = styles.Colors.rojo_letra_incorrecta
+        self.update()
+
+
+    def underline(self, posicion: tuple[int]) -> None:
+        """Subraya una posición dada
+
+        Parameters
+        ----------
+        posicion : tuple[int]
+            _description_
+        """
+        pos_linea, pos_char = posicion
+        self.texto.controls[pos_linea].content.controls[pos_char] \
+                .border = ft.border.only(
+                    bottom=ft.BorderSide(1, ft.colors.BLACK)
+                    )
         self.update()

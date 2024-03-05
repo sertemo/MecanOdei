@@ -34,6 +34,9 @@ HEIGHT = 800
 
 # Texto importado
 MAX_LEN_CHAR = 540
+EOP_CHAR = '↵' # Caracter al final de cada frase
+REPLACEMENT_CHAR = None
+TO_REPLACE_CHAR = None
 
 # Texto escrito
 NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Escape']
@@ -46,8 +49,9 @@ SHIFT_CHAR_DICT = {
 }
 SPECIAL_CHAR_DICT = {
     '`': 'Ñ',
-    'Enter': '\n'
+    'Enter': EOP_CHAR
 }
+MAX_CHAR_LINE = 30
 
 # DB
 DB_NAME = "stats.db"

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from mecanodei.utils.text import quitar_tildes
+import mecanodei.config as config
 
 class TypedTextManager:
     """Clase que gestiona el texto tecleado
@@ -20,13 +21,12 @@ class TypedTextManager:
     Puede cambiar cualquier caracter por otro
     """
     def __init__(self) -> None:
-        self.char_replacement: str = None
-        self.char_to_replace: str = None
+        self.char_replacement: str = config.REPLACEMENT_CHAR
+        self.char_to_replace: str = config.TO_REPLACE_CHAR
         self.current_typed_text: str = ''
-        self.raw_text: str = ''
 
 
-    def add_and_process_ref_text(self, text: str) -> str:
+    def add_and_process_ref_text(self, text_lines: list[str]) -> str:
         """Crea un raw text quitando retornos de carro
         
         Parameters
@@ -43,12 +43,12 @@ class TypedTextManager:
         # Gestionamos los retornos de carro.
         if (self.char_replacement is not None) and \
             (self.char_to_replace is not None):
-            self.raw_text = text.replace(
+            self.text_lines_transformed = [text.replace(
                 self.char_to_replace,
-                self.char_replacement)
+                self.char_replacement) for text in text_lines]
         else:
-            self.raw_text = text
-        return self.raw_text
+            self.text_lines_transformed = text_lines
+        return self.text_lines_transformed
 
 
     def add_typed_char(self, char: str) -> None:

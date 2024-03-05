@@ -21,6 +21,7 @@ class CharIterator:
     """
     def __init__(self) -> None:
         self._prev_char = ""
+        self._prev_pos = (0, 0)
         self._next_char = ""
         self._next_word = ""
 
@@ -48,6 +49,8 @@ class CharIterator:
         """
         try:
             self._prev_char = self._next_char
+            self._prev_pos = self._next_pos
+
             self._next_char, self._next_pos, self._next_word = next(self.iter)
         except StopIteration:
             self._next_char = self._next_pos = self._next_word = None
