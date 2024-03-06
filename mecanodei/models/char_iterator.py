@@ -49,9 +49,11 @@ class CharIterator:
         """
         try:
             self._prev_char = self._next_char
-            self._prev_pos = self._next_pos
 
-            self._next_char, self._next_pos, self._next_word = next(self.iter)
+            self._next_char, \
+            self._next_pos, \
+            self._next_word, \
+            self._next_next_pos = next(self.iter)
         except StopIteration:
             self._next_char = self._next_pos = self._next_word = None
 
@@ -68,10 +70,12 @@ class CharIterator:
             Devuelve None cuando el generado se ha agotado,
             es decir no hay más caracteres en el texto
         """
-        return self._next_char, \
-            self._next_pos, self._prev_char, self._next_word
+        return self._next_char,\
+                self._next_pos, self._prev_char,\
+                    self._next_word, self._next_next_pos
 
 
     def reset(self) -> None:
         """Devuelve los valores a inicio"""
-        self._prev_char = self._next_char = ""
+        self._prev_char = self._next_char = self._next_word = ""
+        self._prev_pos = (0, 0)

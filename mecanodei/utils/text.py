@@ -89,21 +89,18 @@ class Batcher(Sequence):
         self.idx_word = 0
         self.idx_char = 0
         self.end_of_line_char = conf.EOP_CHAR
-        #self.dataset = []
-        #self._build_dataset()
 
 
     def __len__(self) -> int:
         # Retorna el número total de "líneas"
-        return len(self.dataset)
+        return len(self.text_lines)
 
 
-    def __getitem__(self, idx: int) -> list[str]:
+    def __getitem__(self, idx: int) -> str:
         if idx < 0 or idx >= self.__len__():
             raise IndexError("Índice fuera de rango")
         # A la última línea no le agregamos un espacio al final
         if idx == self.__len__() - 1: 
             return " ".join(self.dataset[idx])
         return " ".join(self.dataset[idx]) + self.end_of_line_char
-
 

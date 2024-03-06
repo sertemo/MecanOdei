@@ -83,7 +83,7 @@ class ListViewTextBox(ft.UserControl):
                 return self.ref_palabras[fila][ref_dict]
 
 
-    def iterchar(self) -> Generator: # TODO devolver aqui la siguiente posición para pintar una rallita
+    def iterchar(self) -> Generator:
         """Devuelve el caracter y la posicion actuales
         el caracter lo pasa por un procesado que quita tildes
         y pasa a minusculas"""
@@ -94,7 +94,19 @@ class ListViewTextBox(ft.UserControl):
                     .controls[n_char].content.value
                 char = quitar_tildes(char).lower()
                 word = self._get_current_word((n_fila, n_char))
-                yield char, posicion, word
+                try:
+                    next_posicion = (n_fila, n_char + 1)
+                    pos_linea, pos_char = next_posicion
+                    self.texto.controls[pos_linea].content.controls[pos_char]
+                except IndexError:
+                    try:
+                        next_posicion = (n_fila + 1, 0)
+                        pos_linea, pos_char = next_posicion
+                        self.texto.controls[pos_linea].\
+                            content.controls[pos_char]
+                    except IndexError:
+                        next_posicion = (n_fila, n_char)
+                yield char, posicion, word, next_posicion
 
 
     def get_n_char(self, row: int) -> int:
@@ -114,7 +126,7 @@ class ListViewTextBox(ft.UserControl):
         return len(self.texto.controls[row].content.controls)
 
 
-    def _get_word_init(self, frase: str) -> list[int]:
+    def _get_word_init(self, frase: str) -> list[int]: # TODO Hay que revisar
         """Devuelve una lista de los indices de comienzo
         de cada palabra"""
         indices = [0]  # La primera palabra siempre empieza en el índice 0
@@ -123,7 +135,7 @@ class ListViewTextBox(ft.UserControl):
         for i in range(1, len(frase)):
             # Si el carácter anterior es un espacio, entonces el carácter actual
             # es el inicio de una nueva palabra
-            if frase[i-1] == ' ':
+            if frase[i - 1] == ' ':
                 indices.append(i)
         
         return indices
@@ -207,12 +219,12 @@ class ListViewTextBox(ft.UserControl):
             # Creamos un dict con clave range(indice palabra)
             # y valor la palabra
             refs = {}
-            for idx in range(num_pal_linea):
-                indice_inicio_palabra = lista_indices_principios[idx]
-                indice_final_palabra = lista_indices_principios[idx] \
-                    + len(palabras_linea[idx])
+            for indice in range(num_pal_linea):
+                indice_inicio_palabra = lista_indices_principios[indice]
+                indice_final_palabra = lista_indices_principios[indice] \
+                    + len(palabras_linea[indice])
                 refs[range(indice_inicio_palabra, indice_final_palabra)] = \
-                    palabras_linea[idx]
+                    palabras_linea[indice]
             # Por cada linea hemos creado un dict que vincula caracteres
             # con palabras
             self.ref_palabras.append(refs)

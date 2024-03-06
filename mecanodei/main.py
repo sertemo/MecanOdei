@@ -39,7 +39,7 @@ from mecanodei.utils.text import get_total_num_char
 # TODO Gestionar usuario y DB
 # TODO en configuracion dar eleccion de tipo de letras?
 # TODO repasar el scroll, no funciona
-# TODO pintar linea debajo de la letra siguiente -> iterchar
+# TODO reparar stats que parece que hay error.
 
 
 def main(page: ft.Page) -> None:
@@ -216,7 +216,7 @@ def main(page: ft.Page) -> None:
             # Reseteamos el chat iterator
             char_iterator.reset()            
             # Volvemos a instanciar el componente ref text
-            texto_mecanografiar.create_text(text_manager.raw_text)
+            texto_mecanografiar.create_text(text_manager.text_lines_transformed)
             # volvemos a generar un iterador
             char_iterator.build_iterator(texto_mecanografiar)
             # clicamos empezar
@@ -265,18 +265,21 @@ def main(page: ft.Page) -> None:
             char_referencia: str,
             prev_char: str,
             word: str,
+            next_next_pos: tuple[int]
             ):
         """
         Procesa la tecla presionada, actualizando el texto escrito,
         marcando el texto de referencia como correcto o incorrecto,
         y actualizando el contador de posición y errores según corresponda.
         posicion es (linea, caracter en la linea)
+        next_next_pos corresponde a la posición siguiente para poder
+        escribir una rayita
         """        
         # Añadimos el caracter pulsado al text manager
         text_manager.add_typed_char(tecleado)
-        # Vamos a la linea en cuestión haciendo scroll si superamos la linea 10
+        # Vamos a la linea en cuestión haciendo scroll si superamos la linea x
         # Solo hace falta hacer scroll la primera vez
-        if (fila := posicion[0] >= 6) and (posicion[1] == 0):
+        if (fila := posicion[0] >=conf.SCROLL_LINE) and (posicion[1] == 0):
             fila_ir = max(fila, texto_mecanografiar.get_n_rows() - 1)
             texto_mecanografiar.texto.scroll_to(
                 key=f'linea_{fila_ir}',
@@ -287,6 +290,8 @@ def main(page: ft.Page) -> None:
         if char_referencia == tecleado.lower():
             # Pintamos el fondo del caracter en verde
             texto_mecanografiar.paint_green(posicion)
+            # Pintamos rayita en el siguiente caracter
+            texto_mecanografiar.underline(next_next_pos)
             # Añadimos el caracter al stat manager
             stat_manager.add_correct(
                 indice=posicion,
@@ -322,7 +327,7 @@ def main(page: ft.Page) -> None:
         if app.state == State.writing:
             # Tenemos sacados el siguiente char y posicion y palabra
             char_referencia, pos, \
-                prev_char, word = char_iterator.get_next()
+                prev_char, word, next_next_pos = char_iterator.get_next()
             # Si no son None significa que aun tenemos caracteres
             if char_referencia is not None:
                 tecleado = str(e.key)                
@@ -337,7 +342,8 @@ def main(page: ft.Page) -> None:
                                     pos,
                                     char_referencia,
                                     prev_char,
-                                    word)
+                                    word,
+                                    next_next_pos)
                 elif tecleado == 'Escape':
                     # Cambiamos a modo finish
                     light_app_state.to(app.finish_mode())

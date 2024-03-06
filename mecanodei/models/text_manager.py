@@ -27,7 +27,8 @@ class TypedTextManager:
 
 
     def add_and_process_ref_text(self, text_lines: list[str]) -> str:
-        """Crea un raw text quitando retornos de carro
+        """Crea un raw text quitando retornos de carro.
+        Guarda el texto en forma de lineas de texto
         
         Parameters
         ----------
