@@ -15,6 +15,7 @@
 from typing import Generator, Any
 
 import flet as ft
+from icecream import ic
 
 import mecanodei.styles.styles as styles
 from mecanodei.utils.text import Batcher, quitar_tildes
@@ -170,12 +171,10 @@ class ListViewTextBox(ft.UserControl):
                 # Añadimos los char de la palabra mas 1 del espacio
                 idx_char += next_word_len + (len(row) - 1) # los espacios
                 idx_char = min(idx_char, len(text) -1 )
-                print(f'{idx_char=}')
                 # Comprobar si se alcanza el maximo de char
                 # Añadimos 1 espacio por palabra
                 caracteres = sum([len(char) + 1 for char in row])
                 # Si el caracter es un retorno de carro rompemos la linea
-                print(f'{text[idx_char]=}')
                 if text[idx_char] == conf.EOP_CHAR:
                     break
             dataset.append(" ".join(row))
@@ -201,6 +200,8 @@ class ListViewTextBox(ft.UserControl):
             # Transformar en frases
             text_lines = self._build_dataset(text_lines)
 
+        # Reseteamos el diccionario de posiciones ref de palabras
+        self.ref_palabras.clear()
         # Limpiamos el texto anterior
         self.texto.controls.clear()
         # Inicializamos el batcher
@@ -226,7 +227,8 @@ class ListViewTextBox(ft.UserControl):
                 refs[range(indice_inicio_palabra, indice_final_palabra)] = \
                     palabras_linea[indice]
             # Por cada linea hemos creado un dict que vincula caracteres
-            # con palabras
+            # con palabras para que dada una posición sepamos a que palabra
+            # pertenece
             self.ref_palabras.append(refs)
             # Creamos contenedores por caracter
             self.texto.controls.append(

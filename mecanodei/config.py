@@ -59,3 +59,5 @@ DB_NAME = "stats.db"
 RUTA_RAIZ = Path.home() / Path(APP_NAME)
 FOLDER_DB = RUTA_RAIZ / Path("db")
 RUTA_COMPLETA_DB = FOLDER_DB / DB_NAME
+TABLE_STATS = 'stats'
+TABLE_USERS = 'users'

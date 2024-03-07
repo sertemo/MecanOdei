@@ -18,6 +18,7 @@ import time
 from pathlib import Path
 
 import flet as ft
+from icecream import ic
 
 import config as conf
 from models.state import State, AppState
@@ -34,12 +35,11 @@ from mecanodei.db.db import SQLManager, iniciar_db
 from mecanodei.utils.text import get_total_num_char
 
 # TODO Crear las diferentes secciones en Views independientes
-# TODO Gestionar mensaje de error
 # TODO Agrupar bien en estilos y configuracion
 # TODO Gestionar usuario y DB
-# TODO en configuracion dar eleccion de tipo de letras?
 # TODO repasar el scroll, no funciona
-# TODO reparar stats que parece que hay error.
+# TODO Visualizar numero de linea en pequeño?
+# TODO Arreglar que si falles el primer caracter hace scroll todo el rato
 
 
 def main(page: ft.Page) -> None:
@@ -155,8 +155,8 @@ def main(page: ft.Page) -> None:
                 len_texto = get_total_num_char(text_lines)
                 # Validar el texto
                 if len_texto <= conf.MAX_LEN_CHAR:
-                    # Verificamos si existe tabla en db
-                    iniciar_db(texto_usuario.content.value)
+                    # Verificamos si existe tabla en db sino iniciamos
+                    iniciar_db()
                     # Reseteamos el char iterator para que prev_char sea nulo
                     # Por si teníamos otro texto cargado
                     char_iterator.reset()
@@ -279,10 +279,11 @@ def main(page: ft.Page) -> None:
         text_manager.add_typed_char(tecleado)
         # Vamos a la linea en cuestión haciendo scroll si superamos la linea x
         # Solo hace falta hacer scroll la primera vez
-        if (fila := posicion[0] >=conf.SCROLL_LINE) and (posicion[1] == 0):
+        if (fila := posicion[0] >= conf.SCROLL_LINE) and (posicion[1] == 0):
             fila_ir = max(fila, texto_mecanografiar.get_n_rows() - 1)
             texto_mecanografiar.texto.scroll_to(
-                key=f'linea_{fila_ir}',
+                #key=f'linea_{fila_ir}',
+                delta=48,
                 duration=0,
                 curve=ft.AnimationCurve.SLOW_MIDDLE)
         # Compara tecla con índice de marcar en texto
@@ -367,7 +368,7 @@ def main(page: ft.Page) -> None:
                 # TODO Meter esta funcionalidad en función con setattr
                 boton_cargar_archivo.enable()
                 boton_repetir.enable()
-                print(stat_manager.lista_fallos)
+                ic(stat_manager.lista_fallos)
 
         page.update()
 

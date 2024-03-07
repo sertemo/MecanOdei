@@ -21,34 +21,42 @@ import mecanodei.config as conf
 from mecanodei.utils.text import create_username_for_table_db
 
 # TODO DEFINIR ESQUEMA DE DB
-def iniciar_db(nombre_usuario_raw: str) -> None:
+def iniciar_db() -> None:
     """Función que crea las rutas dentro de la carpeta de usuario
     y construye la base de datos y crea una table con el usuario
     seleccionado
     """
-    nombre_tabla = create_username_for_table_db(nombre_usuario_raw)
     # Creamos la carpeta si no existe
     if not conf.RUTA_RAIZ.exists():
         (conf.FOLDER_DB).mkdir(parents=True)
-        # Creamos Base de Datos con tabla
+        # Creamos Base de Datos con tabla STATS
         SQLManager.create_table(
             db_filename=conf.RUTA_COMPLETA_DB,
-            nombre_tabla=nombre_tabla, # TODO: tabla por usuario ?
+            nombre_tabla=conf.TABLE_STATS,
             columnas=(
                 'id INTEGER PRIMARY KEY AUTOINCREMENT',
-                'sector TEXT',
-                'pagina INTEGER',
+                'fecha TEXT',
+                'usuario TEXT', # TODO VARCHAR ?
                 'lista INTEGER',
                 'elemento INTEGER',
                 'paginas_totales INTEGER',
                 'listas_totales INTEGER',
                 'elementos_totales INTEGER',
-                'fecha TEXT',
+            )            
+        )
+        SQLManager.create_table(
+            db_filename=conf.RUTA_COMPLETA_DB,
+            nombre_tabla=conf.TABLE_USERS,
+            columnas=(
+                'id INTEGER PRIMARY KEY AUTOINCREMENT',
+                'usuario TEXT',
+                'nombre TEXT',
+                'email TEXT',
+                'fecha_alta TEXT',
             )            
         )
     else:
         pass
-    # TODO Si la ruta existe tenemos que verificar si la tabla existe?
 
 
 class SQLContext:
