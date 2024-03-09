@@ -37,9 +37,8 @@ from mecanodei.utils.text import get_total_num_char
 # TODO Crear las diferentes secciones en Views independientes
 # TODO Agrupar bien en estilos y configuracion
 # TODO Gestionar usuario y DB
-# TODO repasar el scroll, no funciona
 # TODO Visualizar numero de linea en pequeño?
-# TODO Arreglar que si falles el primer caracter hace scroll todo el rato
+# TODO Hay que optimizar el scroll
 
 
 def main(page: ft.Page) -> None:
@@ -155,7 +154,7 @@ def main(page: ft.Page) -> None:
                 len_texto = get_total_num_char(text_lines)
                 # Validar el texto
                 if len_texto <= conf.MAX_LEN_CHAR:
-                    # Verificamos si existe tabla en db sino iniciamos
+                    # Verificamos si existe ruuta en db sino iniciamos
                     iniciar_db()
                     # Reseteamos el char iterator para que prev_char sea nulo
                     # Por si teníamos otro texto cargado
@@ -233,7 +232,10 @@ def main(page: ft.Page) -> None:
         """
         # Si estamos ready ( archivo cargado )
         # pasamos a writing
-        if app.state == State.ready: #TODO comprobar que haya usuario seleccionado y sea válido en db
+        if app.state == State.ready:
+            # Hacemos scroll a la primera linea por si estabamos abajo
+            texto_mecanografiar.texto.scroll_to(
+                offset=0)
             # Borramos las visualizaciones anteriores
             borrar_stats()
             # Quitamos mensajes de error
@@ -266,7 +268,7 @@ def main(page: ft.Page) -> None:
             prev_char: str,
             word: str,
             next_next_pos: tuple[int]
-            ):
+            ) -> None:
         """
         Procesa la tecla presionada, actualizando el texto escrito,
         marcando el texto de referencia como correcto o incorrecto,
@@ -279,13 +281,21 @@ def main(page: ft.Page) -> None:
         text_manager.add_typed_char(tecleado)
         # Vamos a la linea en cuestión haciendo scroll si superamos la linea x
         # Solo hace falta hacer scroll la primera vez
-        if (fila := posicion[0] >= conf.SCROLL_LINE) and (posicion[1] == 0):
-            fila_ir = max(fila, texto_mecanografiar.get_n_rows() - 1)
+        # Para evitar hacer scroll si se falla en el primer caracter
+        # Hay que verificar que no exista ya esa posición en stat manager
+        # Hay que evitar hacer scroll tambien si todas las filas están visibles        
+        first_time = posicion not in stat_manager.get_fail_indexes()
+        # Sacamos las filas que queda, si quedan menos de x no hacemos scroll
+        rows_left = texto_mecanografiar.get_n_rows_left(posicion)
+        if (posicion[0] >= conf.SCROLL_LINE) and (posicion[1] == 0)\
+        and first_time and (rows_left > conf.LAST_ROWS_NO_SCROLL):
+            #fila_ir = max(fila, texto_mecanografiar.get_n_rows() - 1)
             texto_mecanografiar.texto.scroll_to(
                 #key=f'linea_{fila_ir}',
-                delta=48,
-                duration=0,
-                curve=ft.AnimationCurve.SLOW_MIDDLE)
+                delta=conf.SCROLL_DELTA,
+                duration=conf.SCROLL_DURATION,
+                #curve=ft.AnimationCurve.SLOW_MIDDLE
+                )
         # Compara tecla con índice de marcar en texto
         # Si acierta
         if char_referencia == tecleado.lower():

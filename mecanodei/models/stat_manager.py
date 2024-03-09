@@ -17,7 +17,7 @@ from dataclasses import dataclass
 
 @dataclass
 class CharTrack:
-    indice: tuple[int] # índice
+    indice: tuple[int] # índice o posicion
     actual: str # Caracter de referencia
     typed: str # Caracter tecleado
     prev: str = None # Caracter previo

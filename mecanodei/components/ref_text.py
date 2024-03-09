@@ -65,6 +65,23 @@ class ListViewTextBox(ft.UserControl):
         return len(self.batcher)
 
 
+    def get_n_rows_left(self, posicion: tuple[int]) -> int:
+        """Devuelve el numero de filas que quedan para terminar
+        el texto
+
+        Parameters
+        ----------
+        posicion : tuple[int]
+            _description_
+
+        Returns
+        -------
+        int
+            _description_
+        """
+        return int(self.get_n_rows() - posicion[0])
+
+
     def _get_current_word(self, posicion: tuple[int]) -> str:
         """Devuelve la palabra de una determinada posición
 
@@ -127,7 +144,7 @@ class ListViewTextBox(ft.UserControl):
         return len(self.texto.controls[row].content.controls)
 
 
-    def _get_word_init(self, frase: str) -> list[int]: # TODO Hay que revisar
+    def _get_word_init(self, frase: str) -> list[int]:
         """Devuelve una lista de los indices de comienzo
         de cada palabra"""
         indices = [0]  # La primera palabra siempre empieza en el índice 0

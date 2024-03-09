@@ -37,7 +37,10 @@ MAX_LEN_CHAR = 540
 EOP_CHAR = '↵' # Caracter al final de cada frase
 REPLACEMENT_CHAR = None
 TO_REPLACE_CHAR = None
-SCROLL_LINE = 7
+SCROLL_LINE = 6
+LAST_ROWS_NO_SCROLL = 5
+SCROLL_DELTA = 70
+SCROLL_DURATION = 0
 
 # Texto escrito
 NOT_SHOWN_KEYS = ['Backspace', 'Caps Lock', 'Escape']

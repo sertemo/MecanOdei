@@ -8,29 +8,4 @@ amarillo
 naranja
 verde oscuro
 magenta
-limón
-resacoso
-y
-orca
-ballena
-reno
-renardo
-rosa
-amarillo
-naranja
-verde oscuro
-magenta
-limón
-resacoso
-y
-orca
-ballena
-reno
-renardo
-rosa
-amarillo
-naranja
-verde oscuro
-magenta
-limón
-resacoso
+ultima palabra
