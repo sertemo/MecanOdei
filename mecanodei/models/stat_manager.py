@@ -13,6 +13,10 @@
 # limitations under the License.
 
 from dataclasses import dataclass
+import json
+import pickle
+
+from icecream import ic
 
 
 @dataclass
@@ -204,12 +208,34 @@ class StatManager:
 
 
 if __name__ == '__main__':
-    char = CharTrack(
+    lista_errores = [
+        CharTrack(
         indice=(1, 1),
         actual='g',
         typed='h',
         prev=' ',
         word='gracias'
-    )
+    ),
+    CharTrack(
+        indice=(1, 3),
+        actual='s',
+        typed='e',
+        prev=' ',
+        word='caca'
+    ),
+    CharTrack(
+        indice=(5, 1),
+        actual='r',
+        typed='l',
+        prev=' ',
+        word='adios'
+    ),
+    
+    ]
 
-    print(char.__dict__)
+    to_json = [x.__dict__ for x in lista_errores]
+    lista_errores_json = json.dumps(to_json)
+
+    datos_binarios = pickle.dumps(lista_errores)
+    datos_binarios_vacio = pickle.dumps([])
+    ic(pickle.loads(datos_binarios_vacio))

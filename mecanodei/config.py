@@ -15,9 +15,21 @@
 from pathlib import Path
 
 # Usuarios
-USERS = [
-    'Odei Bilbao',
-    'Sergio Tejedor']
+USERS_DICT_LIST = [
+    {   
+        'nombre': 'Odei Bilbao',
+        'usuario': 'odei_bilbao',
+        'email': 'odeibilbao@gmail.com',
+        'fecha_alta': '2024/03/10'
+    },
+    {   
+        'nombre': 'Sergio Tejedor',
+        'usuario': 'sergio_tejedor',
+        'email': 'tejedor.moreno@gmail.com',
+        'fecha_alta': '2024/03/10'
+    }
+    ]
+USERS = [d['nombre'] for d in USERS_DICT_LIST]
 
 # App
 APP_FONTS = {
@@ -33,13 +45,16 @@ WIDTH =1024
 HEIGHT = 800
 
 # Texto importado
+LISTVIEW_CONTAINER_HEIGHT = 50
+CHAR_LINEA = 52
 MAX_LEN_CHAR = 540
+ROWS_IN_LISTVIEW = 12
 EOP_CHAR = '↵' # Caracter al final de cada frase
 REPLACEMENT_CHAR = None
 TO_REPLACE_CHAR = None
-SCROLL_LINE = 6
-LAST_ROWS_NO_SCROLL = 5
-SCROLL_DELTA = 70
+SCROLL_LINE = 8
+LAST_ROWS_NO_SCROLL = 4
+SCROLL_DELTA = LISTVIEW_CONTAINER_HEIGHT
 SCROLL_DURATION = 0
 
 # Texto escrito
@@ -60,7 +75,34 @@ MAX_CHAR_LINE = 30
 # DB
 DB_NAME = "stats.db"
 RUTA_RAIZ = Path.home() / Path(APP_NAME)
-FOLDER_DB = RUTA_RAIZ / Path("db")
+FOLDER_DB = RUTA_RAIZ / Path('db')
 RUTA_COMPLETA_DB = FOLDER_DB / DB_NAME
 TABLE_STATS = 'stats'
 TABLE_USERS = 'users'
+TABLE_STATS_SCHEMA = (
+    'id INTEGER PRIMARY KEY AUTOINCREMENT',
+    'fecha TEXT',
+    'usuario VARCHAR',
+    'num_correctos INTEGER',
+    'num_incorrectos INTEGER',
+    'precision INTEGER',
+    'tiempo FLOAT',
+    'ppm INTEGER',
+    'texto_original TEXT',
+    'texto_manuscrito TEXT',
+    'nombre_archivo VARCHAR',
+    'num_palabras INTEGER',
+    'num_caracteres INTEGER',
+    'lista_errores BLOB',# Si TEXT hay que serializar con JSON antes
+    'lista_correctos BLOB',# idem
+            )
+TABLE_USERS_SCHEMA = (
+    'id INTEGER PRIMARY KEY AUTOINCREMENT',
+    'usuario TEXT',
+    'nombre TEXT',
+    'email TEXT',
+    'fecha_alta TEXT',
+            )
+
+# Configuracion del logging
+FOLDER_LOGS = RUTA_RAIZ / Path('logs')

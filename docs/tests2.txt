@@ -8,4 +8,7 @@ amarillo
 naranja
 verde oscuro
 magenta
+reno
+renardo
+rosa
 ultima palabra

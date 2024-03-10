@@ -58,7 +58,7 @@ def get_total_num_char(text_lines: list[str]) -> int:
     return sum(len(line) for line in text_lines)
 
 
-def create_username_for_table_db(nombre_y_apellido: str) -> str:
+def create_username_for_db(nombre_y_apellido: str) -> str:
     """Coge el nombre y apellidos del usuario,
     lo transforma en minusculas y sustituye el espacio
     por _
@@ -74,7 +74,7 @@ def create_username_for_table_db(nombre_y_apellido: str) -> str:
         _description_
 
     """
-    return quitar_tildes(nombre_y_apellido.lower()).replace(' ', '_')
+    return quitar_tildes(nombre_y_apellido.casefold()).replace(' ', '_')
 
 
 class Batcher(Sequence):

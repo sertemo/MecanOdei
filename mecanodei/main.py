@@ -14,8 +14,9 @@
 
 # Script para desarrollar el código principal de la app con Flet
 
-import time
+import logging
 from pathlib import Path
+import time
 
 import flet as ft
 from icecream import ic
@@ -31,23 +32,35 @@ from mecanodei.components.stats import StatBox
 from mecanodei.components.ref_text import ListViewTextBox
 from mecanodei.components.custom_button import CustomButton
 from mecanodei.components.app_state import AppStateLight
-from mecanodei.db.db import SQLManager, iniciar_db
-from mecanodei.utils.text import get_total_num_char
+from mecanodei.db.db import (SQLStatManager,
+                            iniciar_db_log,
+                            serializar_pickle
+                            )
+from mecanodei.utils.text import get_total_num_char, create_username_for_db
+from mecanodei.utils.time import get_datetime_formatted
 
 # TODO Crear las diferentes secciones en Views independientes
 # TODO Agrupar bien en estilos y configuracion
-# TODO Gestionar usuario y DB
 # TODO Visualizar numero de linea en pequeño?
 # TODO Hay que optimizar el scroll
+# TODO Meter logging
 
 
 def main(page: ft.Page) -> None:
+
+    # Iniciamos la base de datos
+    # Si no existe la ruta crea las tablas
+    # user y stats e inserta los usuarios de
+    # config.py
+    iniciar_db_log()
+    # logging.info('Creada tabla')
 
     app = AppState()
     text_manager = TypedTextManager()
     timer = Timer()
     stat_manager = StatManager()
     char_iterator = CharIterator()
+    db_handler = SQLStatManager()
 
     page.fonts = conf.APP_FONTS
     page.title = conf.APP_NAME
@@ -154,8 +167,6 @@ def main(page: ft.Page) -> None:
                 len_texto = get_total_num_char(text_lines)
                 # Validar el texto
                 if len_texto <= conf.MAX_LEN_CHAR:
-                    # Verificamos si existe ruuta en db sino iniciamos
-                    iniciar_db()
                     # Reseteamos el char iterator para que prev_char sea nulo
                     # Por si teníamos otro texto cargado
                     char_iterator.reset()
@@ -287,8 +298,10 @@ def main(page: ft.Page) -> None:
         first_time = posicion not in stat_manager.get_fail_indexes()
         # Sacamos las filas que queda, si quedan menos de x no hacemos scroll
         rows_left = texto_mecanografiar.get_n_rows_left(posicion)
-        if (posicion[0] >= conf.SCROLL_LINE) and (posicion[1] == 0)\
-        and first_time and (rows_left > conf.LAST_ROWS_NO_SCROLL):
+        rows_total = texto_mecanografiar.get_n_rows()
+        if (posicion[0] >= conf.SCROLL_LINE) and (posicion[1] == 0) \
+        and first_time and rows_total > conf.ROWS_IN_LISTVIEW \
+        and (rows_left > conf.LAST_ROWS_NO_SCROLL):
             #fila_ir = max(fila, texto_mecanografiar.get_n_rows() - 1)
             texto_mecanografiar.texto.scroll_to(
                 #key=f'linea_{fila_ir}',
@@ -366,19 +379,51 @@ def main(page: ft.Page) -> None:
                 light_app_state.to(app.finish_mode())
                 # Mostramos el texto escrito
                 texto_escrito.create_text(text_manager.current_typed_text)
-                # Poblamos las estadisticas para mostrar
-                box_num_correctos.show_stat(stat_manager.get_corrects())
-                box_num_errores.show_stat(stat_manager.get_incorrects())
-                box_tiempo_tardado.show_stat(timer.finish_timer().format())
-                box_num_aciertos.show_stat(stat_manager.calc_aciertos())
-                box_velocidad_ppm.show_stat(stat_manager.calc_words_per_minute(
+                # Calculamos las estadisticas
+                num_correctos = stat_manager.get_corrects()
+                num_incorrectos = stat_manager.get_incorrects()
+                precision = stat_manager.calc_aciertos()
+                tiempo_tardado = timer.finish_timer().format() # paramos timer
+                ppm = stat_manager.calc_words_per_minute(
                     texto_mecanografiar.num_palabras,
-                    timer.finish))
+                    timer.finish)
+                # Poblamos las boxes para mostrar estadisticas
+                box_num_correctos.show_stat(num_correctos)
+                box_num_errores.show_stat(num_incorrectos)
+                box_tiempo_tardado.show_stat(tiempo_tardado)
+                box_num_aciertos.show_stat(precision)
+                box_velocidad_ppm.show_stat(ppm)
                 # Habilitamos botones carga de texto y repetir
                 # TODO Meter esta funcionalidad en función con setattr
                 boton_cargar_archivo.enable()
                 boton_repetir.enable()
-                ic(stat_manager.lista_fallos)
+                # Metemos todo en DB. Creamos primero el objeto
+                data_db = {
+                    'fecha': get_datetime_formatted(),
+                    'usuario': create_username_for_db(
+                        texto_usuario.content.value),
+                    'num_correctos': num_correctos,
+                    'num_incorrectos': num_incorrectos,
+                    'precision': precision,
+                    'tiempo': timer.finish,
+                    'ppm': ppm,
+                    'texto_original': text_manager.get_loaded_text(),
+                    'texto_manuscrito': text_manager.current_typed_text,
+                    'nombre_archivo': texto_path_fichero.value,
+                    'num_palabras': int(texto_palabras.text),
+                    'num_caracteres': int(texto_caracteres.text),
+                    'lista_errores': serializar_pickle(
+                        stat_manager.lista_fallos
+                        ),
+                    'lista_correctos': serializar_pickle(
+                        stat_manager.lista_aciertos
+                        )
+                }
+                try:
+                    db_handler.insert_one(data_db)
+                except Exception as e:
+                    ic(e)
+                    logging.error(f'Error al insertar en db: {e}')
 
         page.update()
 
@@ -521,11 +566,11 @@ def main(page: ft.Page) -> None:
 
     ### Zona de Texto Referencia ###
     texto_mecanografiar = ListViewTextBox(
-        text_size=styles.TextSize.BIG.value
+        text_size=styles.TextSize.LARGER.value
         )
     contenedor_mecanografiar = ft.Container(
         texto_mecanografiar,
-        height=440,
+        height=444,
         expand=True,
         **styles.contenedor_mecanografiar
         )

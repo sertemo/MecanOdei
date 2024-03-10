@@ -14,49 +14,71 @@
 
 # Script para el código relacionado con la base de datos SQLite
 
+import logging
+import pickle
 import sqlite3
 from typing import Any
 
-import mecanodei.config as conf
-from mecanodei.utils.text import create_username_for_table_db
+from icecream import ic
 
-# TODO DEFINIR ESQUEMA DE DB
-def iniciar_db() -> None:
+import mecanodei.config as conf
+
+
+def iniciar_db_log() -> None:
     """Función que crea las rutas dentro de la carpeta de usuario
-    y construye la base de datos y crea una table con el usuario
-    seleccionado
+    y construye la base de datos.
+    Crea la tabla users e introduce 
+    los registros de conf.USERS_DICT_LIST
+    Crea la tabla stats
     """
     # Creamos la carpeta si no existe
     if not conf.RUTA_RAIZ.exists():
         (conf.FOLDER_DB).mkdir(parents=True)
-        # Creamos Base de Datos con tabla STATS
+        (conf.FOLDER_LOGS).mkdir(parents=True)
+        # Creamos Base de Datos con tabla stats
         SQLManager.create_table(
             db_filename=conf.RUTA_COMPLETA_DB,
             nombre_tabla=conf.TABLE_STATS,
-            columnas=(
-                'id INTEGER PRIMARY KEY AUTOINCREMENT',
-                'fecha TEXT',
-                'usuario TEXT', # TODO VARCHAR ?
-                'lista INTEGER',
-                'elemento INTEGER',
-                'paginas_totales INTEGER',
-                'listas_totales INTEGER',
-                'elementos_totales INTEGER',
-            )            
+            columnas=conf.TABLE_STATS_SCHEMA           
         )
+        # Creamos la tabla users
         SQLManager.create_table(
             db_filename=conf.RUTA_COMPLETA_DB,
             nombre_tabla=conf.TABLE_USERS,
-            columnas=(
-                'id INTEGER PRIMARY KEY AUTOINCREMENT',
-                'usuario TEXT',
-                'nombre TEXT',
-                'email TEXT',
-                'fecha_alta TEXT',
-            )            
+            columnas=conf.TABLE_USERS_SCHEMA            
         )
-    else:
-        pass
+        # introducimos los registros del archivo config
+        for user_dict in conf.USERS_DICT_LIST:
+            SQLUserManager().insert_one(user_dict)
+
+
+def serializar_pickle(objeto: object) -> bytes:
+    """Serializa un objeto con pickle
+    y devuelve el objeto serializado
+
+    Parameters
+    ----------
+    objeto : object
+        _description_
+    """
+    return pickle.dumps(objeto)
+
+
+def deserializar_pickle(objeto: bytes) -> object:
+    """Deserializa un objeto en forma de bytes
+    y devuelve el objeto
+
+    Parameters
+    ----------
+    objeto : bytes
+        _description_
+
+    Returns
+    -------
+    object
+        _description_
+    """
+    return pickle.loads(objeto)
 
 
 class SQLContext:
@@ -222,11 +244,10 @@ class SQLManager:
         nombre_tabla: str,
         columnas: tuple[str]
         ) -> None:
-        #!debug
-        print(db_filename)
         with SQLContext(db_filename) as c:
-            c.execute(f"""
-        CREATE TABLE IF NOT EXISTS {nombre_tabla} ({", ".join(columnas)})""")
+            c.execute(
+        f"CREATE TABLE IF NOT EXISTS {nombre_tabla} ({', '.join(columnas)})"
+        )
 
 
     def delete_table(self) -> None:
@@ -283,30 +304,46 @@ class SQLManager:
             c.execute(consulta, (*nuevos_valores, valor_campo_buscado))
 
 
-if __name__ == '__main__':
-    """ SQLContext.create_table(
-        db_filename=NOMBRE_DB_SQLITE,
-        nombre_tabla='busquedas',
-        columnas=(
-            'id INTEGER PRIMARY KEY AUTOINCREMENT',
-            'sector TEXT',
-            'pagina INTEGER',
-            'lista INTEGER',
-            'elemento INTEGER',
-            'paginas_totales INTEGER',
-            'listas_totales INTEGER',
-            'elementos_totales INTEGER',
-            'fecha TEXT',
-        )
-    ) """
-    #db_busquedas = SQLContext(nombre_tabla='busquedas')
-    #db_busquedas.delete_table()
-    """  db_busquedas.add_column_nullable(
-        nombre_columna="empresas_totales",
-        tipo_dato="INTEGER"
-    ) """
-    """ print(db_busquedas.show_table_columns())
-    print(db_busquedas.get_table())
-    print(db_busquedas.get_number_of_records()) """
+class SQLStatManager(SQLManager):
+    """Wrapper específico de esta aplicación
+    para la gestión de la base de datos
 
-    iniciar_db('Odei Bilbao')
+    Parameters
+    ----------
+    SQLManager : _type_
+        _description_
+    """
+    def __init__(self) -> None:
+        super().__init__(nombre_tabla=conf.TABLE_STATS)
+
+
+class SQLUserManager(SQLManager):
+    """Wrapper específico de esta aplicación
+    para la gestión de la base de datos
+
+    Parameters
+    ----------
+    SQLManager : _type_
+        _description_
+    """
+    def __init__(self) -> None:
+        super().__init__(nombre_tabla=conf.TABLE_USERS)
+
+
+
+if __name__ == '__main__':
+    from mecanodei.utils.text import create_username_for_db
+    #SQLStatManager().delete_table()
+    """ columnas = conf.TABLE_STATS_SCHEMA
+    nombre_tabla = conf.TABLE_STATS
+    query = \
+    f"CREATE TABLE IF NOT EXISTS {nombre_tabla} ({', '.join(columnas)})"
+    ic(query)
+    iniciar_db() """
+    nombre = 'Sergio Tejedor'
+    SQLUserManager().insert_one({
+        'usuario': create_username_for_db(nombre),
+        'nombre': nombre,
+        'email': 'tejedor.moreno@gmail.com',
+        'fecha_alta': '2024/03/10'
+    })

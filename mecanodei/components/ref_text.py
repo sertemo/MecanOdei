@@ -34,9 +34,9 @@ class ListViewTextBox(ft.UserControl):
     """
     def __init__(self,
                 text_size: styles.TextSize,
-                char_linea: int = 52,
+                char_linea: int = conf.CHAR_LINEA,
                 text_color: Any = ft.colors.BLACK87,
-                container_heigth: int = 55) -> None:
+                container_heigth: int = conf.LISTVIEW_CONTAINER_HEIGHT) -> None:
         super().__init__()
         self.cont_heigth = container_heigth
         self.text_size = text_size
@@ -45,7 +45,7 @@ class ListViewTextBox(ft.UserControl):
         self.ref_palabras: list[dict[list, str]] = [] 
         self.texto = ft.ListView(
             controls=[], 
-            padding=10,
+            padding=5,
         )
 
 
@@ -159,7 +159,7 @@ class ListViewTextBox(ft.UserControl):
         return indices
 
 
-    def _build_dataset(self, text: str) -> None:
+    def _build_dataset(self, text: str) -> list:
         """Construye una lista de listas con palabras
         a partir del texto entero en str
 

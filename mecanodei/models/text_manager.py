@@ -26,7 +26,7 @@ class TypedTextManager:
         self.current_typed_text: str = ''
 
 
-    def add_and_process_ref_text(self, text_lines: list[str]) -> str:
+    def add_and_process_ref_text(self, text_lines: list[str]) -> list[str]:
         """Crea un raw text quitando retornos de carro.
         Guarda el texto en forma de lineas de texto
         
@@ -50,6 +50,11 @@ class TypedTextManager:
         else:
             self.text_lines_transformed = text_lines
         return self.text_lines_transformed
+
+
+    def get_loaded_text(self) -> str:
+        if self.text_lines_transformed is not None:
+            return "\n".join(self.text_lines_transformed)
 
 
     def add_typed_char(self, char: str) -> None:
