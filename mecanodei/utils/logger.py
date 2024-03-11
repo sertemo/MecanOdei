@@ -14,14 +14,9 @@
 
 # Script que recoge las funciones responsables de procesar texto.
 
-import logging
+import logging.config
 
 import mecanodei.config as conf
 
-logging.basicConfig(
-filename=conf.FOLDER_LOGS / 'logs.log', 
-encoding='utf-8', 
-level=logging.INFO,
-format='%(asctime)s:%(levelname)s:%(message)s',
-datefmt='%H:%M:%S'
-)
+logger = logging.getLogger("my_app")
+logging.config.dictConfig(conf.LOGGING_CONFIG)

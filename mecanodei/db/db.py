@@ -14,7 +14,6 @@
 
 # Script para el código relacionado con la base de datos SQLite
 
-import logging
 import pickle
 import sqlite3
 from typing import Any
@@ -204,6 +203,33 @@ class SQLManager:
             return results.fetchone()
 
 
+    def find_all(self,
+                 *,
+                campo_buscado: str,
+                valor_buscado: str
+                ) -> list[list]:
+        """Devuelve todos los registros
+        con todos los campos cuyo campo coincide 
+        con el valor buscado
+
+        Parameters
+        ----------
+        campo_buscado : str
+            _description_
+        valor_buscado : str
+            _description_
+
+        Returns
+        -------
+        _type_
+            _description_
+        """
+        with SQLContext(self.db_filename) as c:
+            consulta = f"SELECT * FROM {self.tabla} WHERE {campo_buscado} = ?"
+            results = c.execute(consulta, (valor_buscado,))
+            return list(results.fetchall())
+
+
     def find_one_field(
             self,
             *,
@@ -307,6 +333,7 @@ class SQLManager:
 class SQLStatManager(SQLManager):
     """Wrapper específico de esta aplicación
     para la gestión de la base de datos
+    con lo relacionado a las estadisticas
 
     Parameters
     ----------
@@ -315,6 +342,30 @@ class SQLStatManager(SQLManager):
     """
     def __init__(self) -> None:
         super().__init__(nombre_tabla=conf.TABLE_STATS)
+
+    def get_best_ppm_and_date(self, user: str) -> int:
+        """Devuelve el mayor ppm dado un usuario
+
+        Returns
+        -------
+        int
+            _description_
+        """
+        # TODO: Hacerlo con consulta SQL
+        lista_registros_user: list[tuple] = self.find_all(
+            campo_buscado='usuario',
+            valor_buscado=user)
+        ppm_idx = conf.TABLE_STATS_COLUMNS_DICT['ppm']
+        ppm_max = max(reg[ppm_idx] for reg in lista_registros_user)
+        # Para la fecha buscamos pero es mejor hacerlo directamente con consulta
+        # SQL
+        fecha_mejor_ppm = self.find_one_field(
+            campo_buscado='ppm',
+            valor_buscado=ppm_max,
+            campo_a_retornar='fecha'
+        )
+        return ppm_max, fecha_mejor_ppm
+
 
 
 class SQLUserManager(SQLManager):
@@ -332,18 +383,13 @@ class SQLUserManager(SQLManager):
 
 
 if __name__ == '__main__':
-    from mecanodei.utils.text import create_username_for_db
     #SQLStatManager().delete_table()
-    """ columnas = conf.TABLE_STATS_SCHEMA
-    nombre_tabla = conf.TABLE_STATS
-    query = \
-    f"CREATE TABLE IF NOT EXISTS {nombre_tabla} ({', '.join(columnas)})"
-    ic(query)
-    iniciar_db() """
-    nombre = 'Sergio Tejedor'
-    SQLUserManager().insert_one({
-        'usuario': create_username_for_db(nombre),
-        'nombre': nombre,
-        'email': 'tejedor.moreno@gmail.com',
-        'fecha_alta': '2024/03/10'
-    })
+    #nombre = 'Sergio Tejedor'
+    #SQLUserManager().insert_one({
+    #    'usuario': create_username_for_db(nombre),
+    #    'nombre': nombre,
+    #    'email': 'tejedor.moreno@gmail.com',
+    #    'fecha_alta': '2024/03/10'
+    #})
+    ppm_max = SQLStatManager().get_best_ppm_and_date('odei_bilbao')
+    ic(ppm_max)

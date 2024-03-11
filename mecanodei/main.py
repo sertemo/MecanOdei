@@ -14,7 +14,6 @@
 
 # Script para desarrollar el código principal de la app con Flet
 
-import logging
 from pathlib import Path
 import time
 
@@ -27,6 +26,7 @@ from models.stat_manager import StatManager
 from models.timer import Timer
 from mecanodei.models.text_manager import TypedTextManager
 from mecanodei.models.char_iterator import CharIterator
+from mecanodei.models.file_manager import FileManager
 import mecanodei.styles.styles as styles
 from mecanodei.components.stats import StatBox
 from mecanodei.components.ref_text import ListViewTextBox
@@ -38,16 +38,18 @@ from mecanodei.db.db import (SQLStatManager,
                             )
 from mecanodei.utils.text import get_total_num_char, create_username_for_db
 from mecanodei.utils.time import get_datetime_formatted
+from mecanodei.utils.logger import logger
+from mecanodei.views.analytics import anal_contenedor_global
+from mecanodei.views.transcripcion import trans_contenedor_global
 
 # TODO Crear las diferentes secciones en Views independientes
 # TODO Agrupar bien en estilos y configuracion
 # TODO Visualizar numero de linea en pequeño?
 # TODO Hay que optimizar el scroll
-# TODO Meter logging
 
 
 def main(page: ft.Page) -> None:
-
+    
     # Iniciamos la base de datos
     # Si no existe la ruta crea las tablas
     # user y stats e inserta los usuarios de
@@ -56,6 +58,7 @@ def main(page: ft.Page) -> None:
     # logging.info('Creada tabla')
 
     app = AppState()
+    file_manager = FileManager()
     text_manager = TypedTextManager()
     timer = Timer()
     stat_manager = StatManager()
@@ -154,11 +157,15 @@ def main(page: ft.Page) -> None:
         if app.state != State.writing:
             if e.files is not None:
                 path_txt = e.files[0].path
-                path_txt = Path(path_txt)
-                texto_path_fichero.value = path_txt.name
-                # Abrir el texto # TODO Meter en un FileManager ?
-                with open(path_txt, 'r', encoding='utf-8') as file:
-                    text_lines: list[str] = file.readlines()
+                # Abrir el archivo
+                try:
+                    text_lines = file_manager.digest(path_txt)
+                    logger.info(f"Abierto fichero: {path_txt}")
+                    texto_path_fichero.value = file_manager.current_file
+                except Exception as e:
+                    ic(e)
+                    logger.error(f"Error al abrir el archivo {path_txt}")
+                    return
                 # Procesamos primero el texto. Lo añadimos al text manager
                 # Gestiona sustituciones si queremos
                 text_lines: list[str] = \
@@ -185,12 +192,17 @@ def main(page: ft.Page) -> None:
                     # Creamos el iterador que devolverá caracteres y posiciones
                     char_iterator.build_iterator(texto_mecanografiar)
 
-                else:
+                else:                    
                     # Ponemos app en modo error
                     light_app_state.to(app.error_mode())
                     # Mostramos mensaje de error
                     err_msg = f'{len_texto} caracteres > {conf.MAX_LEN_CHAR}'
                     texto_mensaje.value = err_msg
+                    logger.info(f"""El archivo abierto supera el numero de
+                                caracteres máximos predefinidos:
+                                {conf.MAX_LEN_CHAR}. El archivo tiene:
+                                {len_texto} caracteres. Cambia el limite
+                                máximo en el archivo config.py""")
             page.update()
 
 
@@ -220,6 +232,7 @@ def main(page: ft.Page) -> None:
             _description_
         """
         if app.state == State.finish:
+            logger.info("Pulsamos en Botón Repetir")
             # Simulamos la lógica de abrir archivo
             # Ponemos la app en ready
             light_app_state.to(app.ready_mode())
@@ -298,7 +311,7 @@ def main(page: ft.Page) -> None:
         first_time = posicion not in stat_manager.get_fail_indexes()
         # Sacamos las filas que queda, si quedan menos de x no hacemos scroll
         rows_left = texto_mecanografiar.get_n_rows_left(posicion)
-        rows_total = texto_mecanografiar.get_n_rows()
+        rows_total = texto_mecanografiar.get_n_rows() # TODO: mejorarlo !
         if (posicion[0] >= conf.SCROLL_LINE) and (posicion[1] == 0) \
         and first_time and rows_total > conf.ROWS_IN_LISTVIEW \
         and (rows_left > conf.LAST_ROWS_NO_SCROLL):
@@ -394,10 +407,9 @@ def main(page: ft.Page) -> None:
                 box_num_aciertos.show_stat(precision)
                 box_velocidad_ppm.show_stat(ppm)
                 # Habilitamos botones carga de texto y repetir
-                # TODO Meter esta funcionalidad en función con setattr
                 boton_cargar_archivo.enable()
                 boton_repetir.enable()
-                # Metemos todo en DB. Creamos primero el objeto
+                # Metemos todo en DB. Creamos primero el registro en dict
                 data_db = {
                     'fecha': get_datetime_formatted(),
                     'usuario': create_username_for_db(
@@ -421,9 +433,12 @@ def main(page: ft.Page) -> None:
                 }
                 try:
                     db_handler.insert_one(data_db)
+                    logger.info(f"""Insertado correctamente en db el objeto
+                                data_db con el archivo:
+                                {data_db['nombre_archivo']}""")
                 except Exception as e:
                     ic(e)
-                    logging.error(f'Error al insertar en db: {e}')
+                    logger.error(f'Error al insertar en db: {e}')
 
         page.update()
 
@@ -659,41 +674,6 @@ def main(page: ft.Page) -> None:
     page.on_keyboard_event = on_keyboard
     page.update()
 
-    ### FIN VIEW MECANOGRAFIAR ##############################################
-
-    ### INICIO VIEW EXAMINAR ################################################
-    # TODO Zona de carga de directorio
-    # TODO directorio con muchos txt, FileManager para cargar uno aleatorio
-    # TODO Boton empezar: reproduce audio y bloquea la entrada de texto
-
-    ### ZONA CARGA ###
-    cont_load = ft.Container(
-        ft.Row([
-            ft.ElevatedButton('Cargar Directorio'),
-            ft.ElevatedButton('Reproducir')
-        ])
-    )
-
-    ### ZONA TRANSCRIPCION TEXT ###
-    cont_trans = ft.Container(
-        ft.TextField(
-            width=600,
-            expand=True,
-            multiline=True,
-        ),
-        bgcolor=styles.Colors.fondo_mecano
-    )
-
-    contenedor_transcripcion_global = ft.Container(
-        ft.Column([
-            ft.Text('Transcribir'),
-            cont_load,
-            cont_trans
-        ])
-    )
-
-    ### FIN VIEW EXAMINAR ###################################################
-
 
     ### TABS ###
     t = ft.Tabs(
@@ -714,11 +694,11 @@ def main(page: ft.Page) -> None:
             ),
             ft.Tab(
                 tab_content=ft.Icon(ft.icons.TRANSCRIBE),
-                content=contenedor_transcripcion_global,
+                content=trans_contenedor_global,
             ),
             ft.Tab(
                 tab_content=ft.Icon(ft.icons.AUTO_GRAPH_OUTLINED),
-                content=ft.Text("Estadísticas"),
+                content=anal_contenedor_global,
             ),
             ft.Tab(
                 tab_content=ft.Icon(ft.icons.SETTINGS),

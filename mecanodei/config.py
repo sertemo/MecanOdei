@@ -95,14 +95,62 @@ TABLE_STATS_SCHEMA = (
     'num_caracteres INTEGER',
     'lista_errores BLOB',# Si TEXT hay que serializar con JSON antes
     'lista_correctos BLOB',# idem
-            )
+    )
+TABLE_STATS_COLUMNS = (
+    'id',
+    'fecha',
+    'usuario',
+    'num_correctos',
+    'num_incorrectos',
+    'precision',
+    'tiempo',
+    'ppm',
+    'texto_original',
+    'texto_manuscrito',
+    'nombre_archivo',
+    'num_palabras',
+    'num_caracteres',
+    'lista_errores',
+    'lista_correctos',
+    )
+TABLE_STATS_COLUMNS_DICT = {v: k for k,v in enumerate(TABLE_STATS_COLUMNS)}
 TABLE_USERS_SCHEMA = (
     'id INTEGER PRIMARY KEY AUTOINCREMENT',
     'usuario TEXT',
     'nombre TEXT',
     'email TEXT',
     'fecha_alta TEXT',
-            )
+    )
 
 # Configuracion del logging
 FOLDER_LOGS = RUTA_RAIZ / Path('logs')
+LOGGING_CONFIG = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "detailed": {
+            "format": "[%(levelname)s|%(module)s|L%(lineno)d] %(asctime)s: %(message)s",
+            "datefmt": "%Y-%m-%dT%H:%M:%S%z"
+        },
+        "simple": {
+            "format": "%(levelname)s: %(message)s"
+        }
+    },
+    "handlers": {
+        "file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "level": "INFO",
+            "formatter": "detailed",
+            "filename": FOLDER_LOGS / 'mecanodei.log',
+            "maxBytes": 100_000,
+            "backupCount": 3
+        }
+    },
+    "loggers": {
+        "root": {
+            "level": "INFO",
+            "handlers": ["file"]
+        }
+    }
+}
+
