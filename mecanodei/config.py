@@ -40,14 +40,21 @@ APP_FONTS = {
         "Overpass": "fonts/Overpass-Medium.ttf"
     }
 APP_NAME = 'MecanOdei'
+
 # Ventana
 WIDTH =1024
 HEIGHT = 800
 
+# Archivos
+VALID_FORMATS = [
+    'txt',
+    'docx'
+]
+
 # Texto importado
 LISTVIEW_CONTAINER_HEIGHT = 50
 CHAR_LINEA = 52
-MAX_LEN_CHAR = 540
+MAX_LEN_CHAR = 1500
 ROWS_IN_LISTVIEW = 12
 EOP_CHAR = '↵' # Caracter al final de cada frase
 REPLACEMENT_CHAR = None
@@ -65,6 +72,7 @@ SHIFT_CHAR_DICT = {
     '9': ')',
     '0': '=',
     '`': 'Ñ',
+    '7': '/',
 }
 SPECIAL_CHAR_DICT = {
     '`': 'Ñ',

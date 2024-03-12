@@ -14,7 +14,6 @@
 
 # Script para desarrollar el código principal de la app con Flet
 
-from pathlib import Path
 import time
 
 import flet as ft
@@ -39,7 +38,6 @@ from mecanodei.db.db import (SQLStatManager,
 from mecanodei.utils.text import get_total_num_char, create_username_for_db
 from mecanodei.utils.time import get_datetime_formatted
 from mecanodei.utils.logger import logger
-from mecanodei.views.analytics import anal_contenedor_global
 from mecanodei.views.transcripcion import trans_contenedor_global
 
 # TODO Crear las diferentes secciones en Views independientes
@@ -49,38 +47,21 @@ from mecanodei.views.transcripcion import trans_contenedor_global
 
 
 def main(page: ft.Page) -> None:
-    
-    # Iniciamos la base de datos
-    # Si no existe la ruta crea las tablas
-    # user y stats e inserta los usuarios de
-    # config.py
-    iniciar_db_log()
-    # logging.info('Creada tabla')
 
-    app = AppState()
-    file_manager = FileManager()
-    text_manager = TypedTextManager()
-    timer = Timer()
-    stat_manager = StatManager()
-    char_iterator = CharIterator()
-    db_handler = SQLStatManager()
+    def update_analytics(nombre_completo: str) -> None:
+        """Muestra las analiticas en sus objetos
+        correspondientes
+        """
+        user = create_username_for_db(nombre_completo)
+        # Mejor ppm
+        if (resultado := db_handler.get_best_ppm_and_date(user)) is not None:
+            mejor_ppm_texto.value = resultado[0]
+            mejor_ppm_fecha.value = resultado[1]     
+        else:
+            mejor_ppm_texto.value = '-'
+            mejor_ppm_fecha.value = '-'
+        page.update()
 
-    page.fonts = conf.APP_FONTS
-    page.title = conf.APP_NAME
-    page.theme_mode = 'dark'
-    page.theme = ft.Theme(
-        font_family= "RobotoSlab",
-        )
-    page.window_width = conf.WIDTH
-    page.window_height = conf.HEIGHT
-    page.window_resizable = False
-    page.horizontal_alignment = ft.MainAxisAlignment.CENTER
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
-
-
-    ### INICIO VIEW MENU ################################################
-
-    # Funciones
 
     def definir_usuario(e: ft.ControlEvent) -> None:
         """Funcion que se ejecuta al cambiar de usuario en el menú
@@ -93,59 +74,11 @@ def main(page: ft.Page) -> None:
             _description_
         """
         texto_usuario.content.value = user_dropdown.value
+        # Actualizamos las analiticas
+        update_analytics(user_dropdown.value)
         page.update()
 
-    user_dropdown = ft.Dropdown(
-        value=conf.USERS[0],
-        width=300,
-        border_radius=styles.BorderRadiusSize.MEDIUM.value,
-        text_size=styles.TextSize.LARGE.value,
-        alignment=ft.alignment.center,
-        filled=True,
-        bgcolor=styles.Colors.fondo_contenedores,
-        content_padding=styles.PaddingSize.SMALLER.value,
-        options=[
-            ft.dropdown.Option(user) for user in conf.USERS
-            ],
-        on_change=definir_usuario,
-        )
-    
-    cont_menu_usuario = ft.Container(
-        ft.Column([
-            ft.Text(
-                'Usuario',
-                font_family='Consolas',
-                size=styles.TextSize.BIG.value,
-                weight=ft.FontWeight.BOLD,
-                ),
-            user_dropdown,
-            # TODO Meter icono o logo de app
-        ],
-        alignment=ft.MainAxisAlignment.CENTER,
-        horizontal_alignment=ft.CrossAxisAlignment.CENTER
-        ),
-        width=400,
-        margin=20,
-        **styles.contenedor_stats
-    )
-    cont_menu_principal = ft.Column([
-        ft.Text('Menú'),
-        ft.Container(
-            ft.Row([
-                cont_menu_usuario
-                ],
-            alignment=ft.MainAxisAlignment.CENTER,
-            ),
-            expand=True
-        )
-    ],
-    )
-    
-    ### FIN VIEW MENU ###################################################
 
-    ### INICIO VIEW MECANOGRAFIAR #############################################
-
-    # Funciones
     def abrir_fichero_texto(e: ft.FilePickerResultEvent) -> None:
         """Lógica para el evento de abrir un fichero
 
@@ -165,6 +98,9 @@ def main(page: ft.Page) -> None:
                 except Exception as e:
                     ic(e)
                     logger.error(f"Error al abrir el archivo {path_txt}")
+                    texto_mensaje.value = f"Error al abrir el archivo."
+                    light_app_state.to(app.error_mode())
+                    page.update()
                     return
                 # Procesamos primero el texto. Lo añadimos al text manager
                 # Gestiona sustituciones si queremos
@@ -367,7 +303,7 @@ def main(page: ft.Page) -> None:
                 prev_char, word, next_next_pos = char_iterator.get_next()
             # Si no son None significa que aun tenemos caracteres
             if char_referencia is not None:
-                tecleado = str(e.key)                
+                tecleado = str(e.key)
                 # Comprobamos si shift:
                 if e.shift:
                     # Cambiamos la tecla tecleada por la buena
@@ -440,7 +376,93 @@ def main(page: ft.Page) -> None:
                     ic(e)
                     logger.error(f'Error al insertar en db: {e}')
 
+                # Despues de meter en db actualizamos las analíticas
+                update_analytics(user_dropdown.value)
         page.update()
+
+
+    # Iniciamos la base de datos
+    # Si no existe la ruta crea las tablas
+    # user y stats e inserta los usuarios de
+    # config.py
+    iniciar_db_log()
+
+    app = AppState()
+    file_manager = FileManager()
+    text_manager = TypedTextManager()
+    timer = Timer()
+    stat_manager = StatManager()
+    char_iterator = CharIterator()
+    db_handler = SQLStatManager()
+
+    page.fonts = conf.APP_FONTS
+    page.title = conf.APP_NAME
+    page.theme_mode = 'dark'
+    page.theme = ft.Theme(
+        font_family= "RobotoSlab",
+        )
+    page.window_width = conf.WIDTH
+    page.window_height = conf.HEIGHT
+    page.window_resizable = False
+    page.horizontal_alignment = ft.MainAxisAlignment.CENTER
+    page.vertical_alignment = ft.MainAxisAlignment.CENTER
+
+
+    ### INICIO VIEW MENU ################################################
+
+    user_dropdown = ft.Dropdown(
+        value=conf.USERS[0],
+        width=300,
+        border_radius=styles.BorderRadiusSize.MEDIUM.value,
+        text_size=styles.TextSize.LARGE.value,
+        alignment=ft.alignment.center,
+        filled=True,
+        bgcolor=styles.Colors.fondo_contenedores,
+        content_padding=styles.PaddingSize.SMALLER.value,
+        options=[
+            ft.dropdown.Option(user) for user in conf.USERS
+            ],
+        on_change=definir_usuario,
+        )
+
+
+    cont_menu_usuario = ft.Container(
+        ft.Column([
+            ft.Text(
+                'Usuario',
+                font_family='Consolas',
+                size=styles.TextSize.BIG.value,
+                weight=ft.FontWeight.BOLD,
+                ),
+            user_dropdown,
+            # TODO Meter icono o logo de app
+        ],
+        alignment=ft.MainAxisAlignment.CENTER,
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER
+        ),
+        width=400,
+        margin=20,
+        **styles.contenedor_stats
+    )
+    cont_menu_principal = ft.Column([
+        ft.Text('Menú'),
+        ft.Container(
+            ft.Row([
+                cont_menu_usuario
+                ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            ),
+            expand=True
+        )
+    ],
+    )
+    
+    ### FIN VIEW MENU ###################################################
+
+    ### INICIO VIEW MECANOGRAFIAR #############################################
+
+
+
 
 
     # Estado de la app
@@ -480,7 +502,8 @@ def main(page: ft.Page) -> None:
         icono=ft.icons.UPLOAD_FILE,
         texto='Cargar',
         ayuda='Carga un archivo txt',
-        funcion=lambda _: file_picker.pick_files(allowed_extensions=['txt'])
+        funcion=lambda _: file_picker.pick_files(
+            allowed_extensions=conf.VALID_FORMATS)
         )
 
     texto_path_fichero = ft.Text(size=styles.TextSize.DEFAULT.value)
@@ -581,7 +604,7 @@ def main(page: ft.Page) -> None:
 
     ### Zona de Texto Referencia ###
     texto_mecanografiar = ListViewTextBox(
-        text_size=styles.TextSize.LARGER.value
+        text_size=styles.TextSize.LARGE.value
         )
     contenedor_mecanografiar = ft.Container(
         texto_mecanografiar,
@@ -673,6 +696,35 @@ def main(page: ft.Page) -> None:
     page.overlay.append(file_picker)
     page.on_keyboard_event = on_keyboard
     page.update()
+
+
+    ### ANALYTICS VIEW ###
+    mejor_ppm_texto = ft.Text()
+    mejor_ppm_fecha = ft.Text()
+
+    anal_contenedor_global = ft.Container(
+        ft.Column(
+            [
+                ft.Text('Analíticas'),
+                ft.Row(
+                    [
+                        ft.Text("Mejor PPM"), mejor_ppm_texto
+                    ]
+                ),
+                ft.Row(
+                    [
+                        ft.Text('El día'), mejor_ppm_fecha                        
+                    ]
+                )
+            ]
+        )
+    )
+
+    # Mostramos las analíticas
+    ic(user_dropdown.value)
+    update_analytics(user_dropdown.value)
+
+    ### FIN DE ANALYTICS VIEW ###
 
 
     ### TABS ###

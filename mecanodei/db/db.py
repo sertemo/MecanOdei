@@ -343,28 +343,24 @@ class SQLStatManager(SQLManager):
     def __init__(self) -> None:
         super().__init__(nombre_tabla=conf.TABLE_STATS)
 
-    def get_best_ppm_and_date(self, user: str) -> int:
-        """Devuelve el mayor ppm dado un usuario
+    def get_best_ppm_and_date(self, user: str) -> tuple[int, str] | None:
+        """Devuelve el mayor ppm y la fecha dado un usuario
 
         Returns
         -------
         int
             _description_
         """
-        # TODO: Hacerlo con consulta SQL
-        lista_registros_user: list[tuple] = self.find_all(
-            campo_buscado='usuario',
-            valor_buscado=user)
-        ppm_idx = conf.TABLE_STATS_COLUMNS_DICT['ppm']
-        ppm_max = max(reg[ppm_idx] for reg in lista_registros_user)
-        # Para la fecha buscamos pero es mejor hacerlo directamente con consulta
-        # SQL
-        fecha_mejor_ppm = self.find_one_field(
-            campo_buscado='ppm',
-            valor_buscado=ppm_max,
-            campo_a_retornar='fecha'
-        )
-        return ppm_max, fecha_mejor_ppm
+        with SQLContext(self.db_filename) as c:
+            query = f"""
+            SELECT MAX(ppm) AS ppm_maximo, fecha
+            FROM {self.tabla}
+            WHERE usuario = '{user}'
+            GROUP BY usuario;
+            """
+            results = c.execute(query)
+            response = results.fetchone()
+            return response
 
 
 

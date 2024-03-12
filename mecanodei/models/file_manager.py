@@ -17,16 +17,25 @@
 import os
 from pathlib import Path
 
+from docx import Document
+
+import mecanodei.config as conf
+
 class FileManager:
     """Clase para gestionar como abrimos
     los archivos y como tratamos el texto antes
     de entregarlo al ref_text
     """
     def __init__(self) -> None:
-        self.handlers_dict = {
-            '.txt': self.open_txt,
-            '.pdf': self.open_pdf
+        self.handlers_list = [
+            self.open_txt,
+            self.open_docx
+        ]
+        self.handlers_map = {
+            formato: handler for formato, handler in 
+            zip(conf.VALID_FORMATS, self.handlers_list)
         }
+
 
     def digest(self, file_path: str) -> list[str]:
         """Abre el archivo con la ruta especificada
@@ -46,13 +55,18 @@ class FileManager:
         self.file_pathlib = Path(file_path)
         self.current_file = self.file_pathlib.name
         _, ext = os.path.splitext(self.current_file)
-        return self.handlers_dict[ext]()
+        return self.handlers_map[ext[1:]]() # Quitamos el punto
 
 
     def open_txt(self) -> list[str]:
         with open(self.file_pathlib, 'r', encoding='utf-8') as file:
             text_lines: list[str] = file.readlines()
         return text_lines
+
+
+    def open_docx(self) -> list[str]:
+        doc = Document(self.file_pathlib)
+        return [parrafo.text for parrafo in doc.paragraphs]
 
 
     def open_pdf(self) -> list[str]:
