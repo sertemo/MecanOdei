@@ -60,6 +60,28 @@ def main(page: ft.Page) -> None:
         else:
             mejor_ppm_texto.value = '-'
             mejor_ppm_fecha.value = '-'
+        # Precisión media
+        if (resultado := db_handler.get_average_precision(user)) is not None:
+            precision_media_texto.value = resultado
+        else:
+            precision_media_texto.value = '-'
+        # Caracteres totales
+        if (resultado := db_handler.get_sum_char(user)) is not None:
+            suma_char_texto.value = resultado
+        else:
+            suma_char_texto.value = '-'
+        # Número de sesion
+        if (resultado := db_handler.get_number_of_sesions(user)) is not None:
+            num_sesiones_texto.value = resultado
+        else:
+            num_sesiones_texto.value = '-'
+        # Número caracteres fallados
+        if (resultado := db_handler.get_number_failed_char(user)) is not None:
+            char_totales_fallados_texto.value = resultado
+        else:
+            char_totales_fallados_texto.value = '-'
+        # TODO las 5 palabras mas erradas. Listview
+
         page.update()
 
 
@@ -698,30 +720,55 @@ def main(page: ft.Page) -> None:
     page.update()
 
 
-    ### ANALYTICS VIEW ###
+    ### ANALYTICS VIEW ###    
     mejor_ppm_texto = ft.Text()
     mejor_ppm_fecha = ft.Text()
+    precision_media_texto = ft.Text()
+    suma_char_texto = ft.Text()
+    num_sesiones_texto = ft.Text()
+    char_totales_fallados_texto = ft.Text()
 
     anal_contenedor_global = ft.Container(
         ft.Column(
             [
                 ft.Text('Analíticas'),
+                texto_usuario,
                 ft.Row(
                     [
-                        ft.Text("Mejor PPM"), mejor_ppm_texto
+                        ft.Text("Mejor PPM"),
+                        mejor_ppm_texto,
+                        mejor_ppm_fecha,
                     ]
                 ),
                 ft.Row(
                     [
-                        ft.Text('El día'), mejor_ppm_fecha                        
+                        ft.Text('Precisión media'),
+                        precision_media_texto
                     ]
-                )
+                ),
+                ft.Row(
+                    [
+                        ft.Text('Caracteres totales tecleados'),
+                        suma_char_texto
+                    ]
+                ),
+                ft.Row(
+                    [
+                        ft.Text('Caracteres totales fallados'),
+                        char_totales_fallados_texto
+                    ]
+                ),
+                ft.Row(
+                    [
+                        ft.Text('Número de sesiones'),
+                        num_sesiones_texto
+                    ]
+                ),
             ]
         )
     )
 
     # Mostramos las analíticas
-    ic(user_dropdown.value)
     update_analytics(user_dropdown.value)
 
     ### FIN DE ANALYTICS VIEW ###

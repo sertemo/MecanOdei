@@ -54,7 +54,7 @@ VALID_FORMATS = [
 # Texto importado
 LISTVIEW_CONTAINER_HEIGHT = 50
 CHAR_LINEA = 52
-MAX_LEN_CHAR = 1500
+MAX_LEN_CHAR = 600
 ROWS_IN_LISTVIEW = 12
 EOP_CHAR = '↵' # Caracter al final de cada frase
 REPLACEMENT_CHAR = None

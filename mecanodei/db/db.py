@@ -14,13 +14,15 @@
 
 # Script para el código relacionado con la base de datos SQLite
 
+from collections import Counter
 import pickle
 import sqlite3
-from typing import Any
+from typing import Any, Iterator
 
 from icecream import ic
 
 import mecanodei.config as conf
+from mecanodei.models.stat_manager import CharTrack
 
 
 def iniciar_db_log() -> None:
@@ -360,8 +362,129 @@ class SQLStatManager(SQLManager):
             """
             results = c.execute(query)
             response = results.fetchone()
-            return response
+        return response
 
+    def get_average_precision(self, user: str) -> float:
+        """Devuelve la precision media de un usuario
+
+        Parameters
+        ----------
+        user : str
+            _description_
+
+        Returns
+        -------
+        int
+            _description_
+        """
+        with SQLContext(self.db_filename) as c:
+            query = f"""
+            SELECT AVG(precision) AS precision_media
+            FROM {self.tabla}
+            WHERE usuario = '{user}'
+            """
+            results = c.execute(query)
+            response = results.fetchone()
+        return round(response[0], 1)
+
+    def get_sum_char(self, user: str) -> int:
+        """Devuelve la suma de todos los caracteres
+
+        Parameters
+        ----------
+        user : str
+            _description_
+
+        Returns
+        -------
+        int
+            _description_
+        """
+        with SQLContext(self.db_filename) as c:
+            query = f"""
+            SELECT SUM(num_caracteres) AS caracteres_totales
+            FROM {self.tabla}
+            WHERE usuario = '{user}'
+            """
+            results = c.execute(query)
+            response = results.fetchone()
+        return response[0]
+
+    def _get_listas_errores(self, user: str) -> list[CharTrack]:
+        """Devuelve todas las listas de errores
+        de un usuario determinado
+
+        Parameters
+        ----------
+        user : str
+            _description_
+
+        Returns
+        -------
+        int
+            _description_
+        """
+        with SQLContext(self.db_filename) as c:
+            query = f"""
+            SELECT lista_errores
+            FROM {self.tabla}
+            WHERE usuario = '{user}'
+            """
+            results = c.execute(query)
+            response: list[bytes] = results.fetchall()
+        if response:
+            # Deserializamos
+            lista_chartrack = []
+            for l in response:
+                lista_chartrack.extend(pickle.loads(l[0]))
+            return lista_chartrack
+
+    def words_more_failed(self, user: str) -> list[tuple[str, int]]:
+        """Devuelve una lista con las palabras
+        más falladas
+
+        Parameters
+        ----------
+        user : str
+            _description_
+
+        Returns
+        -------
+        list[str]
+            _description_
+        """
+        listas_errores: list[CharTrack] = self._get_listas_errores(user)
+        count = Counter(char.word for char in listas_errores)
+        return count.most_common(5)
+
+    def get_number_failed_char(self, user: str) -> int:
+        """Devuelve el numero de caracteres
+        totales fallados
+
+        Parameters
+        ----------
+        user : str
+            _description_
+
+        Returns
+        -------
+        int
+            _description_
+        """
+        return len(self._get_listas_errores(user))
+
+    def get_number_of_sesions(self, user: str) -> int:
+        """Devuelve el número de sesiones
+        realizadas por el usuario"""
+        with SQLContext(self.db_filename) as c:
+            query = f"""
+            SELECT COUNT(*) AS num_registros
+            FROM {self.tabla}
+            WHERE usuario = '{user}'
+            """
+            results = c.execute(query)
+            response = results.fetchone()
+        return response[0]
 
 
 class SQLUserManager(SQLManager):
@@ -387,5 +510,5 @@ if __name__ == '__main__':
     #    'email': 'tejedor.moreno@gmail.com',
     #    'fecha_alta': '2024/03/10'
     #})
-    ppm_max = SQLStatManager().get_best_ppm_and_date('odei_bilbao')
-    ic(ppm_max)
+    r = SQLStatManager()._get_listas_errores('odei_bilbao')
+    ic(r)
