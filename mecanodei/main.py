@@ -80,7 +80,21 @@ def main(page: ft.Page) -> None:
             char_totales_fallados_texto.value = resultado
         else:
             char_totales_fallados_texto.value = '-'
-        # TODO las 5 palabras mas erradas. Listview
+        # las 5 palabras mas erradas. Listview
+        if (resultado := db_handler.words_most_failed(user)) is not None:
+            # poblamos la listview
+            palabras_mas_falladas.controls.clear()
+            for palabra, veces in resultado:
+                palabras_mas_falladas.controls.append(
+                    ft.Row(
+                        [
+                            ft.Text(f'"{palabra}" - '),
+                            ft.Text(veces)
+                        ]
+                    )
+                )
+        else:
+            char_totales_fallados_texto.value = '-'
 
         page.update()
 
@@ -731,6 +745,7 @@ def main(page: ft.Page) -> None:
     suma_char_texto = ft.Text()
     num_sesiones_texto = ft.Text()
     char_totales_fallados_texto = ft.Text()
+    palabras_mas_falladas = ft.ListView()
 
     anal_contenedor_global = ft.Container(
         ft.Column(
@@ -768,6 +783,13 @@ def main(page: ft.Page) -> None:
                         num_sesiones_texto
                     ]
                 ),
+                ft.Row(
+                    [
+                        ft.Text('Palabras más falladas'),
+                        palabras_mas_falladas
+                    ],
+                    vertical_alignment=ft.CrossAxisAlignment.START
+                )
             ]
         )
     )

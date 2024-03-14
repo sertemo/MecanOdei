@@ -454,7 +454,9 @@ class SQLStatManager(SQLManager):
             _description_
         """
         listas_errores: list[CharTrack] = self._get_listas_errores(user)
-        count = Counter(char.word for char in listas_errores)
+        count = Counter(
+            (char.word, char.actual, char.prev, char.typed) 
+            for char in listas_errores)
         return count.most_common(5)
 
     def get_number_failed_char(self, user: str) -> int:
