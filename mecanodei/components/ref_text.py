@@ -109,7 +109,7 @@ class ListViewTextBox(ft.UserControl):
             for n_char in range(self.get_n_char(n_fila)):
                 posicion = (n_fila, n_char)
                 char = self.texto.controls[n_fila].content \
-                    .controls[n_char].content.value
+                    .controls[n_char].value
                 char = quitar_tildes(char).lower()
                 word = self._get_current_word((n_fila, n_char))
                 try:
@@ -252,16 +252,16 @@ class ListViewTextBox(ft.UserControl):
                 ft.Container(
                     ft.Row(
                         [
-                            ft.Container(
-                                content=ft.Text(
+                            #ft.Container(
+                                ft.Text(
                                     letra,
                                     size=self.text_size,
                                     weight=ft.FontWeight.BOLD,
                                     color=self.text_color,
-                                    ),
-                                border_radius=0,
-                                padding=0,
-                                ) for letra in linea],
+                                    )
+                                #border_radius=0,
+                                #padding=0),
+                                for letra in linea],
                             spacing=0,
                             wrap=True,
                         ),
@@ -292,8 +292,8 @@ class ListViewTextBox(ft.UserControl):
         self.texto.controls[pos_linea].content.controls[pos_char] \
                 .bgcolor = styles.Colors.verde_texto_correcto
         # Pintamos letra en negro para mayor contraste
-        self.texto.controls[pos_linea].content.controls[pos_char] \
-                .content.color = ft.colors.BLACK
+        """ self.texto.controls[pos_linea].content.controls[pos_char] \
+                .content.color = ft.colors.BLACK """
         # pintamos también el borde sutilmente
         """ self.texto.controls[pos_linea].content.controls[pos_char] \
                 .border = ft.border.only(

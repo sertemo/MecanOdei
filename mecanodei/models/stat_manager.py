@@ -26,6 +26,7 @@ class CharTrack:
     typed: str # Caracter tecleado
     prev: str = None # Caracter previo
     word: str = None # Palabra a la que pertenece el caracter tecleado
+    file_name: str = None
 
 
 class StatManager:
@@ -105,6 +106,7 @@ class StatManager:
                         typed: str,
                         prev: str = None,
                         word: str = None,
+                        file_name: str = None
                         ) -> None:
         self.lista_fallos.append(
             CharTrack(
@@ -112,7 +114,8 @@ class StatManager:
                 actual=actual,
                 typed=typed,
                 prev=prev,
-                word=word
+                word=word,
+                file_name=file_name,
             )
         )
 

@@ -44,6 +44,7 @@ from mecanodei.views.transcripcion import trans_contenedor_global
 # TODO Agrupar bien en estilos y configuracion
 # TODO Visualizar numero de linea en pequeño?
 # TODO Hay que optimizar el scroll
+# TODO por qué cuando texto es grande parece que hay lag y no coge bien los caracteres tecleados
 
 
 def main(page: ft.Page) -> None:
@@ -54,12 +55,25 @@ def main(page: ft.Page) -> None:
         """
         user = create_username_for_db(nombre_completo)
         # Mejor ppm
-        if (resultado := db_handler.get_best_ppm_and_date(user)) is not None:
+        if (resultado := db_handler.get_best_ppm_file_and_date(user)) \
+        is not None:
             mejor_ppm_texto.value = resultado[0]
-            mejor_ppm_fecha.value = resultado[1]     
+            mejor_ppm_fecha.value = resultado[1]
+            mejor_ppm_archivo.value = resultado[2]
         else:
             mejor_ppm_texto.value = '-'
             mejor_ppm_fecha.value = '-'
+            mejor_ppm_archivo.value = '-'
+        # Peor ppm
+        if (resultado := db_handler.get_worst_ppm_file_and_date(user)) \
+        is not None:
+            peor_ppm_texto.value = resultado[0]
+            peor_ppm_fecha.value = resultado[1]
+            peor_ppm_archivo.value = resultado[2]
+        else:
+            peor_ppm_texto.value = '-'
+            peor_ppm_fecha.value = '-'
+            peor_ppm_archivo.value = '-'
         # Precisión media
         if (resultado := db_handler.get_average_precision(user)) is not None:
             precision_media_texto.value = resultado
@@ -84,17 +98,34 @@ def main(page: ft.Page) -> None:
         if (resultado := db_handler.words_most_failed(user)) is not None:
             # poblamos la listview
             palabras_mas_falladas.controls.clear()
-            for palabra, veces in resultado:
+            for (palabra, char, prev, typed), veces in resultado:
+                # Dividimos la palabra
+                palabra_dividida = ft.Row(
+                    [ft.Text(c) for c in palabra],
+                    spacing=0.5)
+                # Buscamos el indice del caracter fallado de la palabra
+                indice = palabra.find(f'{prev}{char}')
+                indice = indice + 1 if prev else indice
+                # Cambiamos tamaño de dicho caracter
+                palabra_dividida.controls[indice].size = 20
+                palabra_dividida.controls[indice].weight = ft.FontWeight.BOLD
+
                 palabras_mas_falladas.controls.append(
                     ft.Row(
                         [
-                            ft.Text(f'"{palabra}" - '),
-                            ft.Text(veces)
+                            palabra_dividida,
+                            ft.Text(f'tecleado: "{typed}"'),
+                            ft.Text(f'({veces})', size=12)
                         ]
                     )
                 )
         else:
             char_totales_fallados_texto.value = '-'
+        # ARchivo más usado
+        if (resultado := db_handler.get_most_freq_file(user)) is not None:
+            archivo_mas_usado.value = f'"{resultado}"'
+        else:
+            archivo_mas_usado.value = '-'
 
         page.update()
 
@@ -239,7 +270,7 @@ def main(page: ft.Page) -> None:
             # Quitamos mensajes de error
             texto_mensaje.value = ""
             # Pintamos el primer caracter a marcar
-            texto_mecanografiar.underline((0, 0))
+            #texto_mecanografiar.underline((0, 0))
             # Mostramos un contador de 3 segundos
             for n in range(3, 0, -1): # TODO Meter en componente
                 texto_cuenta_atras.value = str(n)
@@ -302,7 +333,7 @@ def main(page: ft.Page) -> None:
             # Pintamos el fondo del caracter en verde
             texto_mecanografiar.paint_green(posicion)
             # Pintamos rayita en el siguiente caracter
-            texto_mecanografiar.underline(next_next_pos)
+            #texto_mecanografiar.underline(next_next_pos)
             # Añadimos el caracter al stat manager
             stat_manager.add_correct(
                 indice=posicion,
@@ -323,6 +354,7 @@ def main(page: ft.Page) -> None:
                 typed=tecleado.upper(),
                 prev=prev_char.upper(),
                 word=word,
+                file_name=texto_path_fichero.value,
                 )
 
 
@@ -738,14 +770,20 @@ def main(page: ft.Page) -> None:
     page.update()
 
 
-    ### ANALYTICS VIEW ###    
+    ### ANALYTICS VIEW ###
+    # TODO Pintar evolución de los ppm en plot?
     mejor_ppm_texto = ft.Text()
     mejor_ppm_fecha = ft.Text()
+    mejor_ppm_archivo = ft.Text()
+    peor_ppm_texto = ft.Text()
+    peor_ppm_fecha = ft.Text()
+    peor_ppm_archivo = ft.Text()
     precision_media_texto = ft.Text()
     suma_char_texto = ft.Text()
     num_sesiones_texto = ft.Text()
     char_totales_fallados_texto = ft.Text()
     palabras_mas_falladas = ft.ListView()
+    archivo_mas_usado = ft.Text()
 
     anal_contenedor_global = ft.Container(
         ft.Column(
@@ -754,15 +792,31 @@ def main(page: ft.Page) -> None:
                 texto_usuario,
                 ft.Row(
                     [
+                        ft.Text('Archivo más usado'),
+                        archivo_mas_usado
+                    ]
+                ),
+                ft.Row(
+                    [
                         ft.Text("Mejor PPM"),
                         mejor_ppm_texto,
                         mejor_ppm_fecha,
+                        mejor_ppm_archivo,
+                    ]
+                ),
+                ft.Row(
+                    [
+                        ft.Text("Peor PPM"),
+                        peor_ppm_texto,
+                        peor_ppm_fecha,
+                        peor_ppm_archivo,
                     ]
                 ),
                 ft.Row(
                     [
                         ft.Text('Precisión media'),
-                        precision_media_texto
+                        precision_media_texto,
+                        ft.Text('%')
                     ]
                 ),
                 ft.Row(
@@ -789,7 +843,7 @@ def main(page: ft.Page) -> None:
                         palabras_mas_falladas
                     ],
                     vertical_alignment=ft.CrossAxisAlignment.START
-                )
+                ),
             ]
         )
     )
@@ -816,10 +870,6 @@ def main(page: ft.Page) -> None:
             ft.Tab(
                 tab_content=ft.Icon(ft.icons.KEYBOARD),
                 content=contenedor_global,
-            ),
-            ft.Tab(
-                tab_content=ft.Icon(ft.icons.TRANSCRIBE),
-                content=trans_contenedor_global,
             ),
             ft.Tab(
                 tab_content=ft.Icon(ft.icons.AUTO_GRAPH_OUTLINED),

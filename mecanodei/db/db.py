@@ -345,7 +345,7 @@ class SQLStatManager(SQLManager):
     def __init__(self) -> None:
         super().__init__(nombre_tabla=conf.TABLE_STATS)
 
-    def get_best_ppm_and_date(self, user: str) -> tuple[int, str] | None:
+    def get_best_ppm_file_and_date(self, user: str) -> tuple[int, str] | None:
         """Devuelve el mayor ppm y la fecha dado un usuario
 
         Returns
@@ -355,7 +355,26 @@ class SQLStatManager(SQLManager):
         """
         with SQLContext(self.db_filename) as c:
             query = f"""
-            SELECT MAX(ppm) AS ppm_maximo, fecha
+            SELECT MAX(ppm) AS ppm_maximo, fecha, nombre_archivo
+            FROM {self.tabla}
+            WHERE usuario = '{user}'
+            GROUP BY usuario;
+            """
+            results = c.execute(query)
+            response = results.fetchone()
+        return response
+
+    def get_worst_ppm_file_and_date(self, user: str) -> tuple[int, str] | None:
+        """Devuelve el mayor ppm y la fecha dado un usuario
+
+        Returns
+        -------
+        int
+            _description_
+        """
+        with SQLContext(self.db_filename) as c:
+            query = f"""
+            SELECT MIN(ppm) AS ppm_minimo, fecha, nombre_archivo
             FROM {self.tabla}
             WHERE usuario = '{user}'
             GROUP BY usuario;
@@ -385,7 +404,8 @@ class SQLStatManager(SQLManager):
             """
             results = c.execute(query)
             response = results.fetchone()
-        return round(response[0], 1)
+            if (r:=response[0]) is not None:
+                return round(r, 1)
 
     def get_sum_char(self, user: str) -> int:
         """Devuelve la suma de todos los caracteres
@@ -454,10 +474,11 @@ class SQLStatManager(SQLManager):
             _description_
         """
         listas_errores: list[CharTrack] = self._get_listas_errores(user)
-        count = Counter(
-            (char.word, char.actual, char.prev, char.typed) 
-            for char in listas_errores)
-        return count.most_common(5)
+        if listas_errores is not None:
+            count = Counter(
+                (char.word, char.actual, char.prev, char.typed) 
+                for char in listas_errores)
+            return count.most_common(5)
 
     def get_number_failed_char(self, user: str) -> int:
         """Devuelve el numero de caracteres
@@ -473,7 +494,9 @@ class SQLStatManager(SQLManager):
         int
             _description_
         """
-        return len(self._get_listas_errores(user))
+        if (errores:=self._get_listas_errores(user)) is not None:
+            return len(errores)
+        return 0
 
     def get_number_of_sesions(self, user: str) -> int:
         """Devuelve el número de sesiones
@@ -487,6 +510,34 @@ class SQLStatManager(SQLManager):
             results = c.execute(query)
             response = results.fetchone()
         return response[0]
+
+    def get_most_freq_file(self, user: str) -> str | None:
+        """Devuelve el nombre del archivo
+        que mas se repite
+
+        Parameters
+        ----------
+        user : str
+            _description_
+
+        Returns
+        -------
+        str
+            _description_
+        """
+        with SQLContext(self.db_filename) as c:
+            query = f"""
+            SELECT nombre_archivo, COUNT(nombre_archivo) AS uso
+            FROM {self.tabla}
+            WHERE usuario = '{user}'
+            GROUP BY nombre_archivo
+            ORDER BY uso DESC
+            LIMIT 1;
+            """
+            results = c.execute(query)
+            response = results.fetchone()
+            if (response) is not None:
+                return response[0]
 
 
 class SQLUserManager(SQLManager):
@@ -504,7 +555,7 @@ class SQLUserManager(SQLManager):
 
 
 if __name__ == '__main__':
-    #SQLStatManager().delete_table()
+    SQLStatManager().delete_table()
     #nombre = 'Sergio Tejedor'
     #SQLUserManager().insert_one({
     #    'usuario': create_username_for_db(nombre),
@@ -512,5 +563,5 @@ if __name__ == '__main__':
     #    'email': 'tejedor.moreno@gmail.com',
     #    'fecha_alta': '2024/03/10'
     #})
-    r = SQLStatManager()._get_listas_errores('odei_bilbao')
-    ic(r)
+    #r = SQLStatManager()._get_listas_errores('odei_bilbao')
+    #ic(r)
