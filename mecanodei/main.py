@@ -115,8 +115,6 @@ def main(page: ft.Page) -> None:
                 # Abrir el archivo
                 try:
                     text_lines = file_manager.digest(path_txt)
-                    logger.info(f"Abierto fichero: {path_txt}")
-                    texto_path_fichero.value = file_manager.current_file
                 except Exception as e:
                     ic(e)
                     logger.error(f"Error al abrir el archivo {path_txt}")
@@ -124,6 +122,10 @@ def main(page: ft.Page) -> None:
                     light_app_state.to(app.error_mode())
                     page.update()
                     return
+                else:
+                    logger.info(f"Abierto fichero: {path_txt}")
+                    texto_path_fichero.value = file_manager.current_file
+
                 # Procesamos primero el texto. Lo añadimos al text manager
                 # Gestiona sustituciones si queremos
                 text_lines: list[str] = \
@@ -391,15 +393,17 @@ def main(page: ft.Page) -> None:
                 }
                 try:
                     db_handler.insert_one(data_db)
+                except Exception as e:
+                    ic(e)
+                    texto_mensaje.value = f"Error al insertar en db."
+                    light_app_state.to(app.error_mode())
+                    logger.error(f'Error al insertar en db: {e}')
+                else:
                     logger.info(f"""Insertado correctamente en db el objeto
                                 data_db con el archivo:
                                 {data_db['nombre_archivo']}""")
-                except Exception as e:
-                    ic(e)
-                    logger.error(f'Error al insertar en db: {e}')
-
-                # Despues de meter en db actualizamos las analíticas
-                update_analytics(user_dropdown.value)
+                    # Despues de meter en db actualizamos las analíticas
+                    update_analytics(user_dropdown.value)
         page.update()
 
 

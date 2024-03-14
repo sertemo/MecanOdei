@@ -73,9 +73,12 @@ SHIFT_CHAR_DICT = {
     '0': '=',
     '`': 'Ñ',
     '7': '/',
+    'Numpad Add': '+',
 }
 SPECIAL_CHAR_DICT = {
     '`': 'Ñ',
+    'Numpad Add': '+',
+    'Numpad Substract': '-',
     'Enter': EOP_CHAR
 }
 MAX_CHAR_LINE = 30

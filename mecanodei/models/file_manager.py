@@ -59,8 +59,12 @@ class FileManager:
 
 
     def open_txt(self) -> list[str]:
-        with open(self.file_pathlib, 'r', encoding='utf-8') as file:
-            text_lines: list[str] = file.readlines()
+        #with open(self.file_pathlib, 'r', encoding='utf-8') as file:
+        #    text_lines: list[str] = file.readlines()
+        # Otra opción usando pathlib:
+        text_lines = self.file_pathlib.read_text(encoding='utf-8').\
+            strip().\
+                split('\n')
         return text_lines
 
 

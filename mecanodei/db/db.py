@@ -439,7 +439,7 @@ class SQLStatManager(SQLManager):
                 lista_chartrack.extend(pickle.loads(l[0]))
             return lista_chartrack
 
-    def words_more_failed(self, user: str) -> list[tuple[str, int]]:
+    def words_most_failed(self, user: str) -> list[tuple[str, int]]:
         """Devuelve una lista con las palabras
         más falladas
 
