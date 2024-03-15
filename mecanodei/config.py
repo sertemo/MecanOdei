@@ -37,7 +37,8 @@ APP_FONTS = {
         ofl/kanit/Kanit-Bold.ttf""",
         "RobotoSlab": """https://github.com/google/fonts/raw/main/apache/
         robotoslab/RobotoSlab%5Bwght%5D.ttf""",
-        "Overpass": "fonts/Overpass-Medium.ttf"
+        "Overpass": "fonts/Overpass-Medium.ttf",
+        "Poppins": "fonts/Poppins-Medium.ttf",
     }
 APP_NAME = 'MecanOdei'
 
@@ -50,6 +51,9 @@ VALID_FORMATS = [
     'txt',
     'docx'
 ]
+
+# Stats
+DEFAULT_CHAR = '-'
 
 # Texto importado
 LISTVIEW_CONTAINER_HEIGHT = 40
@@ -80,6 +84,17 @@ SPECIAL_CHAR_DICT = {
     '`': 'Ñ',
     'Numpad Add': '+',
     'Numpad Substract': '-',
+    'Numpad 0': '0',
+    'Numpad 1': '1',
+    'Numpad 2': '2',
+    'Numpad 3': '3',
+    'Numpad 4': '4',
+    'Numpad 5': '5',
+    'Numpad 6': '6',
+    'Numpad 7': '7',
+    'Numpad 8': '8',
+    'Numpad 9': '9',
+    'Numpad Decimal': '.',
     'Enter': EOP_CHAR
 }
 MAX_CHAR_LINE = 30

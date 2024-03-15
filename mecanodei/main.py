@@ -31,6 +31,7 @@ from mecanodei.components.stats import StatBox
 from mecanodei.components.ref_text import ListViewTextBox
 from mecanodei.components.custom_button import CustomButton
 from mecanodei.components.app_state import AppStateLight
+from mecanodei.components.analytics import AnalText
 from mecanodei.db.db import (SQLStatManager,
                             iniciar_db_log,
                             serializar_pickle
@@ -38,7 +39,6 @@ from mecanodei.db.db import (SQLStatManager,
 from mecanodei.utils.text import get_total_num_char, create_username_for_db
 from mecanodei.utils.time import get_datetime_formatted
 from mecanodei.utils.logger import logger
-from mecanodei.views.transcripcion import trans_contenedor_global
 
 # TODO Crear las diferentes secciones en Views independientes
 # TODO Agrupar bien en estilos y configuracion
@@ -57,47 +57,47 @@ def main(page: ft.Page) -> None:
         # Mejor ppm
         if (resultado := db_handler.get_best_ppm_file_and_date(user)) \
         is not None:
-            mejor_ppm_texto.value = resultado[0]
-            mejor_ppm_fecha.value = resultado[1]
-            mejor_ppm_archivo.value = resultado[2]
+            mejor_ppm_texto.show(resultado[0])
+            mejor_ppm_fecha.show(resultado[1])
+            mejor_ppm_archivo.show(resultado[2])
         else:
-            mejor_ppm_texto.value = '-'
-            mejor_ppm_fecha.value = '-'
-            mejor_ppm_archivo.value = '-'
+            mejor_ppm_texto.show(conf.DEFAULT_CHAR)
+            mejor_ppm_fecha.show(conf.DEFAULT_CHAR)
+            mejor_ppm_archivo.show(conf.DEFAULT_CHAR)
         # Peor ppm
         if (resultado := db_handler.get_worst_ppm_file_and_date(user)) \
         is not None:
-            peor_ppm_texto.value = resultado[0]
-            peor_ppm_fecha.value = resultado[1]
-            peor_ppm_archivo.value = resultado[2]
+            peor_ppm_texto.show(resultado[0])
+            peor_ppm_fecha.show(resultado[1])
+            peor_ppm_archivo.show(resultado[2])
         else:
-            peor_ppm_texto.value = '-'
-            peor_ppm_fecha.value = '-'
-            peor_ppm_archivo.value = '-'
+            peor_ppm_texto.show(conf.DEFAULT_CHAR)
+            peor_ppm_fecha.show(conf.DEFAULT_CHAR)
+            peor_ppm_archivo.show(conf.DEFAULT_CHAR)
         # Precisión media
         if (resultado := db_handler.get_average_precision(user)) is not None:
-            precision_media_texto.value = resultado
+            precision_media_texto.show(resultado)
         else:
-            precision_media_texto.value = '-'
+            precision_media_texto.show(conf.DEFAULT_CHAR)
         # Caracteres totales
         if (resultado := db_handler.get_sum_char(user)) is not None:
-            suma_char_texto.value = resultado
+            suma_char_texto.show(resultado)
         else:
-            suma_char_texto.value = '-'
+            suma_char_texto.show(conf.DEFAULT_CHAR)
         # Número de sesion
         if (resultado := db_handler.get_number_of_sesions(user)) is not None:
-            num_sesiones_texto.value = resultado
+            num_sesiones_texto.show(resultado)
         else:
-            num_sesiones_texto.value = '-'
+            num_sesiones_texto.show(conf.DEFAULT_CHAR)
         # Número caracteres fallados
         if (resultado := db_handler.get_number_failed_char(user)) is not None:
-            char_totales_fallados_texto.value = resultado
+            char_totales_fallados_texto.show(resultado)
         else:
-            char_totales_fallados_texto.value = '-'
+            char_totales_fallados_texto.show(conf.DEFAULT_CHAR)
         # las 5 palabras mas erradas. Listview
+        palabras_mas_falladas.controls.clear()
         if (resultado := db_handler.words_most_failed(user)) is not None:
             # poblamos la listview
-            palabras_mas_falladas.controls.clear()
             for (palabra, char, prev, typed), veces in resultado:
                 # Dividimos la palabra
                 palabra_dividida = ft.Row(
@@ -109,6 +109,8 @@ def main(page: ft.Page) -> None:
                 # Cambiamos tamaño de dicho caracter
                 palabra_dividida.controls[indice].size = 20
                 palabra_dividida.controls[indice].weight = ft.FontWeight.BOLD
+                palabra_dividida.controls[indice].color = \
+                    styles.Colors.analytics_color
 
                 palabras_mas_falladas.controls.append(
                     ft.Row(
@@ -119,14 +121,19 @@ def main(page: ft.Page) -> None:
                         ]
                     )
                 )
-        else:
-            char_totales_fallados_texto.value = '-'
-        # ARchivo más usado
+        # Archivo más usado
         if (resultado := db_handler.get_most_freq_file(user)) is not None:
-            archivo_mas_usado.value = f'"{resultado}"'
+            archivo_mas_usado.show(resultado)
         else:
-            archivo_mas_usado.value = '-'
-
+            archivo_mas_usado.show(conf.DEFAULT_CHAR)
+        # Archivo con más fallos
+        if (resultado := db_handler.get_worst_file(user)) is not None:
+            archivo, num_fallos = resultado
+            peor_archivo.show(archivo)
+            fallos_archivo.show(num_fallos)
+        else:
+            peor_archivo.show(conf.DEFAULT_CHAR)
+            fallos_archivo.show(conf.DEFAULT_CHAR)
         page.update()
 
 
@@ -471,7 +478,7 @@ def main(page: ft.Page) -> None:
     page.title = conf.APP_NAME
     page.theme_mode = 'dark'
     page.theme = ft.Theme(
-        font_family= "RobotoSlab",
+        font_family= 'Poppins',
         )
     page.window_width = conf.WIDTH
     page.window_height = conf.HEIGHT
@@ -485,6 +492,7 @@ def main(page: ft.Page) -> None:
     user_dropdown = ft.Dropdown(
         value=conf.USERS[0],
         width=300,
+        text_style=ft.TextStyle(font_family='Poppins'),
         border_radius=styles.BorderRadiusSize.MEDIUM.value,
         text_size=styles.TextSize.LARGE.value,
         alignment=ft.alignment.center,
@@ -502,9 +510,12 @@ def main(page: ft.Page) -> None:
         ft.Column([
             ft.Text(
                 'Usuario',
-                font_family='Consolas',
                 size=styles.TextSize.BIG.value,
                 weight=ft.FontWeight.BOLD,
+                ),
+                ft.Text(
+                    'Selecciona un usuario',
+                    size=styles.TextSize.LARGE.value,
                 ),
             user_dropdown,
             # TODO Meter icono o logo de app
@@ -772,18 +783,20 @@ def main(page: ft.Page) -> None:
 
     ### ANALYTICS VIEW ###
     # TODO Pintar evolución de los ppm en plot?
-    mejor_ppm_texto = ft.Text()
-    mejor_ppm_fecha = ft.Text()
-    mejor_ppm_archivo = ft.Text()
-    peor_ppm_texto = ft.Text()
-    peor_ppm_fecha = ft.Text()
-    peor_ppm_archivo = ft.Text()
-    precision_media_texto = ft.Text()
-    suma_char_texto = ft.Text()
-    num_sesiones_texto = ft.Text()
-    char_totales_fallados_texto = ft.Text()
+    mejor_ppm_texto = AnalText()
+    mejor_ppm_fecha = AnalText()
+    mejor_ppm_archivo = AnalText()
+    peor_ppm_texto = AnalText()
+    peor_ppm_fecha = AnalText()
+    peor_ppm_archivo = AnalText()
+    precision_media_texto = AnalText()
+    suma_char_texto = AnalText()
+    num_sesiones_texto = AnalText()
+    char_totales_fallados_texto = AnalText()
     palabras_mas_falladas = ft.ListView()
-    archivo_mas_usado = ft.Text()
+    archivo_mas_usado = AnalText()
+    peor_archivo = AnalText()
+    fallos_archivo = AnalText()
 
     anal_contenedor_global = ft.Container(
         ft.Column(
@@ -792,23 +805,54 @@ def main(page: ft.Page) -> None:
                 texto_usuario,
                 ft.Row(
                     [
-                        ft.Text('Archivo más usado'),
+                        ft.Text('Número de sesiones totales:'),
+                        num_sesiones_texto
+                    ]
+                ),
+                ft.Row(
+                    [
+                        ft.Text('Archivo más usado:'),
                         archivo_mas_usado
                     ]
                 ),
                 ft.Row(
                     [
-                        ft.Text("Mejor PPM"),
+                        ft.Text('Caracteres totales tecleados:'),
+                        suma_char_texto
+                    ]
+                ),
+                ft.Row(
+                    [
+                        ft.Text('Caracteres totales fallados:'),
+                        char_totales_fallados_texto
+                    ]
+                ),
+                ft.Row(
+                    [
+                        ft.Text('Archivo que peor se te da:'),
+                        peor_archivo,
+                        ft.Text('con'),
+                        fallos_archivo,
+                        ft.Text('caracteres fallados')
+                    ]
+                ),
+                ft.Row(
+                    [
+                        ft.Text("Mejor PPM:"),
                         mejor_ppm_texto,
+                        ft.Text('el'),
                         mejor_ppm_fecha,
+                        ft.Text('con'),
                         mejor_ppm_archivo,
                     ]
                 ),
                 ft.Row(
                     [
-                        ft.Text("Peor PPM"),
+                        ft.Text("Peor PPM:"),
                         peor_ppm_texto,
+                        ft.Text('el'),
                         peor_ppm_fecha,
+                        ft.Text('con'),
                         peor_ppm_archivo,
                     ]
                 ),
@@ -818,25 +862,7 @@ def main(page: ft.Page) -> None:
                         precision_media_texto,
                         ft.Text('%')
                     ]
-                ),
-                ft.Row(
-                    [
-                        ft.Text('Caracteres totales tecleados'),
-                        suma_char_texto
-                    ]
-                ),
-                ft.Row(
-                    [
-                        ft.Text('Caracteres totales fallados'),
-                        char_totales_fallados_texto
-                    ]
-                ),
-                ft.Row(
-                    [
-                        ft.Text('Número de sesiones'),
-                        num_sesiones_texto
-                    ]
-                ),
+                ),                               
                 ft.Row(
                     [
                         ft.Text('Palabras más falladas'),
@@ -847,9 +873,6 @@ def main(page: ft.Page) -> None:
             ]
         )
     )
-
-    # Mostramos las analíticas
-    update_analytics(user_dropdown.value)
 
     ### FIN DE ANALYTICS VIEW ###
 
@@ -878,7 +901,7 @@ def main(page: ft.Page) -> None:
             ft.Tab(
                 tab_content=ft.Icon(ft.icons.SETTINGS),
                 content=ft.Text("Configuración"),
-            ),
+            ),  
         ],
         expand=1,
     )
@@ -886,6 +909,9 @@ def main(page: ft.Page) -> None:
     page.add(
         t
     )
+
+    # Mostramos las analíticas
+    update_analytics(user_dropdown.value)
 
 if __name__ == '__main__':
     ft.app(

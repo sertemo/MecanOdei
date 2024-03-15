@@ -53,6 +53,7 @@ class Colors:
     borde_contenedores = ft.colors.BLUE_500
     borde_stats = ft.colors.RED_600
     fondo_mecano = ft.colors.WHITE70
+    analytics_color = '#14a1f0'
 
 class ColorBorders:
     borde_contenedores = ft.colors.BLACK26

@@ -459,7 +459,7 @@ class SQLStatManager(SQLManager):
                 lista_chartrack.extend(pickle.loads(l[0]))
             return lista_chartrack
 
-    def words_most_failed(self, user: str) -> list[tuple[str, int]]:
+    def words_most_failed(self, user: str) -> list[tuple[str, int]] | None:
         """Devuelve una lista con las palabras
         más falladas
 
@@ -538,6 +538,26 @@ class SQLStatManager(SQLManager):
             response = results.fetchone()
             if (response) is not None:
                 return response[0]
+
+    def get_worst_file(self, user: str) -> tuple[str, int] | None:
+        """Devuelve el archivo que más fallos tiene
+
+        Parameters
+        ----------
+        user : str
+            _description_
+
+        Returns
+        -------
+        str
+            _description_
+        """
+        listas_errores: list[CharTrack] = self._get_listas_errores(user)
+        if listas_errores is not None:
+            count = Counter(
+                (char.file_name) 
+                for char in listas_errores)
+            return count.most_common(1)[0]
 
 
 class SQLUserManager(SQLManager):
