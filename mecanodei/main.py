@@ -44,7 +44,6 @@ from mecanodei.utils.logger import logger
 # TODO Agrupar bien en estilos y configuracion
 # TODO Visualizar numero de linea en pequeño?
 # TODO Hay que optimizar el scroll
-# TODO por qué cuando texto es grande parece que hay lag y no coge bien los caracteres tecleados
 
 
 def main(page: ft.Page) -> None:
@@ -194,7 +193,9 @@ def main(page: ft.Page) -> None:
                     # Ponemos ready la app y mostramos
                     light_app_state.to(app.ready_mode())
                     # Cargamos el texto en el contenedor de referencia
-                    texto_mecanografiar.create_text(text_lines)
+                    texto_mecanografiar.create_text(
+                        text_lines,
+                        char_limit=conf.CHAR_LINEA_MECANO)
                     # Mostramos el número de caracteres
                     texto_caracteres.text = f"{len_texto}"
                     texto_palabras.text = \

@@ -159,47 +159,87 @@ class ListViewTextBox(ft.UserControl):
         return indices
 
 
-    def _build_dataset(self, text: str) -> list:
-        """Construye una lista de listas con palabras
-        a partir del texto entero en str
+    def _build_typed_dataset(self,
+                            text: str,
+                            limit: int = conf.CHAR_LINEA) -> list[str]:
+        """Crea el dataset para el mecanografiado
 
         Parameters
         ----------
         text : str
             _description_
+        limit : int
+            _description_
+
+        Returns
+        -------
+        list[str]
+            _description_
         """
-        idx_word = 0
-        idx_char = 0
-        caracteres_linea = conf.MAX_CHAR_LINE
-        dataset = []
-        while idx_word < len(self.lista_palabras):
-            row = [] # lista con las palabras
-            caracteres = 0 # caracteres de la linea
-            # Meter la primera palabra
-            while (caracteres < caracteres_linea) \
-                and (idx_word < len(self.lista_palabras)):
-                # Sacamos la palabra siguiente a añadir a la linea
-                next_word = self.lista_palabras[idx_word]
-                next_word_len = len(next_word)
-                # Añadimos la palabra
-                row.append(next_word)
-                # Añadimos 1 al índice de palabra
-                idx_word += 1
-                # Añadimos los char de la palabra mas 1 del espacio
-                idx_char += next_word_len + (len(row) - 1) # los espacios
-                idx_char = min(idx_char, len(text) -1 )
-                # Comprobar si se alcanza el maximo de char
-                # Añadimos 1 espacio por palabra
-                caracteres = sum([len(char) + 1 for char in row])
-                # Si el caracter es un retorno de carro rompemos la linea
-                if text[idx_char] == conf.EOP_CHAR:
-                    break
-            dataset.append(" ".join(row))
+        palabras = text.split()  # Divide el texto en palabras
+        lineas = []  # Lista para guardar las líneas ajustadas
+        linea_actual = ""  # Inicia una línea temporal vacía
 
-        return dataset
+        for palabra in palabras:
+            # Verifica si añadir la próxima palabra excede el límite
+            if len(linea_actual) + len(palabra) + 1 <= limit:
+                # Añade la palabra a la línea actual
+                linea_actual += " " + palabra if linea_actual else palabra
+            else:
+                # Añade la línea actual a la lista de líneas y comienza una nueva
+                lineas.append(linea_actual)
+                linea_actual = palabra
+        
+        # Añade la última línea si contiene texto
+        if linea_actual:
+            lineas.append(linea_actual)
+        
+        return lineas
 
 
-    def create_text(self, text_lines: list[str] | str) -> None:
+    def _build_text_dataset(self,
+                            text_lines: list[str],
+                            char_limit: int) -> list[str]:
+        """Crea una lista con las frases
+
+        Parameters
+        ----------
+        text : str
+            _description_
+        char_limit : int
+            _description_
+
+        Returns
+        -------
+        list[str]
+            _description_
+        """
+        lineas_ajustadas = []
+        for texto in text_lines:
+            palabras = texto.split()  # Divide la línea en palabras
+            linea_actual = ""  # Inicia una línea temporal vacía
+
+            for palabra in palabras:
+                # Verifica si añadir la próxima palabra excede el límite
+                if len(linea_actual) + len(palabra) + 2 <= char_limit:
+                    # Añade la palabra a la línea actual
+                    linea_actual += " " + palabra if linea_actual else palabra
+                else:
+                    # Añade la línea actual a la lista de líneas y comienza una nueva
+                    lineas_ajustadas.append(linea_actual)
+                    linea_actual = palabra
+            
+            # Añade la última línea de cada párrafo si contiene texto
+            if linea_actual:
+                lineas_ajustadas.append(linea_actual)
+        
+        return lineas_ajustadas
+
+
+    def create_text(self, 
+                    text_lines: list[str] | str,
+                    char_limit: int = conf.CHAR_LINEA
+                    ) -> None:
         """Crea contenedores para cada letra y
         los introduce en la Fila principal
 
@@ -208,15 +248,18 @@ class ListViewTextBox(ft.UserControl):
         text : str
             _description_
         """
-        if isinstance(text_lines, list):
+        if isinstance(text_lines, list): # caso mecanografiar
             # Guardamos numero de palabras del texto
             self.num_palabras = sum(len(line.split()) for line in text_lines)
-        elif isinstance(text_lines, str):
+            # Creamos el dataset ajustado al limite maximo de char
+            text_lines = self._build_text_dataset(text_lines, char_limit)
+
+        elif isinstance(text_lines, str): # caso texto escrito
             self.lista_palabras = text_lines.split()
             self.num_palabras = len(self.lista_palabras)
             # Transformar en frases
-            text_lines = self._build_dataset(text_lines)
-
+            text_lines = self._build_typed_dataset(text_lines)
+        
         # Reseteamos el diccionario de posiciones ref de palabras
         self.ref_palabras.clear()
         # Limpiamos el texto anterior

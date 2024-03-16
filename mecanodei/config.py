@@ -57,9 +57,10 @@ DEFAULT_CHAR = '-'
 
 # Texto importado
 LISTVIEW_CONTAINER_HEIGHT = 40
-CHAR_LINEA = 30
+CHAR_LINEA = 40 # caracteres máximos en el listview de typed text
+CHAR_LINEA_MECANO = 90 # caracteres máximos en el listview de mecanografiar
 MAX_LEN_CHAR = 2000
-ROWS_IN_LISTVIEW = 12
+ROWS_IN_LISTVIEW = 18
 EOP_CHAR = '↵' # Caracter al final de cada frase
 REPLACEMENT_CHAR = None
 TO_REPLACE_CHAR = None
