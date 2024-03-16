@@ -62,7 +62,14 @@ class ColorBorders:
 contenedor_mecanografiar = dict(
     padding=PaddingSize.LARGE.value,
     bgcolor=Colors.fondo_mecano,
-    border_radius=BorderRadiusSize.MEDIUM.value,
+    border_radius=BorderRadiusSize.SMALL.value,
+    #border=ft.border.all(0.8, color=Colors.borde_contenedores)
+)
+
+contenedor_lines = dict(
+    padding=PaddingSize.MEDIUM.value,
+    bgcolor=Colors.fondo_mecano,
+    border_radius=BorderRadiusSize.SMALL.value,
     #border=ft.border.all(0.8, color=Colors.borde_contenedores)
 )
 

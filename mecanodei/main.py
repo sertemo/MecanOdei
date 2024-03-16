@@ -193,9 +193,11 @@ def main(page: ft.Page) -> None:
                     # Ponemos ready la app y mostramos
                     light_app_state.to(app.ready_mode())
                     # Cargamos el texto en el contenedor de referencia
-                    texto_mecanografiar.create_text(
-                        text_lines,
-                        char_limit=conf.CHAR_LINEA_MECANO)
+                    texto_mecanografiar.create_text(text_lines)
+                    # Dibujamos las lineas en el listview de lineas
+                    texto_lineas.create_text(
+                        [str(c) for c in range(len(text_lines))]
+                        )
                     # Mostramos el número de caracteres
                     texto_caracteres.text = f"{len_texto}"
                     texto_palabras.text = \
@@ -298,6 +300,35 @@ def main(page: ft.Page) -> None:
             page.update()
 
 
+    def handle_scroll(posicion: tuple[int]) -> None:
+        """Gestiona el scroll de la listview
+
+        Parameters
+        ----------
+        posicion : tuple[int]
+            _description_
+        """
+        # Vamos a la linea en cuestión haciendo scroll si superamos la linea x
+        # Solo hace falta hacer scroll la primera vez
+        # Para evitar hacer scroll si se falla en el primer caracter
+        # Hay que verificar que no exista ya esa posición en stat manager
+        # Hay que evitar hacer scroll tambien si todas las filas están visibles        
+        first_time = posicion not in stat_manager.get_fail_indexes()
+        # Sacamos las filas que queda, si quedan menos de x no hacemos scroll
+        rows_left = texto_mecanografiar.get_n_rows_left(posicion)
+        rows_total = texto_mecanografiar.get_n_rows() # TODO: meter en funcion !
+        if (posicion[0] >= conf.SCROLL_LINE) and (posicion[1] == 0) \
+        and first_time and rows_total > conf.ROWS_IN_LISTVIEW \
+        and (rows_left > conf.LAST_ROWS_NO_SCROLL):
+            #fila_ir = max(fila, texto_mecanografiar.get_n_rows() - 1)
+            texto_mecanografiar.texto.scroll_to(
+                #key=f'linea_{fila_ir}',
+                delta=conf.SCROLL_DELTA,
+                duration=conf.SCROLL_DURATION,
+                #curve=ft.AnimationCurve.SLOW_MIDDLE
+                )
+
+
     def procesar_tecla(
             tecleado: str,
             posicion: tuple[int],
@@ -316,25 +347,8 @@ def main(page: ft.Page) -> None:
         """        
         # Añadimos el caracter pulsado al text manager
         text_manager.add_typed_char(tecleado)
-        # Vamos a la linea en cuestión haciendo scroll si superamos la linea x
-        # Solo hace falta hacer scroll la primera vez
-        # Para evitar hacer scroll si se falla en el primer caracter
-        # Hay que verificar que no exista ya esa posición en stat manager
-        # Hay que evitar hacer scroll tambien si todas las filas están visibles        
-        first_time = posicion not in stat_manager.get_fail_indexes()
-        # Sacamos las filas que queda, si quedan menos de x no hacemos scroll
-        rows_left = texto_mecanografiar.get_n_rows_left(posicion)
-        rows_total = texto_mecanografiar.get_n_rows() # TODO: mejorarlo !
-        if (posicion[0] >= conf.SCROLL_LINE) and (posicion[1] == 0) \
-        and first_time and rows_total > conf.ROWS_IN_LISTVIEW \
-        and (rows_left > conf.LAST_ROWS_NO_SCROLL):
-            #fila_ir = max(fila, texto_mecanografiar.get_n_rows() - 1)
-            texto_mecanografiar.texto.scroll_to(
-                #key=f'linea_{fila_ir}',
-                delta=conf.SCROLL_DELTA,
-                duration=conf.SCROLL_DURATION,
-                #curve=ft.AnimationCurve.SLOW_MIDDLE
-                )
+        # Gestionamos el scroll
+        handle_scroll(posicion)
         # Compara tecla con índice de marcar en texto
         # Si acierta
         if char_referencia == tecleado.lower():
@@ -545,10 +559,6 @@ def main(page: ft.Page) -> None:
 
     ### INICIO VIEW MECANOGRAFIAR #############################################
 
-
-
-
-
     # Estado de la app
     light_app_state = AppStateLight()
     
@@ -693,9 +703,19 @@ def main(page: ft.Page) -> None:
     contenedor_mecanografiar = ft.Container(
         texto_mecanografiar,
         height=444,
-        expand=True,
+        width=conf.MECANO_WIDTH,
+        #expand=True,
         **styles.contenedor_mecanografiar
         )
+    texto_lineas = ListViewTextBox(
+        text_size=styles.TextSize.LARGE.value
+    )
+    contenedor_texto_lineas = ft.Container(
+        texto_lineas,
+        height=contenedor_mecanografiar.height,
+        expand=True,
+        **styles.contenedor_lines
+    )
 
 
     ### Bloque inferior Texto mecanografiado y stats ###
@@ -708,7 +728,6 @@ def main(page: ft.Page) -> None:
     box_num_aciertos = StatBox(
         icono=ft.icons.PERCENT,
         ayuda="""Precisión""")
-    #box_num_caracteres = StatBox('Totales')
     box_num_correctos = StatBox(
         icono=ft.icons.GPP_GOOD_OUTLINED,
         ayuda='Caracteres correctos')
@@ -717,8 +736,7 @@ def main(page: ft.Page) -> None:
         ayuda='Caracteres fallados')
     box_tiempo_tardado = StatBox(
         icono=ft.icons.ACCESS_TIME,
-        ayuda='Tiempo'
-        )
+        ayuda='Tiempo')
     box_velocidad_ppm = StatBox(
         icono=ft.icons.SPEED,
         ayuda='Palabras por minuto')
@@ -764,6 +782,8 @@ def main(page: ft.Page) -> None:
         ft.Column([
             ft.Text('Practicar'),
             contenedor_zona_carga,
+            ft.Row([
+                contenedor_texto_lineas,
                 ft.Stack([                
                 contenedor_mecanografiar,
                 ft.Row([
@@ -771,6 +791,9 @@ def main(page: ft.Page) -> None:
                     alignment=ft.MainAxisAlignment.CENTER)
                 ],
                 width=contenedor_mecanografiar.width),
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            spacing=5),
             contenedor_footer,
         ],
         alignment=ft.MainAxisAlignment.SPACE_EVENLY,

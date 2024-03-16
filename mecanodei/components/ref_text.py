@@ -199,7 +199,8 @@ class ListViewTextBox(ft.UserControl):
 
     def _build_text_dataset(self,
                             text_lines: list[str],
-                            char_limit: int) -> list[str]:
+                            char_limit: int = conf.CHAR_LINEA_MECANO
+                            ) -> list[str]:
         """Crea una lista con las frases
 
         Parameters
@@ -225,7 +226,8 @@ class ListViewTextBox(ft.UserControl):
                     # Añade la palabra a la línea actual
                     linea_actual += " " + palabra if linea_actual else palabra
                 else:
-                    # Añade la línea actual a la lista de líneas y comienza una nueva
+                    # Añade la línea actual a la lista de líneas 
+                    # y comienza una nueva
                     lineas_ajustadas.append(linea_actual)
                     linea_actual = palabra
             
@@ -238,7 +240,6 @@ class ListViewTextBox(ft.UserControl):
 
     def create_text(self, 
                     text_lines: list[str] | str,
-                    char_limit: int = conf.CHAR_LINEA
                     ) -> None:
         """Crea contenedores para cada letra y
         los introduce en la Fila principal
@@ -252,7 +253,7 @@ class ListViewTextBox(ft.UserControl):
             # Guardamos numero de palabras del texto
             self.num_palabras = sum(len(line.split()) for line in text_lines)
             # Creamos el dataset ajustado al limite maximo de char
-            text_lines = self._build_text_dataset(text_lines, char_limit)
+            text_lines = self._build_text_dataset(text_lines)
 
         elif isinstance(text_lines, str): # caso texto escrito
             self.lista_palabras = text_lines.split()
@@ -295,21 +296,19 @@ class ListViewTextBox(ft.UserControl):
                 ft.Container(
                     ft.Row(
                         [
-                            #ft.Container(
                                 ft.Text(
                                     letra,
                                     size=self.text_size,
                                     weight=ft.FontWeight.BOLD,
                                     color=self.text_color,
                                     )
-                                #border_radius=0,
-                                #padding=0),
                                 for letra in linea],
                             spacing=0,
                             wrap=True,
                         ),
                     key=f'linea_{idx}', # Referencia para el scroll_to
                     expand=True,
+                    height=self.cont_heigth
                     )
                 )
         self.update()

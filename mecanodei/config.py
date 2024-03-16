@@ -42,9 +42,10 @@ APP_FONTS = {
     }
 APP_NAME = 'MecanOdei'
 
-# Ventana
+# Ventanas
 WIDTH =1024
 HEIGHT = 800
+MECANO_WIDTH = 960
 
 # Archivos
 VALID_FORMATS = [
@@ -56,7 +57,7 @@ VALID_FORMATS = [
 DEFAULT_CHAR = '-'
 
 # Texto importado
-LISTVIEW_CONTAINER_HEIGHT = 40
+LISTVIEW_CONTAINER_HEIGHT = 30
 CHAR_LINEA = 40 # caracteres máximos en el listview de typed text
 CHAR_LINEA_MECANO = 90 # caracteres máximos en el listview de mecanografiar
 MAX_LEN_CHAR = 2000
@@ -64,8 +65,8 @@ ROWS_IN_LISTVIEW = 18
 EOP_CHAR = '↵' # Caracter al final de cada frase
 REPLACEMENT_CHAR = None
 TO_REPLACE_CHAR = None
-SCROLL_LINE = 12
-LAST_ROWS_NO_SCROLL = 4
+SCROLL_LINE = 11
+LAST_ROWS_NO_SCROLL = 3
 SCROLL_DELTA = LISTVIEW_CONTAINER_HEIGHT
 SCROLL_DURATION = 0
 
