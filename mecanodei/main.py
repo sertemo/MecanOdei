@@ -43,7 +43,7 @@ from mecanodei.utils.time import get_datetime_formatted
 
 # TODO Crear las diferentes secciones en Views independientes
 # TODO Agrupar bien en estilos y configuracion
-# TODO Visualizar numero de linea en pequeño?
+# TODO Visualizar numero de linea en pequeño? -> mucho esfuerzo
 
 
 def main(page: ft.Page) -> None:
@@ -205,10 +205,6 @@ def main(page: ft.Page) -> None:
                     light_app_state.to(app.ready_mode())
                     # Cargamos el texto en el contenedor de referencia
                     texto_mecanografiar.create_text(text_lines)
-                    # Dibujamos las lineas en el listview de lineas
-                    texto_lineas.create_text(
-                        [str(c) for c in range(len(text_lines))]
-                        )
                     # Mostramos el número de caracteres
                     texto_caracteres.text = f"{len_texto}"
                     texto_palabras.text = \
@@ -491,7 +487,6 @@ def main(page: ft.Page) -> None:
     # user y stats e inserta los usuarios de
     # config.py
     # iniciamos las rutas de archivos
-
     iniciar_db_log()
 
     app = AppState()
@@ -507,10 +502,18 @@ def main(page: ft.Page) -> None:
 
     page.fonts = conf.APP_FONTS
     page.title = conf.APP_NAME
-    page.theme_mode = 'dark'
+    #page.theme_mode = 'light'
+    page.bgcolor = styles.CustomButtomColorPalette.grisaceo
     page.theme = ft.Theme(
         font_family= 'Poppins',
+        color_scheme=ft.ColorScheme(
+            primary=styles.CustomButtomColorPalette.azul_oscuro,
+            background=styles.CustomButtomColorPalette.grisaceo,
+            secondary=styles.CustomButtomColorPalette.amarillo_oscuro,
+            secondary_container=styles.CustomButtomColorPalette.amarillo_claro,
+            on_background=ft.colors.WHITE
         )
+    )
     page.window_width = conf.WIDTH
     page.window_height = conf.HEIGHT
     page.window_resizable = False
@@ -528,7 +531,7 @@ def main(page: ft.Page) -> None:
         text_size=styles.TextSize.LARGE.value,
         alignment=ft.alignment.center,
         filled=True,
-        bgcolor=styles.Colors.fondo_contenedores,
+        #bgcolor=styles.Colors.fondo_contenedores,
         content_padding=styles.PaddingSize.SMALLER.value,
         options=[
             ft.dropdown.Option(user) for user in conf.USERS
@@ -556,7 +559,7 @@ def main(page: ft.Page) -> None:
         ),
         width=400,
         margin=20,
-        **styles.contenedor_stats
+        **styles.contenedor_menu
     )
     cont_menu_principal = ft.Column([
         ft.Text('Menú'),
@@ -584,7 +587,8 @@ def main(page: ft.Page) -> None:
             ft.icons.ABC,
             size=40,
             tooltip='Número de caracteres'),
-        text=0
+        text=0,
+        bgcolor=styles.CustomButtomColorPalette.amarillo_oscuro
     )
     texto_palabras = ft.Badge(
         content= ft.Icon(
@@ -593,6 +597,7 @@ def main(page: ft.Page) -> None:
             tooltip='Número de palabras'
             ),
         text=0,
+        bgcolor=styles.CustomButtomColorPalette.amarillo_oscuro
     )
     texto_mensaje = ft.Text(
         color=ft.colors.RED,
@@ -601,8 +606,9 @@ def main(page: ft.Page) -> None:
     texto_usuario = ft.Container(
         ft.Text(
             user_dropdown.value,
+            color=ft.colors.WHITE,
             ),
-            bgcolor=ft.colors.BLACK45,
+            bgcolor=styles.CustomButtomColorPalette.azul_oscuro,
             border_radius=styles.BorderRadiusSize.SMALL.value,
             padding=styles.PaddingSize.MEDIUM.value
         )
@@ -714,7 +720,8 @@ def main(page: ft.Page) -> None:
 
     ### Zona de Texto Referencia ###
     texto_mecanografiar = ListViewTextBox(
-        text_size=styles.TextSize.LARGE.value
+        text_size=styles.TextSize.LARGE.value,
+        text_color=styles.CustomButtomColorPalette.azul_oscuro
         )
     contenedor_mecanografiar = ft.Container(
         texto_mecanografiar,
@@ -723,16 +730,6 @@ def main(page: ft.Page) -> None:
         #expand=True,
         **styles.contenedor_mecanografiar
         )
-    texto_lineas = ListViewTextBox(
-        text_size=styles.TextSize.LARGE.value
-    )
-    contenedor_texto_lineas = ft.Container(
-        texto_lineas,
-        height=contenedor_mecanografiar.height,
-        expand=True,
-        **styles.contenedor_lines
-    )
-
 
     ### Bloque inferior Texto mecanografiado y stats ###
     # TODO meter en componente CountDown con un fondo y que muevan las letras
@@ -760,7 +757,7 @@ def main(page: ft.Page) -> None:
     texto_escrito = ListViewTextBox(
         text_size=styles.TextSize.NORMAL.value,
         char_linea=35,
-        text_color=styles.Colors.fondo_mecano,
+        text_color=styles.CustomButtomColorPalette.azul_oscuro,
         container_heigth=30
         )
     contenedor_texto_escrito = ft.Container(
@@ -799,7 +796,6 @@ def main(page: ft.Page) -> None:
             ft.Text('Practicar'),
             contenedor_zona_carga,
             ft.Row([
-                contenedor_texto_lineas,
                 ft.Stack([                
                 contenedor_mecanografiar,
                 ft.Row([
@@ -942,7 +938,7 @@ def main(page: ft.Page) -> None:
         animation_duration=100,
         indicator_color=ft.colors.BLUE_500,
         indicator_tab_size=True,
-        label_color=ft.colors.BLUE_600,
+        #label_color=ft.colors.BLUE_600,
         tab_alignment=ft.TabAlignment.CENTER,
         tabs=[
             ft.Tab(

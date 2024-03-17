@@ -16,7 +16,7 @@ import flet as ft
 from icecream import ic
 
 from mecanodei.styles.styles import (
-    PaddingSize, BorderRadiusSize, TextSize,
+    PaddingSize, TextSize,
     Colors
 )
 import mecanodei.config as conf
@@ -26,6 +26,7 @@ class PPMEvolucionChart(ft.UserControl):
     def __init__(self) -> None:
         super().__init__()
         self.chart = ft.LineChart(
+            interactive=True,
             horizontal_grid_lines=ft.ChartGridLines(
                 interval=10, 
                 color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE), 

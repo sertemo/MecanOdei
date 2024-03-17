@@ -81,6 +81,7 @@ class Batcher(Sequence):
     def __init__(self,
                 text_lines: list[str],
                 caracteres_linea: int,
+                add_final_char: bool = True
                 ) -> None:
         self.text_lines = text_lines
         # Dataset son listas de cada linea
@@ -89,6 +90,7 @@ class Batcher(Sequence):
         self.idx_word = 0
         self.idx_char = 0
         self.end_of_line_char = conf.EOP_CHAR
+        self.add_final_char = add_final_char
 
 
     def __len__(self) -> int:
@@ -100,7 +102,7 @@ class Batcher(Sequence):
         if idx < 0 or idx >= self.__len__():
             raise IndexError("Índice fuera de rango")
         # A la última línea no le agregamos un espacio al final
-        if idx == self.__len__() - 1: 
+        if (idx == self.__len__() - 1) or (not self.add_final_char): 
             return " ".join(self.dataset[idx])
         return " ".join(self.dataset[idx]) + self.end_of_line_char
 

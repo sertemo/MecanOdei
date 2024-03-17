@@ -45,30 +45,38 @@ class BorderWidth(Enum):
     LARGE = 4
     BIG = 8
 
+class CustomButtomColorPalette:
+    amarillo_claro = '#ffd43b'
+    amarillo_clarioscuro = '#ffc92b'
+    amarillo_oscuro = '#fab005'
+    azul_oscuro = '#183153'
+    grisaceo = '#f0f1f3'
 
 class Colors:
     verde_texto_correcto = '#00b300'
     rojo_letra_incorrecta = '#CB3242'
-    fondo_contenedores = ft.colors.WHITE12
+    fondo_contenedores = '#ffd43b'
     borde_contenedores = ft.colors.BLUE_500
     borde_stats = ft.colors.RED_600
     fondo_mecano = ft.colors.WHITE70
-    analytics_color = '#14a1f0'
+    analytics_color = CustomButtomColorPalette.azul_oscuro
     line_chart_color = ft.colors.LIGHT_GREEN
 
 class ColorBorders:
     borde_contenedores = ft.colors.BLACK26
 
+
+
 # Estilo del contenedor mecanografiar
 contenedor_mecanografiar = dict(
     padding=PaddingSize.LARGE.value,
     bgcolor=Colors.fondo_mecano,
-    border_radius=BorderRadiusSize.SMALL.value,
-    #border=ft.border.all(0.8, color=Colors.borde_contenedores)
+    border_radius=BorderRadiusSize.MEDIUM.value,
+    border=ft.border.all(4, color=CustomButtomColorPalette.azul_oscuro)
 )
 
 contenedor_lines = dict(
-    padding=PaddingSize.MEDIUM.value,
+    padding=PaddingSize.LARGE.value,
     bgcolor=Colors.fondo_mecano,
     border_radius=BorderRadiusSize.SMALL.value,
     #border=ft.border.all(0.8, color=Colors.borde_contenedores)
@@ -76,20 +84,27 @@ contenedor_lines = dict(
 
 contenedor_load = dict(
     padding=PaddingSize.SMALL.value,
-    bgcolor=Colors.fondo_contenedores,
+    #bgcolor=CustomButtomColorPalette.grisaceo,
     border_radius=BorderRadiusSize.MEDIUM.value,
     #border=ft.border.all(0.8, color=Colors.borde_contenedores)
 )
 
 contenedor_txt_escrito = dict(
     padding=PaddingSize.LARGE.value,
+    bgcolor=ft.colors.WHITE,
+    border_radius=BorderRadiusSize.MEDIUM.value,
+    border=ft.border.all(4, color=CustomButtomColorPalette.azul_oscuro)
+)
+
+contenedor_menu = dict(
     bgcolor=Colors.fondo_contenedores,
     border_radius=BorderRadiusSize.MEDIUM.value,
+    padding=PaddingSize.MEDIUM.value,
     #border=ft.border.all(0.8, color=Colors.borde_contenedores)
 )
 
 contenedor_stats = dict(
-    bgcolor=Colors.fondo_contenedores,
+    #bgcolor=Colors.fondo_contenedores,
     border_radius=BorderRadiusSize.MEDIUM.value,
     padding=PaddingSize.MEDIUM.value,
     #border=ft.border.all(0.8, color=Colors.borde_contenedores)
@@ -97,10 +112,10 @@ contenedor_stats = dict(
 
 box_stats = dict(
     margin=3,
-    bgcolor=Colors.fondo_contenedores,
-    border_radius=BorderRadiusSize.SMALL.value,
+    bgcolor=ft.colors.WHITE,
+    border_radius=BorderRadiusSize.MEDIUM.value,
     padding=PaddingSize.SMALL.value,
-    #border=ft.border.all(0.8, color=Colors.borde_contenedores)
+    border=ft.border.all(4, color=CustomButtomColorPalette.azul_oscuro)
 )
 
 vertical_divier = dict(

@@ -16,6 +16,8 @@ from typing import Callable
 
 import flet as ft
 
+from mecanodei.styles.styles import CustomButtomColorPalette as cp
+
 class CustomButton(ft.UserControl):
     """Boton personalizado
 
@@ -34,11 +36,11 @@ class CustomButton(ft.UserControl):
         self.ayuda = ayuda
         self.icono = icono
         self.texto = texto
-        self.bgcolor = ft.colors.BLACK87
+        self.bgcolor = ft.colors.WHITE
         self.funcion = funcion
         self.boton = ft.Container(
             content=ft.Row([
-                ft.Icon(self.icono, size=60),
+                ft.Icon(self.icono, size=60, color=cp.azul_oscuro),
                 #ft.Text(self.texto)
             ],
             alignment=ft.MainAxisAlignment.CENTER
@@ -47,7 +49,7 @@ class CustomButton(ft.UserControl):
             tooltip=self.ayuda,
             on_hover=self.hover,
             ink=True,
-            border=ft.border.all(0.8, color=ft.colors.WHITE70),
+            #border=ft.border.all(0.8, color=ft.colors.WHITE70),
             # TODO Meter en estilos 
             height=85,
             width=100,
@@ -70,7 +72,7 @@ class CustomButton(ft.UserControl):
 
 
     def hover(self, e: ft.ControlEvent) -> None:
-        e.control.bgcolor = ft.colors.WHITE12 \
+        e.control.bgcolor = cp.amarillo_claro \
             if e.data == "true" else self.bgcolor
         e.control.update()
 

@@ -36,7 +36,9 @@ class ListViewTextBox(ft.UserControl):
                 text_size: styles.TextSize,
                 char_linea: int = conf.CHAR_LINEA,
                 text_color: Any = ft.colors.BLACK87,
-                container_heigth: int = conf.LISTVIEW_CONTAINER_HEIGHT) -> None:
+                container_heigth: int = conf.LISTVIEW_CONTAINER_HEIGHT,
+                listview_padding: int = 5,
+                ) -> None:
         super().__init__()
         self.cont_heigth = container_heigth
         self.text_size = text_size
@@ -45,7 +47,7 @@ class ListViewTextBox(ft.UserControl):
         self.ref_palabras: list[dict[list, str]] = [] 
         self.texto = ft.ListView(
             controls=[], 
-            padding=5,
+            padding=listview_padding,
         )
 
 
@@ -240,6 +242,7 @@ class ListViewTextBox(ft.UserControl):
 
     def create_text(self, 
                     text_lines: list[str] | str,
+                    add_final_char: bool = True
                     ) -> None:
         """Crea contenedores para cada letra y
         los introduce en la Fila principal
@@ -269,6 +272,7 @@ class ListViewTextBox(ft.UserControl):
         self.batcher = Batcher(
             text_lines,
             self.char_linea,
+            add_final_char=add_final_char
             )
         # Iteramos sobre cada linea
         for idx, linea in enumerate(self.batcher):
@@ -291,18 +295,18 @@ class ListViewTextBox(ft.UserControl):
             # con palabras para que dada una posición sepamos a que palabra
             # pertenece
             self.ref_palabras.append(refs)
-            # Creamos contenedores por caracter
             self.texto.controls.append(
                 ft.Container(
                     ft.Row(
                         [
-                                ft.Text(
-                                    letra,
-                                    size=self.text_size,
-                                    weight=ft.FontWeight.BOLD,
-                                    color=self.text_color,
-                                    )
-                                for letra in linea],
+                            #ft.Text(f'{idx}'),
+                            ft.Text(
+                                letra,
+                                size=self.text_size,
+                                weight=ft.FontWeight.BOLD,
+                                color=self.text_color,
+                                )
+                            for letra in linea],
                             spacing=0,
                             wrap=True,
                         ),
