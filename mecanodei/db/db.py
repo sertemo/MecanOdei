@@ -511,9 +511,10 @@ class SQLStatManager(SQLManager):
             response = results.fetchone()
         return response[0]
 
-    def get_most_freq_file(self, user: str) -> str | None:
+    def get_most_freq_file(self, user: str) -> tuple[str, int] | None:
         """Devuelve el nombre del archivo
-        que mas se repite
+        que mas se repite y el número de veces que
+        se ha usado
 
         Parameters
         ----------
@@ -536,8 +537,8 @@ class SQLStatManager(SQLManager):
             """
             results = c.execute(query)
             response = results.fetchone()
-            if (response) is not None:
-                return response[0]
+            if response is not None:
+                return response
 
     def get_worst_file(self, user: str) -> tuple[str, int] | None:
         """Devuelve el archivo que más fallos tiene
@@ -559,6 +560,19 @@ class SQLStatManager(SQLManager):
                 for char in listas_errores)
             return count.most_common(1)[0]
 
+    def get_all_ppm_and_date(self, user: str) -> list[tuple[str, int]] | None:
+        """Devuelve una lista con tuplas que representan
+        la fecha y el PPM de un determinado usuario"""
+        with SQLContext(self.db_filename) as c:
+            query = f"""
+            SELECT fecha, ppm
+            FROM {self.tabla}
+            WHERE usuario = '{user}'
+            ORDER BY fecha ASC;
+            """
+            results = c.execute(query)
+            response = results.fetchall()
+        return response
 
 class SQLUserManager(SQLManager):
     """Wrapper específico de esta aplicación

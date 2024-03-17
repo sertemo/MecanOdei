@@ -17,6 +17,7 @@
 import time
 
 import flet as ft
+import logging.config
 from icecream import ic
 
 import config as conf
@@ -32,18 +33,17 @@ from mecanodei.components.ref_text import ListViewTextBox
 from mecanodei.components.custom_button import CustomButton
 from mecanodei.components.app_state import AppStateLight
 from mecanodei.components.analytics import AnalText
+from mecanodei.components.custom_chart import PPMEvolucionChart
 from mecanodei.db.db import (SQLStatManager,
                             iniciar_db_log,
                             serializar_pickle
                             )
 from mecanodei.utils.text import get_total_num_char, create_username_for_db
 from mecanodei.utils.time import get_datetime_formatted
-from mecanodei.utils.logger import logger
 
 # TODO Crear las diferentes secciones en Views independientes
 # TODO Agrupar bien en estilos y configuracion
 # TODO Visualizar numero de linea en pequeño?
-# TODO Hay que optimizar el scroll
 
 
 def main(page: ft.Page) -> None:
@@ -122,9 +122,12 @@ def main(page: ft.Page) -> None:
                 )
         # Archivo más usado
         if (resultado := db_handler.get_most_freq_file(user)) is not None:
-            archivo_mas_usado.show(resultado)
+            archivo, veces = resultado
+            archivo_mas_usado.show(archivo)
+            archivo_mas_usado_veces.value = f'({veces})'
         else:
             archivo_mas_usado.show(conf.DEFAULT_CHAR)
+            archivo_mas_usado_veces.value = f'({conf.DEFAULT_CHAR})'
         # Archivo con más fallos
         if (resultado := db_handler.get_worst_file(user)) is not None:
             archivo, num_fallos = resultado
@@ -133,6 +136,14 @@ def main(page: ft.Page) -> None:
         else:
             peor_archivo.show(conf.DEFAULT_CHAR)
             fallos_archivo.show(conf.DEFAULT_CHAR)
+        # Gráfico evolución PPM
+        # sacamos los valores de db
+        if (data_ppm := db_handler.get_all_ppm_and_date(user)) is not None:
+            # Actualizamos el gráfico
+            evolucion_ppm.update_chart(data_ppm)
+        else:
+            evolucion_ppm.clear_data()
+
         page.update()
 
 
@@ -479,6 +490,8 @@ def main(page: ft.Page) -> None:
     # Si no existe la ruta crea las tablas
     # user y stats e inserta los usuarios de
     # config.py
+    # iniciamos las rutas de archivos
+
     iniciar_db_log()
 
     app = AppState()
@@ -488,6 +501,9 @@ def main(page: ft.Page) -> None:
     stat_manager = StatManager()
     char_iterator = CharIterator()
     db_handler = SQLStatManager()
+    # Instanciamos el logger
+    logger = logging.getLogger("my_app")
+    logging.config.dictConfig(conf.LOGGING_CONFIG)
 
     page.fonts = conf.APP_FONTS
     page.title = conf.APP_NAME
@@ -561,7 +577,7 @@ def main(page: ft.Page) -> None:
 
     # Estado de la app
     light_app_state = AppStateLight()
-    
+
     # TODO Meter en componente tambien
     texto_caracteres = ft.Badge(
         content=ft.Icon(
@@ -819,8 +835,10 @@ def main(page: ft.Page) -> None:
     char_totales_fallados_texto = AnalText()
     palabras_mas_falladas = ft.ListView()
     archivo_mas_usado = AnalText()
+    archivo_mas_usado_veces = ft.Text(size=12)
     peor_archivo = AnalText()
     fallos_archivo = AnalText()
+    evolucion_ppm = PPMEvolucionChart()
 
     anal_contenedor_global = ft.Container(
         ft.Column(
@@ -836,7 +854,8 @@ def main(page: ft.Page) -> None:
                 ft.Row(
                     [
                         ft.Text('Archivo más usado:'),
-                        archivo_mas_usado
+                        archivo_mas_usado,
+                        archivo_mas_usado_veces,
                     ]
                 ),
                 ft.Row(
@@ -882,24 +901,40 @@ def main(page: ft.Page) -> None:
                 ),
                 ft.Row(
                     [
-                        ft.Text('Precisión media'),
+                        ft.Text('Precisión media:'),
                         precision_media_texto,
                         ft.Text('%')
                     ]
                 ),                               
                 ft.Row(
                     [
-                        ft.Text('Palabras más falladas'),
+                        ft.Text('Palabras más falladas:'),
                         palabras_mas_falladas
                     ],
                     vertical_alignment=ft.CrossAxisAlignment.START
                 ),
-            ]
-        )
+                evolucion_ppm
+            ],
+            spacing=5
+        ),
     )
 
     ### FIN DE ANALYTICS VIEW ###
 
+    ### CONFIG VIEW ###
+
+
+    ### FIN DE CONFIG VIEW ###
+    boton_borrar_stats = ft.ElevatedButton('Borrar Estadísticas')
+
+    contenedor_configuracion = ft.Container(
+        ft.Column(
+            [
+                ft.Text('Configuración'),
+                boton_borrar_stats
+            ]
+        )
+    )
 
     ### TABS ###
     t = ft.Tabs(
@@ -924,7 +959,7 @@ def main(page: ft.Page) -> None:
             ),
             ft.Tab(
                 tab_content=ft.Icon(ft.icons.SETTINGS),
-                content=ft.Text("Configuración"),
+                content=contenedor_configuracion,
             ),  
         ],
         expand=1,

@@ -56,6 +56,9 @@ VALID_FORMATS = [
 # Stats
 DEFAULT_CHAR = '-'
 
+# Fechas
+DATE_FORMAT = "%Y/%m/%d %H:%M:%S"
+
 # Texto importado
 LISTVIEW_CONTAINER_HEIGHT = 30
 CHAR_LINEA = 40 # caracteres máximos en el listview de typed text

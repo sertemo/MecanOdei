@@ -54,6 +54,7 @@ class Colors:
     borde_stats = ft.colors.RED_600
     fondo_mecano = ft.colors.WHITE70
     analytics_color = '#14a1f0'
+    line_chart_color = ft.colors.LIGHT_GREEN
 
 class ColorBorders:
     borde_contenedores = ft.colors.BLACK26
