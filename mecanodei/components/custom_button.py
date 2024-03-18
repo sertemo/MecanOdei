@@ -17,6 +17,7 @@ from typing import Callable
 import flet as ft
 
 from mecanodei.styles.styles import CustomButtomColorPalette as cp
+from mecanodei.styles.styles import BorderWidth, BorderRadiusSize
 
 class CustomButton(ft.UserControl):
     """Boton personalizado
@@ -37,6 +38,8 @@ class CustomButton(ft.UserControl):
         self.icono = icono
         self.texto = texto
         self.bgcolor = ft.colors.WHITE
+        self.border_color = ft.border.all(BorderWidth.MEDIUM.value,
+                        color=cp.amarillo_oscuro)
         self.funcion = funcion
         self.boton = ft.Container(
             content=ft.Row([
@@ -48,19 +51,22 @@ class CustomButton(ft.UserControl):
             on_click=self.funcion,
             tooltip=self.ayuda,
             on_hover=self.hover,
-            ink=True,
-            #border=ft.border.all(0.8, color=ft.colors.WHITE70),
+            #ink=True,
+            border=ft.border.all(
+                BorderWidth.MEDIUM.value,
+                color=cp.azul_oscuro),
             # TODO Meter en estilos 
             height=85,
             width=100,
-            border_radius=8,
+            border_radius=BorderRadiusSize.MEDIUM.value,
             bgcolor=self.bgcolor,
             margin=3,
+            left=0,
         )
 
 
     def disable(self) -> None:
-        """Deshabilita el boton""" # TODO cambiar color icono tb a gris
+        """Deshabilita el boton"""
         self.boton.disabled = True
         self.update()
 
@@ -72,10 +78,25 @@ class CustomButton(ft.UserControl):
 
 
     def hover(self, e: ft.ControlEvent) -> None:
-        e.control.bgcolor = cp.amarillo_claro \
+        e.control.bgcolor = cp.amarillo_oscuro \
             if e.data == "true" else self.bgcolor
         e.control.update()
 
 
     def build(self) -> ft.Container:
-        return self.boton
+        return ft.Stack(
+            [
+                ft.Container(
+                    bgcolor=cp.azul_oscuro,
+                    height=85,
+                    width=100,
+                    margin=3,
+                    border_radius=BorderRadiusSize.MEDIUM.value,
+                    left=0,
+                    top=5
+                    ),
+                self.boton,
+            ],
+            width=104,
+            height=104,
+            )

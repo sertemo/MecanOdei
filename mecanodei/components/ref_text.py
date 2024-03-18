@@ -326,7 +326,7 @@ class ListViewTextBox(ft.UserControl):
 
     def paint_green(self, posicion: tuple[int]) -> None:
         """Pinta el contenedor del indice idx 
-        de color verde
+        de color verde y el texto cambia a blanco
 
         Parameters
         ----------
@@ -337,9 +337,9 @@ class ListViewTextBox(ft.UserControl):
         # Pintamos fondo de verde
         self.texto.controls[pos_linea].content.controls[pos_char] \
                 .bgcolor = styles.Colors.verde_texto_correcto
-        # Pintamos letra en negro para mayor contraste
-        """ self.texto.controls[pos_linea].content.controls[pos_char] \
-                .content.color = ft.colors.BLACK """
+        # Pintamos letra en blanco para mayor contraste
+        self.texto.controls[pos_linea].content.controls[pos_char] \
+                .color = ft.colors.WHITE
         # pintamos también el borde sutilmente
         """ self.texto.controls[pos_linea].content.controls[pos_char] \
                 .border = ft.border.only(

@@ -45,7 +45,7 @@ APP_NAME = 'MecanOdei'
 # Ventanas
 WIDTH =1024
 HEIGHT = 800
-MECANO_WIDTH = 980 #960
+MECANO_WIDTH = 985 #960
 
 # Archivos
 VALID_FORMATS = [

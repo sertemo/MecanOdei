@@ -34,6 +34,7 @@ from mecanodei.components.custom_button import CustomButton
 from mecanodei.components.app_state import AppStateLight
 from mecanodei.components.analytics import AnalText
 from mecanodei.components.custom_chart import PPMEvolucionChart
+from mecanodei.components.simple_label import SimpleLabel
 from mecanodei.db.db import (SQLStatManager,
                             iniciar_db_log,
                             serializar_pickle
@@ -180,7 +181,9 @@ def main(page: ft.Page) -> None:
                 except Exception as e:
                     ic(e)
                     logger.error(f"Error al abrir el archivo {path_txt}")
-                    texto_mensaje.value = f"Error al abrir el archivo."
+                    texto_mensaje.content.value = \
+                        f"Error al abrir el archivo."
+                    texto_mensaje.bgcolor = ft.colors.RED
                     light_app_state.to(app.error_mode())
                     page.update()
                     return
@@ -200,7 +203,8 @@ def main(page: ft.Page) -> None:
                     # Por si teníamos otro texto cargado
                     char_iterator.reset()
                     # Quitamos el mensaje de error si lo hubiera
-                    texto_mensaje.value = ""
+                    texto_mensaje.content.value = ""
+                    texto_mensaje.bgcolor = None
                     # Ponemos ready la app y mostramos
                     light_app_state.to(app.ready_mode())
                     # Cargamos el texto en el contenedor de referencia
@@ -219,7 +223,8 @@ def main(page: ft.Page) -> None:
                     light_app_state.to(app.error_mode())
                     # Mostramos mensaje de error
                     err_msg = f'{len_texto} caracteres > {conf.MAX_LEN_CHAR}'
-                    texto_mensaje.value = err_msg
+                    texto_mensaje.content.value = err_msg
+                    texto_mensaje.bgcolor = ft.colors.RED
                     logger.info(f"""El archivo abierto supera el numero de
                                 caracteres máximos predefinidos:
                                 {conf.MAX_LEN_CHAR}. El archivo tiene:
@@ -285,7 +290,8 @@ def main(page: ft.Page) -> None:
             # Borramos las visualizaciones anteriores
             borrar_stats()
             # Quitamos mensajes de error
-            texto_mensaje.value = ""
+            texto_mensaje.content.value = ""
+            texto_mensaje.bgcolor = None
             # Pintamos el primer caracter a marcar
             #texto_mecanografiar.underline((0, 0))
             # Mostramos un contador de 3 segundos
@@ -421,7 +427,9 @@ def main(page: ft.Page) -> None:
                     light_app_state.to(app.finish_mode())
                     boton_cargar_archivo.enable()
                     # Mostramos mensaje de aborto de proceso
-                    texto_mensaje.value = 'Abortada escritura por el usuario'
+                    texto_mensaje.content.value = \
+                        'Abortada escritura por el usuario'
+                    texto_mensaje.bgcolor = ft.colors.RED
             else:
                 # Ya se ha acabado el texto de ref. Ponemos en modo finish
                 light_app_state.to(app.finish_mode())
@@ -470,7 +478,9 @@ def main(page: ft.Page) -> None:
                     db_handler.insert_one(data_db)
                 except Exception as e:
                     ic(e)
-                    texto_mensaje.value = f"Error al insertar en db."
+                    texto_mensaje.content.value = \
+                        f"Error al insertar en db."
+                    texto_mensaje.bgcolor = ft.colors.RED
                     light_app_state.to(app.error_mode())
                     logger.error(f'Error al insertar en db: {e}')
                 else:
@@ -570,8 +580,8 @@ def main(page: ft.Page) -> None:
             alignment=ft.MainAxisAlignment.CENTER,
             ),
             expand=True
-        )
-    ],
+            )
+        ],
     )
     
     ### FIN VIEW MENU ###################################################
@@ -599,10 +609,16 @@ def main(page: ft.Page) -> None:
         text=0,
         bgcolor=styles.CustomButtomColorPalette.amarillo_oscuro
     )
-    texto_mensaje = ft.Text(
-        color=ft.colors.RED,
-        weight=ft.FontWeight.BOLD,
-        expand=True)
+    texto_mensaje = ft.Container( # TODO Meter esto en componente
+        ft.Text(
+            color=ft.colors.WHITE,
+            weight=ft.FontWeight.BOLD,
+            #expand=True
+            ),
+        #bgcolor=ft.colors.RED,
+        border_radius=styles.BorderRadiusSize.SMALL.value,
+        padding=styles.PaddingSize.MEDIUM.value
+    )
     texto_usuario = ft.Container(
         ft.Text(
             user_dropdown.value,
@@ -654,9 +670,9 @@ def main(page: ft.Page) -> None:
     contenedor_zona_izquierda = ft.Container(
         ft.Row([
             boton_cargar_archivo,
-            ft.VerticalDivider(**styles.vertical_divier),
+            #ft.VerticalDivider(**styles.vertical_divier),
             contenedor_palabras,
-            ft.VerticalDivider(**styles.vertical_divier)
+            #ft.VerticalDivider(**styles.vertical_divier)
         ])
     )
     contenedor_zona_central = ft.Container(
@@ -667,13 +683,11 @@ def main(page: ft.Page) -> None:
                     texto_usuario,
                     texto_mensaje,
                 ],
-                alignment=ft.MainAxisAlignment.CENTER,
+                alignment=ft.MainAxisAlignment.START,
                 vertical_alignment=ft.CrossAxisAlignment.CENTER,
                 spacing=5,
                 ),
-                bgcolor=styles.Colors.fondo_contenedores,
-                padding=styles.PaddingSize.MEDIUM.value,
-                border_radius=styles.BorderRadiusSize.SMALL.value,
+                **styles.contenedor_txt_escrito,
                 )
         ],
         alignment=ft.MainAxisAlignment.CENTER,
@@ -684,7 +698,7 @@ def main(page: ft.Page) -> None:
     )
     contenedor_empezar = ft.Container(
         ft.Row([
-            ft.VerticalDivider(**styles.vertical_divier),
+            #ft.VerticalDivider(**styles.vertical_divier),
             boton_empezar,
             boton_repetir
         ],
@@ -778,7 +792,7 @@ def main(page: ft.Page) -> None:
         expand=True,
         ),
         height=contenedor_texto_escrito.height,
-        expand=True,
+        #expand=True,
         **styles.contenedor_stats
     )
     contenedor_footer = ft.Container(
@@ -818,7 +832,6 @@ def main(page: ft.Page) -> None:
 
 
     ### ANALYTICS VIEW ###
-    # TODO Pintar evolución de los ppm en plot?
     mejor_ppm_texto = AnalText()
     mejor_ppm_fecha = AnalText()
     mejor_ppm_archivo = AnalText()
@@ -918,19 +931,39 @@ def main(page: ft.Page) -> None:
     ### FIN DE ANALYTICS VIEW ###
 
     ### CONFIG VIEW ###
+    boton_borrar_stats = CustomButton(
+        ft.icons.DELETE_FOREVER,
+        'Borrar estadísticas',
+        funcion=lambda x:x,
+        ayuda='Borrar estadísticas'
+    )
+    contenedor_configuracion = ft.Container(
+        ft.Column([
+            boton_borrar_stats
+        ],
+        alignment=ft.MainAxisAlignment.START,
+        horizontal_alignment=ft.CrossAxisAlignment.START
+        ),
+        width=400,
+        height=620,
+        margin=20,
+        **styles.contenedor_menu
+    )
+    contenedor_configuracion_principal = ft.Column(
+            [
+                ft.Row([
+                    ft.Text('Configuración'),
+                ]),                
+                ft.Row([
+                        contenedor_configuracion
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                )        
+            ],
+)
 
 
     ### FIN DE CONFIG VIEW ###
-    boton_borrar_stats = ft.ElevatedButton('Borrar Estadísticas')
-
-    contenedor_configuracion = ft.Container(
-        ft.Column(
-            [
-                ft.Text('Configuración'),
-                boton_borrar_stats
-            ]
-        )
-    )
 
     ### TABS ###
     t = ft.Tabs(
@@ -955,7 +988,7 @@ def main(page: ft.Page) -> None:
             ),
             ft.Tab(
                 tab_content=ft.Icon(ft.icons.SETTINGS),
-                content=contenedor_configuracion,
+                content=contenedor_configuracion_principal,
             ),  
         ],
         expand=1,
