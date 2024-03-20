@@ -36,6 +36,8 @@ class TextSize(Enum):
     LARGE = 16
     LARGER = 24
     BIG = 32
+    BIGGER = 46
+    HUGE = 64
 
 class BorderWidth(Enum):
     SMALLEST = 0.25
@@ -104,7 +106,7 @@ contenedor_txt_escrito = dict(
 contenedor_menu = dict(
     bgcolor=Colors.fondo_contenedores,
     border_radius=BorderRadiusSize.MEDIUM.value,
-    padding=PaddingSize.MEDIUM.value,
+    padding=PaddingSize.LARGE.value,
     border=ft.border.all(BorderWidth.MEDIUM.value,
                         color=CustomButtomColorPalette.amarillo_oscuro)
 )

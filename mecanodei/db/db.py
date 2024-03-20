@@ -574,6 +574,21 @@ class SQLStatManager(SQLManager):
             response = results.fetchall()
         return response
 
+    def delete_stats(self, user: str) -> None:
+        """Borra todos los registros del usuario
+
+        Parameters
+        ----------
+        user : str
+            _description_
+        """
+        with SQLContext(self.db_filename) as c:
+            query = f"""
+            DELETE FROM {self.tabla}
+            WHERE usuario = '{user}';
+            """
+            results = c.execute(query)
+
 class SQLUserManager(SQLManager):
     """Wrapper específico de esta aplicación
     para la gestión de la base de datos

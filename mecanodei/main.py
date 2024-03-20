@@ -43,7 +43,6 @@ from mecanodei.utils.text import get_total_num_char, create_username_for_db
 from mecanodei.utils.time import get_datetime_formatted
 
 # TODO Crear las diferentes secciones en Views independientes
-# TODO Agrupar bien en estilos y configuracion
 # TODO Visualizar numero de linea en pequeño? -> mucho esfuerzo
 
 
@@ -140,8 +139,8 @@ def main(page: ft.Page) -> None:
         # Gráfico evolución PPM
         # sacamos los valores de db
         if (data_ppm := db_handler.get_all_ppm_and_date(user)) is not None:
-            # Actualizamos el gráfico
-            evolucion_ppm.update_chart(data_ppm)
+            # Actualizamos el gráfico, pasamos solo los 20 últimos
+            evolucion_ppm.update_chart(data_ppm[-20:])
         else:
             evolucion_ppm.clear_data()
 
@@ -492,6 +491,26 @@ def main(page: ft.Page) -> None:
         page.update()
 
 
+    def abrir_dialogo_modal(e: ft.ControlEvent) -> None:
+        page.dialog = dlg_modal
+        dlg_modal.title.value = f"Borrar Analíticas de {user_dropdown.value}"
+        dlg_modal.content.value = """¿ Estás seguro de querer borrar tus
+        analíticas para siempre ?"""
+        dlg_modal.open = True
+        page.update()
+
+
+    def cerrar_dialogo_modal(e: ft.ControlEvent) -> None:
+        dlg_modal.open = False
+        page.update()
+
+
+    def borrar_estadisticas_usuario(e: ft.ControlEvent) -> None:
+        # Ejecutamos consulta en db
+        db_handler.delete_stats(create_username_for_db(user_dropdown.value))
+        dlg_modal.open = False
+        update_analytics(user_dropdown.value)
+
     # Iniciamos la base de datos
     # Si no existe la ruta crea las tablas
     # user y stats e inserta los usuarios de
@@ -552,19 +571,32 @@ def main(page: ft.Page) -> None:
 
     cont_menu_usuario = ft.Container(
         ft.Column([
+            ft.Container(
+                    height=80
+                ),
             ft.Text(
-                'Usuario',
-                size=styles.TextSize.BIG.value,
+                'MecanOdei',
+                size=styles.TextSize.BIGGER.value,
                 weight=ft.FontWeight.BOLD,
+                color=styles.CustomButtomColorPalette.azul_oscuro
                 ),
-                ft.Text(
-                    'Selecciona un usuario',
-                    size=styles.TextSize.LARGE.value,
-                ),
+            ft.Text(
+                'Mejora tu mecanografía',
+                size=styles.TextSize.LARGE.value,
+                color=styles.CustomButtomColorPalette.azul_oscuro
+            ),
+            ft.Container(
+                height=100
+            ),
+            ft.Text(
+                'Selecciona un usuario',
+                size=styles.TextSize.LARGE.value,
+                color=styles.CustomButtomColorPalette.azul_oscuro
+            ),
             user_dropdown,
             # TODO Meter icono o logo de app
         ],
-        alignment=ft.MainAxisAlignment.CENTER,
+        alignment=ft.MainAxisAlignment.START,
         horizontal_alignment=ft.CrossAxisAlignment.CENTER
         ),
         width=400,
@@ -615,7 +647,6 @@ def main(page: ft.Page) -> None:
             weight=ft.FontWeight.BOLD,
             #expand=True
             ),
-        #bgcolor=ft.colors.RED,
         border_radius=styles.BorderRadiusSize.SMALL.value,
         padding=styles.PaddingSize.MEDIUM.value
     )
@@ -633,7 +664,7 @@ def main(page: ft.Page) -> None:
     boton_cargar_archivo = CustomButton(
         icono=ft.icons.UPLOAD_FILE,
         texto='Cargar',
-        ayuda='Carga un archivo txt',
+        ayuda='Carga un archivo',
         funcion=lambda _: file_picker.pick_files(
             allowed_extensions=conf.VALID_FORMATS)
         )
@@ -677,10 +708,11 @@ def main(page: ft.Page) -> None:
     )
     contenedor_zona_central = ft.Container(
         ft.Column([
-            light_app_state,
+            ft.Row(
+                [texto_usuario,light_app_state],
+                alignment=ft.MainAxisAlignment.CENTER),
             ft.Container(
                 ft.Row([
-                    texto_usuario,
                     texto_mensaje,
                 ],
                 alignment=ft.MainAxisAlignment.START,
@@ -751,6 +783,8 @@ def main(page: ft.Page) -> None:
         size=60,
         color=ft.colors.AMBER_500,
         weight=ft.FontWeight.BOLD,
+        scale=ft.transform.Scale(scale=1),
+        animate_scale=ft.animation.Animation(600, ft.AnimationCurve.BOUNCE_OUT)
         )
     box_num_aciertos = StatBox(
         icono=ft.icons.PERCENT,
@@ -857,27 +891,27 @@ def main(page: ft.Page) -> None:
                 ft.Row(
                     [
                         ft.Text('Número de sesiones totales:'),
-                        num_sesiones_texto
-                    ]
+                        num_sesiones_texto,
+                    ],
                 ),
                 ft.Row(
                     [
                         ft.Text('Archivo más usado:'),
                         archivo_mas_usado,
                         archivo_mas_usado_veces,
-                    ]
+                    ],
                 ),
                 ft.Row(
                     [
                         ft.Text('Caracteres totales tecleados:'),
                         suma_char_texto
-                    ]
+                    ],
                 ),
                 ft.Row(
                     [
                         ft.Text('Caracteres totales fallados:'),
                         char_totales_fallados_texto
-                    ]
+                    ],
                 ),
                 ft.Row(
                     [
@@ -886,7 +920,7 @@ def main(page: ft.Page) -> None:
                         ft.Text('con'),
                         fallos_archivo,
                         ft.Text('caracteres fallados')
-                    ]
+                    ],
                 ),
                 ft.Row(
                     [
@@ -896,7 +930,7 @@ def main(page: ft.Page) -> None:
                         mejor_ppm_fecha,
                         ft.Text('con'),
                         mejor_ppm_archivo,
-                    ]
+                    ],
                 ),
                 ft.Row(
                     [
@@ -906,14 +940,14 @@ def main(page: ft.Page) -> None:
                         peor_ppm_fecha,
                         ft.Text('con'),
                         peor_ppm_archivo,
-                    ]
+                    ],
                 ),
                 ft.Row(
                     [
                         ft.Text('Precisión media:'),
                         precision_media_texto,
                         ft.Text('%')
-                    ]
+                    ],
                 ),                               
                 ft.Row(
                     [
@@ -924,7 +958,8 @@ def main(page: ft.Page) -> None:
                 ),
                 evolucion_ppm
             ],
-            spacing=5
+            spacing=5,
+            horizontal_alignment=ft.CrossAxisAlignment.START
         ),
     )
 
@@ -934,15 +969,29 @@ def main(page: ft.Page) -> None:
     boton_borrar_stats = CustomButton(
         ft.icons.DELETE_FOREVER,
         'Borrar estadísticas',
-        funcion=lambda x:x,
+        funcion=abrir_dialogo_modal,
         ayuda='Borrar estadísticas'
     )
+
+    dlg_modal = ft.AlertDialog(
+        modal=True,
+        title=ft.Text(),
+        content=ft.Text(),
+        actions=[
+            ft.TextButton("Sí", on_click=borrar_estadisticas_usuario),
+            ft.TextButton("No", on_click=cerrar_dialogo_modal),
+        ],
+        actions_alignment=ft.MainAxisAlignment.END,
+        bgcolor=styles.CustomButtomColorPalette.grisaceo
+    )
+
     contenedor_configuracion = ft.Container(
         ft.Column([
+            ft.Text('Borrar Analíticas', size=styles.TextSize.LARGE.value),
             boton_borrar_stats
         ],
         alignment=ft.MainAxisAlignment.START,
-        horizontal_alignment=ft.CrossAxisAlignment.START
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER
         ),
         width=400,
         height=620,
