@@ -45,3 +45,6 @@ Esto hace que me plantee lo siguiente:
 ### 03/03/2024
 - En la partede Estadísticas, trackear la palabra perteneciente a las letras falladas
 - [x] Hay un problema capturando la **Ñ**
+### 21/03/2024
+- [] Crear otro botón debajo del de carga para generar un texto aleatorio basado en una plantilla en el que ciertos elementos son variables y seleccionado aleatoriamente de entre varias opciones prefijadas. Crear el archivo ficticio en función de algunas variables
+- [] Añadir más configuraciones

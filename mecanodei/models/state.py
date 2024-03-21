@@ -23,7 +23,7 @@ class State(enum.Enum):
     finish = enum.auto()  # Texto terminado de mecanografiar
     error = enum.auto()
 
-class AppState: # TODO Añadir resto de modos
+class AppState:
     """Clase para llevar registro
     del estado de la app
 

@@ -41,6 +41,12 @@ APP_FONTS = {
         "Poppins": "fonts/Poppins-Medium.ttf",
     }
 APP_NAME = 'MecanOdei'
+INSTRUCTIONS = '''
+1. Selecciona un usuario en el Menú.
+2. Carga un archivo de texto en la pantalla Practicar.
+3. Haz clic en el botón Empezar y escribe el texto que has cargado.
+4. Si quieres abortar la mecanografía pulsa Escape.
+5. Sigue la evolución de tus mecanografías en la pantalla Analíticas'''
 
 # Ventanas
 WIDTH =1024

@@ -17,13 +17,13 @@ from typing import Literal
 import flet as ft
 
 from mecanodei.styles.styles import (CustomButtomColorPalette as cp,
-                                    BorderRadiusSize, PaddingSize)
+                                    BorderRadiusSize, PaddingSize,
+                                    BorderWidth)
 
-class SimpleLabel(ft.UserControl):
+class TitleLabel(ft.UserControl):
     """Componente sencillo
     tipo label para mostrar
-    el nombre del usuario
-    y mensajes de error al usuario
+    el nombre de la pantalla
 
     Parameters
     ----------
@@ -32,13 +32,24 @@ class SimpleLabel(ft.UserControl):
     """
     def __init__(self,
                 init_text: str = '',
-                bgcolor: str = cp.azul_oscuro) -> None:
+                bgcolor: str = ft.colors.WHITE,
+                ) -> None:
         super().__init__()
         self.bgcolor = bgcolor
         self.text = init_text
         self.label = ft.Text(
                 self.text,
-                color=ft.colors.WHITE,
+                color=cp.azul_oscuro,
+                #weight=ft.FontWeight.BOLD
+                )
+        self.contenedor = ft.Container(
+            content=self.label,
+            border_radius=BorderRadiusSize.SMALL.value,
+            padding=PaddingSize.MEDIUM.value,
+            bgcolor=self.bgcolor,
+            border=ft.border.all(
+                BorderWidth.SMALL.value,
+                color=cp.azul_oscuro)
                 )
 
     def show_info_msg(self, texto: str) -> None:
@@ -59,9 +70,4 @@ class SimpleLabel(ft.UserControl):
         self.update()
 
     def build(self) -> ft.Container:
-        return ft.Container(
-            content=self.label,
-            border_radius=BorderRadiusSize.SMALL.value,
-            padding=PaddingSize.MEDIUM.value,
-            bgcolor=self.bgcolor
-        )
+        return self.contenedor

@@ -32,6 +32,7 @@ class TextSize(Enum):
     SMALL = 4
     MEDIUM = 8
     DEFAULT = 10
+    STANDARD = 12
     NORMAL = 14
     LARGE = 16
     LARGER = 24
@@ -63,7 +64,7 @@ class Colors:
     borde_stats = ft.colors.RED_600
     fondo_mecano = ft.colors.WHITE70
     analytics_color = CustomButtomColorPalette.azul_oscuro
-    line_chart_color = ft.colors.LIGHT_GREEN
+    line_chart_color = CustomButtomColorPalette.amarillo_oscuro
 
 class ColorBorders:
     borde_contenedores = ft.colors.BLACK26
@@ -76,7 +77,7 @@ contenedor_mecanografiar = dict(
     bgcolor=Colors.fondo_mecano,
     border_radius=BorderRadiusSize.MEDIUM.value,
     border=ft.border.all(
-        BorderWidth.MEDIUM.value,
+        BorderWidth.SMALL.value,
         color=CustomButtomColorPalette.azul_oscuro)
 )
 
@@ -99,7 +100,7 @@ contenedor_txt_escrito = dict(
     bgcolor=ft.colors.WHITE,
     border_radius=BorderRadiusSize.MEDIUM.value,
     border=ft.border.all(
-        BorderWidth.MEDIUM.value,
+        BorderWidth.SMALL.value,
         color=CustomButtomColorPalette.azul_oscuro)
 )
 

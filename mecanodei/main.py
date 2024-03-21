@@ -34,7 +34,7 @@ from mecanodei.components.custom_button import CustomButton
 from mecanodei.components.app_state import AppStateLight
 from mecanodei.components.analytics import AnalText
 from mecanodei.components.custom_chart import PPMEvolucionChart
-from mecanodei.components.simple_label import SimpleLabel
+from mecanodei.components.simple_label import TitleLabel
 from mecanodei.db.db import (SQLStatManager,
                             iniciar_db_log,
                             serializar_pickle
@@ -42,8 +42,8 @@ from mecanodei.db.db import (SQLStatManager,
 from mecanodei.utils.text import get_total_num_char, create_username_for_db
 from mecanodei.utils.time import get_datetime_formatted
 
-# TODO Crear las diferentes secciones en Views independientes
-# TODO Visualizar numero de linea en pequeño? -> mucho esfuerzo
+# TODO Mejorar la luz de estados de la app
+# TODO Personalizar icono en la barra de app
 
 
 def main(page: ft.Page) -> None:
@@ -296,6 +296,7 @@ def main(page: ft.Page) -> None:
             # Mostramos un contador de 3 segundos
             for n in range(3, 0, -1): # TODO Meter en componente
                 texto_cuenta_atras.value = str(n)
+                texto_cuenta_atras.scale = 2
                 page.update()
                 time.sleep(0.9)
             texto_cuenta_atras.value = ""
@@ -531,7 +532,6 @@ def main(page: ft.Page) -> None:
 
     page.fonts = conf.APP_FONTS
     page.title = conf.APP_NAME
-    #page.theme_mode = 'light'
     page.bgcolor = styles.CustomButtomColorPalette.grisaceo
     page.theme = ft.Theme(
         font_family= 'Poppins',
@@ -572,7 +572,7 @@ def main(page: ft.Page) -> None:
     cont_menu_usuario = ft.Container(
         ft.Column([
             ft.Container(
-                    height=80
+                    height=70
                 ),
             ft.Text(
                 'MecanOdei',
@@ -591,10 +591,21 @@ def main(page: ft.Page) -> None:
             ft.Text(
                 'Selecciona un usuario',
                 size=styles.TextSize.LARGE.value,
-                color=styles.CustomButtomColorPalette.azul_oscuro
+                color=styles.CustomButtomColorPalette.azul_oscuro,
             ),
             user_dropdown,
-            # TODO Meter icono o logo de app
+            ft.Container(
+                height=8
+            ),
+            ft.Container(
+                ft.Text(
+                    conf.INSTRUCTIONS,
+                    size=styles.TextSize.STANDARD.value,
+                    color=styles.CustomButtomColorPalette.azul_oscuro
+                ),
+                width=300
+            )
+            
         ],
         alignment=ft.MainAxisAlignment.START,
         horizontal_alignment=ft.CrossAxisAlignment.CENTER
@@ -604,7 +615,7 @@ def main(page: ft.Page) -> None:
         **styles.contenedor_menu
     )
     cont_menu_principal = ft.Column([
-        ft.Text('Menú'),
+        ft.Row([ft.Container(width=374), TitleLabel('Menú')]),
         ft.Container(
             ft.Row([
                 cont_menu_usuario
@@ -709,18 +720,19 @@ def main(page: ft.Page) -> None:
     contenedor_zona_central = ft.Container(
         ft.Column([
             ft.Row(
-                [texto_usuario,light_app_state],
+                [light_app_state],
                 alignment=ft.MainAxisAlignment.CENTER),
             ft.Container(
                 ft.Row([
                     texto_mensaje,
                 ],
-                alignment=ft.MainAxisAlignment.START,
+                alignment=ft.MainAxisAlignment.CENTER,
                 vertical_alignment=ft.CrossAxisAlignment.CENTER,
                 spacing=5,
                 ),
-                **styles.contenedor_txt_escrito,
-                )
+            tooltip='Panel de mensajes',
+            **styles.contenedor_txt_escrito,
+            )
         ],
         alignment=ft.MainAxisAlignment.CENTER,
         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
@@ -781,7 +793,7 @@ def main(page: ft.Page) -> None:
     # TODO meter en componente CountDown con un fondo y que muevan las letras
     texto_cuenta_atras = ft.Text(
         size=60,
-        color=ft.colors.AMBER_500,
+        color=styles.CustomButtomColorPalette.amarillo_oscuro,
         weight=ft.FontWeight.BOLD,
         scale=ft.transform.Scale(scale=1),
         animate_scale=ft.animation.Animation(600, ft.AnimationCurve.BOUNCE_OUT)
@@ -841,7 +853,7 @@ def main(page: ft.Page) -> None:
 
     contenedor_global = ft.Container(
         ft.Column([
-            ft.Text('Practicar'),
+            ft.Row([ft.Container(width=416), TitleLabel('Practicar')]),
             contenedor_zona_carga,
             ft.Row([
                 ft.Stack([                
@@ -856,7 +868,7 @@ def main(page: ft.Page) -> None:
             spacing=5),
             contenedor_footer,
         ],
-        alignment=ft.MainAxisAlignment.SPACE_EVENLY,
+        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
         ),
     )
 
@@ -886,8 +898,7 @@ def main(page: ft.Page) -> None:
     anal_contenedor_global = ft.Container(
         ft.Column(
             [
-                ft.Text('Analíticas'),
-                texto_usuario,
+                ft.Row([ft.Container(width=469), TitleLabel('Analíticas')]),
                 ft.Row(
                     [
                         ft.Text('Número de sesiones totales:'),
@@ -1001,7 +1012,8 @@ def main(page: ft.Page) -> None:
     contenedor_configuracion_principal = ft.Column(
             [
                 ft.Row([
-                    ft.Text('Configuración'),
+                    ft.Row(
+                        [ft.Container(width=510), TitleLabel('Configuración')]),
                 ]),                
                 ft.Row([
                         contenedor_configuracion
@@ -1016,10 +1028,12 @@ def main(page: ft.Page) -> None:
 
     ### TABS ###
     t = ft.Tabs(
+        divider_color=styles.CustomButtomColorPalette.grisaceo,
         selected_index=0,
-        animation_duration=100,
-        indicator_color=ft.colors.BLUE_500,
-        indicator_tab_size=True,
+        animation_duration=30,
+        indicator_color=styles.CustomButtomColorPalette.azul_oscuro,
+        indicator_tab_size=False,
+        overlay_color=styles.CustomButtomColorPalette.amarillo_claro,
         #label_color=ft.colors.BLUE_600,
         tab_alignment=ft.TabAlignment.CENTER,
         tabs=[

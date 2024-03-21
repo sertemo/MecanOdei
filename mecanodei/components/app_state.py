@@ -16,6 +16,8 @@ import flet as ft
 
 from mecanodei.models.state import State
 
+from mecanodei.styles.styles import CustomButtomColorPalette as cp
+
 mapping_state = {
     State.ready.value: ft.colors.GREEN,
     State.writing.value: ft.colors.AMBER,
@@ -44,12 +46,14 @@ class AppStateLight(ft.UserControl):
             bgcolor=mapping_state[State.resting.value],
             height=40,
             width=40,
-            border=ft.border.all(2, ft.colors.WHITE)
+            border=ft.border.all(2, cp.azul_oscuro),
+            tooltip=f"Modo: {State.resting.name}"
         )
 
 
     def to(self, state: State) -> None:
         self.light.bgcolor = mapping_state[state.value]
+        self.light.tooltip = f"Modo: {state.name}"
         self.update()
 
 
