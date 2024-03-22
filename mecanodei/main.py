@@ -33,7 +33,9 @@ from mecanodei.components.ref_text import ListViewTextBox
 from mecanodei.components.custom_button import CustomButton
 from mecanodei.components.app_state import AppStateLight
 from mecanodei.components.analytics import AnalText
-from mecanodei.components.custom_chart import PPMEvolucionChart
+from mecanodei.components.custom_chart import (PPMEvolucionChart,
+                                            FailedCharPieChart
+                                            )
 from mecanodei.components.simple_label import TitleLabel
 from mecanodei.db.db import (SQLStatManager,
                             iniciar_db_log,
@@ -140,9 +142,15 @@ def main(page: ft.Page) -> None:
         # sacamos los valores de db
         if (data_ppm := db_handler.get_all_ppm_and_date(user)) is not None:
             # Actualizamos el gráfico, pasamos solo los 20 últimos
-            evolucion_ppm.update_chart(data_ppm[-20:])
+            evolucion_ppm.update_chart(data_ppm[-10:])
         else:
             evolucion_ppm.clear_data()
+        # Gráfico PieChart de caracteres mas fallados
+        if (char_failed := db_handler.char_most_failed(user)) is not None:
+            # Alimentamos el gráfico
+            caracteres_mas_fallados.update_chart(char_failed)
+        else:
+            caracteres_mas_fallados.clear_data()
 
         page.update()
 
@@ -894,84 +902,91 @@ def main(page: ft.Page) -> None:
     peor_archivo = AnalText()
     fallos_archivo = AnalText()
     evolucion_ppm = PPMEvolucionChart()
+    caracteres_mas_fallados = FailedCharPieChart()
 
     anal_contenedor_global = ft.Container(
-        ft.Column(
-            [
-                ft.Row([ft.Container(width=469), TitleLabel('Analíticas')]),
-                ft.Row(
-                    [
-                        ft.Text('Número de sesiones totales:'),
-                        num_sesiones_texto,
-                    ],
-                ),
-                ft.Row(
-                    [
-                        ft.Text('Archivo más usado:'),
-                        archivo_mas_usado,
-                        archivo_mas_usado_veces,
-                    ],
-                ),
-                ft.Row(
-                    [
-                        ft.Text('Caracteres totales tecleados:'),
-                        suma_char_texto
-                    ],
-                ),
-                ft.Row(
-                    [
-                        ft.Text('Caracteres totales fallados:'),
-                        char_totales_fallados_texto
-                    ],
-                ),
-                ft.Row(
-                    [
-                        ft.Text('Archivo que peor se te da:'),
-                        peor_archivo,
-                        ft.Text('con'),
-                        fallos_archivo,
-                        ft.Text('caracteres fallados')
-                    ],
-                ),
-                ft.Row(
-                    [
-                        ft.Text("Mejor PPM:"),
-                        mejor_ppm_texto,
-                        ft.Text('el'),
-                        mejor_ppm_fecha,
-                        ft.Text('con'),
-                        mejor_ppm_archivo,
-                    ],
-                ),
-                ft.Row(
-                    [
-                        ft.Text("Peor PPM:"),
-                        peor_ppm_texto,
-                        ft.Text('el'),
-                        peor_ppm_fecha,
-                        ft.Text('con'),
-                        peor_ppm_archivo,
-                    ],
-                ),
-                ft.Row(
-                    [
-                        ft.Text('Precisión media:'),
-                        precision_media_texto,
-                        ft.Text('%')
-                    ],
-                ),                               
-                ft.Row(
-                    [
-                        ft.Text('Palabras más falladas:'),
-                        palabras_mas_falladas
-                    ],
-                    vertical_alignment=ft.CrossAxisAlignment.START
-                ),
-                evolucion_ppm
-            ],
-            spacing=5,
-            horizontal_alignment=ft.CrossAxisAlignment.START
-        ),
+        ft.Row([
+            ft.Column(
+                [
+                    ft.Row([ft.Container(width=469), TitleLabel('Analíticas')]),
+                    ft.Row(
+                        [
+                            ft.Text('Número de sesiones totales:'),
+                            num_sesiones_texto,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text('Archivo más usado:'),
+                            archivo_mas_usado,
+                            archivo_mas_usado_veces,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text('Caracteres totales tecleados:'),
+                            suma_char_texto
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text('Caracteres totales fallados:'),
+                            char_totales_fallados_texto
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text('Archivo que peor se te da:'),
+                            peor_archivo,
+                            ft.Text('con'),
+                            fallos_archivo,
+                            ft.Text('caracteres fallados')
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text("Mejor PPM:"),
+                            mejor_ppm_texto,
+                            ft.Text('el'),
+                            mejor_ppm_fecha,
+                            ft.Text('con'),
+                            mejor_ppm_archivo,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text("Peor PPM:"),
+                            peor_ppm_texto,
+                            ft.Text('el'),
+                            peor_ppm_fecha,
+                            ft.Text('con'),
+                            peor_ppm_archivo,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text('Precisión media:'),
+                            precision_media_texto,
+                            ft.Text('%')
+                        ],
+                    ),                               
+                    ft.Row(
+                        [
+                            ft.Text('Palabras más falladas:'),
+                            palabras_mas_falladas,
+                        ],
+                        vertical_alignment=ft.CrossAxisAlignment.START
+                    ),
+                    ft.Row([evolucion_ppm, caracteres_mas_fallados])                
+                ],
+                spacing=5,
+                horizontal_alignment=ft.CrossAxisAlignment.START
+            ),
+            ft.Column([
+                ft.Text('Caracteres más fallados'),
+                
+            ])
+        ]),
     )
 
     ### FIN DE ANALYTICS VIEW ###

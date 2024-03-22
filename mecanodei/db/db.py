@@ -589,6 +589,30 @@ class SQLStatManager(SQLManager):
             """
             results = c.execute(query)
 
+    def char_most_failed(self, user: str) -> list[tuple[str, int]] | None:
+        """Devuelve una lista con los 10 caracteres
+        más fallados.
+        La idea es utilizar esta información
+        para crear un gráfico simulando un teclado
+        y ver dónde se concentran las caracteres
+        que mas se fallan
+
+        Parameters
+        ----------
+        user : str
+            _description_
+
+        Returns
+        -------
+        list[str]
+            _description_
+        """
+        listas_errores: list[CharTrack] = self._get_listas_errores(user)
+        if listas_errores is not None:
+            count = Counter(char.actual for char in listas_errores)
+            return count.most_common(10)
+
+
 class SQLUserManager(SQLManager):
     """Wrapper específico de esta aplicación
     para la gestión de la base de datos
