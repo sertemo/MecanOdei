@@ -61,6 +61,11 @@ VALID_FORMATS = [
 
 # Stats
 DEFAULT_CHAR = '-'
+CHART_COLORS = ['#FF8A65', '#64B5F6',
+                '#9575CD', '#E57373',
+                '#4DB6AC', '#9575CD',
+                '#64B5F6', '#E57373']
+
 
 # Fechas
 DATE_FORMAT = "%Y/%m/%d %H:%M:%S"

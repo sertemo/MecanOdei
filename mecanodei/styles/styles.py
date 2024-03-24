@@ -69,7 +69,12 @@ class Colors:
 class ColorBorders:
     borde_contenedores = ft.colors.BLACK26
 
-
+# EStilos títulos estadisticas
+title_stats_style = ft.TextStyle(
+    size=30,
+    color=CustomButtomColorPalette.azul_oscuro,
+    weight=ft.FontWeight.BOLD
+)
 
 # Estilo del contenedor mecanografiar
 contenedor_mecanografiar = dict(

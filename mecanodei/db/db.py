@@ -610,7 +610,7 @@ class SQLStatManager(SQLManager):
         listas_errores: list[CharTrack] = self._get_listas_errores(user)
         if listas_errores is not None:
             count = Counter(char.actual for char in listas_errores)
-            return count.most_common(10)
+            return count.most_common(8)
 
 
 class SQLUserManager(SQLManager):

@@ -21,6 +21,7 @@ from mecanodei.styles.styles import (
 )
 import mecanodei.config as conf
 from mecanodei.utils.time import shortten_to_day_month
+import mecanodei.config as conf
 
 class PPMEvolucionChart(ft.UserControl):
     def __init__(self) -> None:
@@ -224,6 +225,7 @@ class FailedCharPieChart(ft.UserControl):
         new_data : list[tuple[str, int]]
             _description_
         """
+        iter_colors = iter(conf.CHART_COLORS)
         # Lo primero es sacar los porcentajes
         data_perc = self._calculate_char_percentages(new_data)
         # Creamos las sections
@@ -234,7 +236,8 @@ class FailedCharPieChart(ft.UserControl):
                 title_position=0.6,
                 radius=self.normal_radius,
                 badge=self.badge(char[0], self.normal_badge_size),
-                badge_position=0.98
+                badge_position=0.98,
+                color=next(iter_colors),
             )
             for char in data_perc
         ]

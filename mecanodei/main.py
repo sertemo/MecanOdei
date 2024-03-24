@@ -14,6 +14,7 @@
 
 # Script para desarrollar el código principal de la app con Flet
 
+from textwrap import dedent
 import time
 
 import flet as ft
@@ -28,6 +29,7 @@ from mecanodei.models.text_manager import TypedTextManager
 from mecanodei.models.char_iterator import CharIterator
 from mecanodei.models.file_manager import FileManager
 import mecanodei.styles.styles as styles
+from mecanodei.styles.styles import CustomButtomColorPalette as cp
 from mecanodei.components.stats import StatBox
 from mecanodei.components.ref_text import ListViewTextBox
 from mecanodei.components.custom_button import CustomButton
@@ -95,15 +97,20 @@ def main(page: ft.Page) -> None:
             char_totales_fallados_texto.show(resultado)
         else:
             char_totales_fallados_texto.show(conf.DEFAULT_CHAR)
-        # las 5 palabras mas erradas. Listview
+        # las 5 palabras mas erradas. Columna
         palabras_mas_falladas.controls.clear()
-        if (resultado := db_handler.words_most_failed(user)) is not None:
+        if (resultado := db_handler.words_most_failed(user)) is not None:            
             # poblamos la listview
             for (palabra, char, prev, typed), veces in resultado:
+                if palabra is None:
+                    palabra = ' '
                 # Dividimos la palabra
                 palabra_dividida = ft.Row(
-                    [ft.Text(c) for c in palabra],
-                    spacing=0.5)
+                    [ft.Text(
+                        value=c,
+                        color=cp.azul_oscuro
+                        ) for c in palabra],
+                    spacing=0.4)
                 # Buscamos el indice del caracter fallado de la palabra
                 indice = palabra.find(f'{prev}{char}')
                 indice = indice + 1 if prev else indice
@@ -112,12 +119,18 @@ def main(page: ft.Page) -> None:
                 palabra_dividida.controls[indice].weight = ft.FontWeight.BOLD
                 palabra_dividida.controls[indice].color = \
                     styles.Colors.analytics_color
-
+                
                 palabras_mas_falladas.controls.append(
                     ft.Row(
                         [
                             palabra_dividida,
-                            ft.Text(f'tecleado: "{typed}"'),
+                            ft.Text(f'tecleado'),
+                            ft.Text(
+                                f'"{typed}"',
+                                size=16,
+                                weight=ft.FontWeight.BOLD,
+                                color=cp.amarillo_oscuro
+                                ),
                             ft.Text(f'({veces})', size=12)
                         ]
                     )
@@ -503,8 +516,9 @@ def main(page: ft.Page) -> None:
     def abrir_dialogo_modal(e: ft.ControlEvent) -> None:
         page.dialog = dlg_modal
         dlg_modal.title.value = f"Borrar Analíticas de {user_dropdown.value}"
-        dlg_modal.content.value = """¿ Estás seguro de querer borrar tus
-        analíticas para siempre ?"""
+        dlg_modal.content.value = dedent(
+            """¿ Estás seguro de querer borrar tus analíticas para siempre ?"""
+            )
         dlg_modal.open = True
         page.update()
 
@@ -540,14 +554,14 @@ def main(page: ft.Page) -> None:
 
     page.fonts = conf.APP_FONTS
     page.title = conf.APP_NAME
-    page.bgcolor = styles.CustomButtomColorPalette.grisaceo
+    page.bgcolor = cp.grisaceo
     page.theme = ft.Theme(
         font_family= 'Poppins',
         color_scheme=ft.ColorScheme(
-            primary=styles.CustomButtomColorPalette.azul_oscuro,
-            background=styles.CustomButtomColorPalette.grisaceo,
-            secondary=styles.CustomButtomColorPalette.amarillo_oscuro,
-            secondary_container=styles.CustomButtomColorPalette.amarillo_claro,
+            primary=cp.azul_oscuro,
+            background=cp.grisaceo,
+            secondary=cp.amarillo_oscuro,
+            secondary_container=cp.amarillo_claro,
             on_background=ft.colors.WHITE
         )
     )
@@ -586,12 +600,12 @@ def main(page: ft.Page) -> None:
                 'MecanOdei',
                 size=styles.TextSize.BIGGER.value,
                 weight=ft.FontWeight.BOLD,
-                color=styles.CustomButtomColorPalette.azul_oscuro
+                color=cp.azul_oscuro
                 ),
             ft.Text(
                 'Mejora tu mecanografía',
                 size=styles.TextSize.LARGE.value,
-                color=styles.CustomButtomColorPalette.azul_oscuro
+                color=cp.azul_oscuro
             ),
             ft.Container(
                 height=100
@@ -599,7 +613,7 @@ def main(page: ft.Page) -> None:
             ft.Text(
                 'Selecciona un usuario',
                 size=styles.TextSize.LARGE.value,
-                color=styles.CustomButtomColorPalette.azul_oscuro,
+                color=cp.azul_oscuro,
             ),
             user_dropdown,
             ft.Container(
@@ -609,7 +623,7 @@ def main(page: ft.Page) -> None:
                 ft.Text(
                     conf.INSTRUCTIONS,
                     size=styles.TextSize.STANDARD.value,
-                    color=styles.CustomButtomColorPalette.azul_oscuro
+                    color=cp.azul_oscuro
                 ),
                 width=300
             )
@@ -649,7 +663,7 @@ def main(page: ft.Page) -> None:
             size=40,
             tooltip='Número de caracteres'),
         text=0,
-        bgcolor=styles.CustomButtomColorPalette.amarillo_oscuro
+        bgcolor=cp.amarillo_oscuro
     )
     texto_palabras = ft.Badge(
         content= ft.Icon(
@@ -658,7 +672,7 @@ def main(page: ft.Page) -> None:
             tooltip='Número de palabras'
             ),
         text=0,
-        bgcolor=styles.CustomButtomColorPalette.amarillo_oscuro
+        bgcolor=cp.amarillo_oscuro
     )
     texto_mensaje = ft.Container( # TODO Meter esto en componente
         ft.Text(
@@ -674,7 +688,7 @@ def main(page: ft.Page) -> None:
             user_dropdown.value,
             color=ft.colors.WHITE,
             ),
-            bgcolor=styles.CustomButtomColorPalette.azul_oscuro,
+            bgcolor=cp.azul_oscuro,
             border_radius=styles.BorderRadiusSize.SMALL.value,
             padding=styles.PaddingSize.MEDIUM.value
         )
@@ -787,7 +801,7 @@ def main(page: ft.Page) -> None:
     ### Zona de Texto Referencia ###
     texto_mecanografiar = ListViewTextBox(
         text_size=styles.TextSize.LARGE.value,
-        text_color=styles.CustomButtomColorPalette.azul_oscuro
+        text_color=cp.azul_oscuro
         )
     contenedor_mecanografiar = ft.Container(
         texto_mecanografiar,
@@ -801,7 +815,7 @@ def main(page: ft.Page) -> None:
     # TODO meter en componente CountDown con un fondo y que muevan las letras
     texto_cuenta_atras = ft.Text(
         size=60,
-        color=styles.CustomButtomColorPalette.amarillo_oscuro,
+        color=cp.amarillo_oscuro,
         weight=ft.FontWeight.BOLD,
         scale=ft.transform.Scale(scale=1),
         animate_scale=ft.animation.Animation(600, ft.AnimationCurve.BOUNCE_OUT)
@@ -825,7 +839,7 @@ def main(page: ft.Page) -> None:
     texto_escrito = ListViewTextBox(
         text_size=styles.TextSize.NORMAL.value,
         char_linea=35,
-        text_color=styles.CustomButtomColorPalette.azul_oscuro,
+        text_color=cp.azul_oscuro,
         container_heigth=30
         )
     contenedor_texto_escrito = ft.Container(
@@ -895,8 +909,9 @@ def main(page: ft.Page) -> None:
     precision_media_texto = AnalText()
     suma_char_texto = AnalText()
     num_sesiones_texto = AnalText()
+    char_tecleado = AnalText()
     char_totales_fallados_texto = AnalText()
-    palabras_mas_falladas = ft.ListView()
+    palabras_mas_falladas = ft.Column()
     archivo_mas_usado = AnalText()
     archivo_mas_usado_veces = ft.Text(size=12)
     peor_archivo = AnalText()
@@ -909,84 +924,96 @@ def main(page: ft.Page) -> None:
             ft.Column(
                 [
                     ft.Row([ft.Container(width=469), TitleLabel('Analíticas')]),
-                    ft.Row(
-                        [
-                            ft.Text('Número de sesiones totales:'),
-                            num_sesiones_texto,
+                    ft.Row([
+                        ft.Column([
+                            ft.Text('Evolución PPM',
+                                    style=styles.title_stats_style),
+                            evolucion_ppm,
+                            ft.Container(height=30),
+                            ft.Row(
+                                [
+                                    ft.Text('Número de sesiones totales:'),
+                                    num_sesiones_texto,
+                                ],
+                            ),
+                            ft.Row(
+                                [
+                                    ft.Text('Archivo más usado:'),
+                                    archivo_mas_usado,
+                                    archivo_mas_usado_veces,
+                                ],
+                            ),
+                            ft.Row(
+                                [
+                                    ft.Text('Caracteres totales tecleados:'),
+                                    suma_char_texto
+                                ],
+                            ),
+                            ft.Row(
+                                [
+                                    ft.Text('Caracteres totales fallados:'),
+                                    char_totales_fallados_texto
+                                ],
+                            ),
+                            ft.Row(
+                                [
+                                    ft.Text('Peor archivo:'),
+                                    peor_archivo,
+                                    ft.Text('con'),
+                                    fallos_archivo,
+                                    ft.Text('fallos')
+                                ],
+                            ),
+                            ft.Row(
+                                [
+                                    ft.Text("Mejor PPM:"),
+                                    mejor_ppm_texto,
+                                    ft.Text('el'),
+                                    mejor_ppm_fecha,
+                                    ft.Text('con'),
+                                    mejor_ppm_archivo,
+                                ],
+                            ),
+                            ft.Row(
+                                [
+                                    ft.Text("Peor PPM:"),
+                                    peor_ppm_texto,
+                                    ft.Text('el'),
+                                    peor_ppm_fecha,
+                                    ft.Text('con'),
+                                    peor_ppm_archivo,
+                                ],
+                            ),
+                            ft.Row(
+                                [
+                                    ft.Text('Precisión media:'),
+                                    precision_media_texto,
+                                    ft.Text('%')
+                                ],
+                            ),
                         ],
-                    ),
-                    ft.Row(
-                        [
-                            ft.Text('Archivo más usado:'),
-                            archivo_mas_usado,
-                            archivo_mas_usado_veces,
-                        ],
-                    ),
-                    ft.Row(
-                        [
-                            ft.Text('Caracteres totales tecleados:'),
-                            suma_char_texto
-                        ],
-                    ),
-                    ft.Row(
-                        [
-                            ft.Text('Caracteres totales fallados:'),
-                            char_totales_fallados_texto
-                        ],
-                    ),
-                    ft.Row(
-                        [
-                            ft.Text('Archivo que peor se te da:'),
-                            peor_archivo,
-                            ft.Text('con'),
-                            fallos_archivo,
-                            ft.Text('caracteres fallados')
-                        ],
-                    ),
-                    ft.Row(
-                        [
-                            ft.Text("Mejor PPM:"),
-                            mejor_ppm_texto,
-                            ft.Text('el'),
-                            mejor_ppm_fecha,
-                            ft.Text('con'),
-                            mejor_ppm_archivo,
-                        ],
-                    ),
-                    ft.Row(
-                        [
-                            ft.Text("Peor PPM:"),
-                            peor_ppm_texto,
-                            ft.Text('el'),
-                            peor_ppm_fecha,
-                            ft.Text('con'),
-                            peor_ppm_archivo,
-                        ],
-                    ),
-                    ft.Row(
-                        [
-                            ft.Text('Precisión media:'),
-                            precision_media_texto,
-                            ft.Text('%')
-                        ],
-                    ),                               
-                    ft.Row(
-                        [
-                            ft.Text('Palabras más falladas:'),
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        alignment=ft.MainAxisAlignment.START
+                        ),
+                        ft.Column([
+                            ft.Text('Caracteres más fallados',
+                                    style=styles.title_stats_style),
+                            caracteres_mas_fallados,
+                            ft.Container(height=30),
+                            ft.Text('Palabras más falladas',
+                                    style=styles.title_stats_style),
                             palabras_mas_falladas,
                         ],
-                        vertical_alignment=ft.CrossAxisAlignment.START
-                    ),
-                    ft.Row([evolucion_ppm, caracteres_mas_fallados])                
+                        spacing=6,
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER)                        
+                    ]),                   
+                    #ft.Column([evolucion_ppm, caracteres_mas_fallados])                
                 ],
-                spacing=5,
+                spacing=3,
                 horizontal_alignment=ft.CrossAxisAlignment.START
-            ),
-            ft.Column([
-                ft.Text('Caracteres más fallados'),
-                
-            ])
-        ]),
+            ),            
+        ],
+        alignment=ft.MainAxisAlignment.CENTER),
     )
 
     ### FIN DE ANALYTICS VIEW ###
@@ -1008,7 +1035,7 @@ def main(page: ft.Page) -> None:
             ft.TextButton("No", on_click=cerrar_dialogo_modal),
         ],
         actions_alignment=ft.MainAxisAlignment.END,
-        bgcolor=styles.CustomButtomColorPalette.grisaceo
+        bgcolor=cp.grisaceo
     )
 
     contenedor_configuracion = ft.Container(
@@ -1043,12 +1070,12 @@ def main(page: ft.Page) -> None:
 
     ### TABS ###
     t = ft.Tabs(
-        divider_color=styles.CustomButtomColorPalette.grisaceo,
+        divider_color=cp.grisaceo,
         selected_index=0,
         animation_duration=30,
-        indicator_color=styles.CustomButtomColorPalette.azul_oscuro,
+        indicator_color=cp.azul_oscuro,
         indicator_tab_size=False,
-        overlay_color=styles.CustomButtomColorPalette.amarillo_claro,
+        overlay_color=cp.amarillo_claro,
         #label_color=ft.colors.BLUE_600,
         tab_alignment=ft.TabAlignment.CENTER,
         tabs=[
