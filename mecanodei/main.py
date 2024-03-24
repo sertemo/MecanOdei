@@ -577,7 +577,8 @@ def main(page: ft.Page) -> None:
     user_dropdown = ft.Dropdown(
         value=conf.USERS[0],
         width=300,
-        text_style=ft.TextStyle(font_family='Poppins'),
+        text_style=ft.TextStyle(font_family='Poppins',
+                                color=cp.azul_oscuro),
         border_radius=styles.BorderRadiusSize.MEDIUM.value,
         text_size=styles.TextSize.LARGE.value,
         alignment=ft.alignment.center,
@@ -593,9 +594,6 @@ def main(page: ft.Page) -> None:
 
     cont_menu_usuario = ft.Container(
         ft.Column([
-            ft.Container(
-                    height=70
-                ),
             ft.Text(
                 'MecanOdei',
                 size=styles.TextSize.BIGGER.value,
@@ -607,9 +605,12 @@ def main(page: ft.Page) -> None:
                 size=styles.TextSize.LARGE.value,
                 color=cp.azul_oscuro
             ),
-            ft.Container(
-                height=100
-            ),
+            ft.Image(
+                src="assets/img/logo_mecanodei.png",
+                width=200,
+                height=200,
+                fit=ft.ImageFit.CONTAIN,
+                semantics_label='Logo de la aplicación'),
             ft.Text(
                 'Selecciona un usuario',
                 size=styles.TextSize.LARGE.value,
@@ -617,7 +618,7 @@ def main(page: ft.Page) -> None:
             ),
             user_dropdown,
             ft.Container(
-                height=8
+                height=3
             ),
             ft.Container(
                 ft.Text(
