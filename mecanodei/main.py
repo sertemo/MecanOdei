@@ -556,7 +556,7 @@ def main(page: ft.Page) -> None:
     page.title = conf.APP_NAME
     page.bgcolor = cp.grisaceo
     page.theme = ft.Theme(
-        font_family= 'Poppins',
+        font_family= 'fonts/Poppins-Medium.ttf',
         color_scheme=ft.ColorScheme(
             primary=cp.azul_oscuro,
             background=cp.grisaceo,
@@ -606,7 +606,7 @@ def main(page: ft.Page) -> None:
                 color=cp.azul_oscuro
             ),
             ft.Image(
-                src="assets/img/logo_mecanodei.png",
+                src="img/logo_mecanodei.png",
                 width=200,
                 height=200,
                 fit=ft.ImageFit.CONTAIN,
@@ -1041,7 +1041,9 @@ def main(page: ft.Page) -> None:
 
     contenedor_configuracion = ft.Container(
         ft.Column([
-            ft.Text('Borrar Analíticas', size=styles.TextSize.LARGE.value),
+            ft.Text('Borrar Analíticas',
+                    style=styles.title_stats_style,
+                    ),
             boton_borrar_stats
         ],
         alignment=ft.MainAxisAlignment.START,
