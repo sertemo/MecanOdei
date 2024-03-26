@@ -12,11 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Literal
-
 import flet as ft
 
-from mecanodei.styles.styles import (CustomButtomColorPalette as cp,
+from styles.styles import (CustomButtomColorPalette as cp,
                                     BorderRadiusSize, PaddingSize,
                                     BorderWidth)
 

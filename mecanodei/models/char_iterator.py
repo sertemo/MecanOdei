@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from mecanodei.components.ref_text import ListViewTextBox
+from components.ref_text import ListViewTextBox
 
 class CharIterator:
     """Clase que encapsula el iterador

@@ -19,7 +19,7 @@ from pathlib import Path
 
 from docx import Document
 
-import mecanodei.config as conf
+import config
 
 class FileManager:
     """Clase para gestionar como abrimos
@@ -33,7 +33,7 @@ class FileManager:
         ]
         self.handlers_map = {
             formato: handler for formato, handler in 
-            zip(conf.VALID_FORMATS, self.handlers_list)
+            zip(config.VALID_FORMATS, self.handlers_list)
         }
 
 

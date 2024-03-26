@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mecanodei.utils.text import quitar_tildes
-import mecanodei.config as config
+import config
 
 class TypedTextManager:
     """Clase que gestiona el texto tecleado

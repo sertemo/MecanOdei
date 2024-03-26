@@ -19,37 +19,35 @@ import pickle
 import sqlite3
 from typing import Any, Iterator
 
-from icecream import ic
-
-import mecanodei.config as conf
-from mecanodei.models.stat_manager import CharTrack
+import config
+from models.stat_manager import CharTrack
 
 
 def iniciar_db_log() -> None:
     """Función que crea las rutas dentro de la carpeta de usuario
     y construye la base de datos.
     Crea la tabla users e introduce 
-    los registros de conf.USERS_DICT_LIST
+    los registros de config.USERS_DICT_LIST
     Crea la tabla stats
     """
     # Creamos la carpeta si no existe
-    if not conf.RUTA_RAIZ.exists():
-        (conf.FOLDER_DB).mkdir(parents=True)
-        (conf.FOLDER_LOGS).mkdir(parents=True)
+    if not config.RUTA_RAIZ.exists():
+        (config.FOLDER_DB).mkdir(parents=True)
+        (config.FOLDER_LOGS).mkdir(parents=True)
         # Creamos Base de Datos con tabla stats
         SQLManager.create_table(
-            db_filename=conf.RUTA_COMPLETA_DB,
-            nombre_tabla=conf.TABLE_STATS,
-            columnas=conf.TABLE_STATS_SCHEMA           
+            db_filename=config.RUTA_COMPLETA_DB,
+            nombre_tabla=config.TABLE_STATS,
+            columnas=config.TABLE_STATS_SCHEMA           
         )
         # Creamos la tabla users
         SQLManager.create_table(
-            db_filename=conf.RUTA_COMPLETA_DB,
-            nombre_tabla=conf.TABLE_USERS,
-            columnas=conf.TABLE_USERS_SCHEMA            
+            db_filename=config.RUTA_COMPLETA_DB,
+            nombre_tabla=config.TABLE_USERS,
+            columnas=config.TABLE_USERS_SCHEMA            
         )
         # introducimos los registros del archivo config
-        for user_dict in conf.USERS_DICT_LIST:
+        for user_dict in config.USERS_DICT_LIST:
             SQLUserManager().insert_one(user_dict)
 
 
@@ -104,7 +102,7 @@ class SQLManager:
     """
     def __init__(self, *,
                 nombre_tabla: str,
-                db_filename: str = conf.RUTA_COMPLETA_DB
+                db_filename: str = config.RUTA_COMPLETA_DB
                 ) -> None:
         self.db_filename = db_filename
         self.tabla = nombre_tabla
@@ -343,7 +341,7 @@ class SQLStatManager(SQLManager):
         _description_
     """
     def __init__(self) -> None:
-        super().__init__(nombre_tabla=conf.TABLE_STATS)
+        super().__init__(nombre_tabla=config.TABLE_STATS)
 
     def get_best_ppm_file_and_date(self, user: str) -> tuple[int, str] | None:
         """Devuelve el mayor ppm y la fecha dado un usuario
@@ -623,7 +621,7 @@ class SQLUserManager(SQLManager):
         _description_
     """
     def __init__(self) -> None:
-        super().__init__(nombre_tabla=conf.TABLE_USERS)
+        super().__init__(nombre_tabla=config.TABLE_USERS)
 
 
 

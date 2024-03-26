@@ -14,7 +14,7 @@
 
 import flet as ft
 
-from mecanodei.styles.styles import TextSize, Colors
+from styles.styles import TextSize, Colors
 
 class AnalText(ft.UserControl):
     """Componente para dar

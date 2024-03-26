@@ -16,8 +16,8 @@ from typing import Callable
 
 import flet as ft
 
-from mecanodei.styles.styles import CustomButtomColorPalette as cp
-from mecanodei.styles.styles import BorderWidth, BorderRadiusSize
+from styles.styles import CustomButtomColorPalette as cp
+from styles.styles import BorderWidth, BorderRadiusSize
 
 class CustomButton(ft.UserControl):
     """Boton personalizado

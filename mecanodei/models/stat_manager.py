@@ -16,8 +16,6 @@ from dataclasses import dataclass
 import json
 import pickle
 
-from icecream import ic
-
 
 @dataclass
 class CharTrack:
@@ -241,4 +239,3 @@ if __name__ == '__main__':
 
     datos_binarios = pickle.dumps(lista_errores)
     datos_binarios_vacio = pickle.dumps([])
-    ic(pickle.loads(datos_binarios_vacio))

@@ -14,9 +14,9 @@
 
 import flet as ft
 
-from mecanodei.models.state import State
+from models.state import State
 
-from mecanodei.styles.styles import CustomButtomColorPalette as cp
+from styles.styles import CustomButtomColorPalette as cp
 
 mapping_state = {
     State.ready.value: ft.colors.GREEN,

@@ -15,11 +15,10 @@
 from typing import Generator, Any
 
 import flet as ft
-from icecream import ic
 
-import mecanodei.styles.styles as styles
-from mecanodei.utils.text import Batcher, quitar_tildes
-import mecanodei.config as conf
+import styles.styles as styles
+from utils.text import Batcher, quitar_tildes
+import config
 
 
 class ListViewTextBox(ft.UserControl):
@@ -34,9 +33,9 @@ class ListViewTextBox(ft.UserControl):
     """
     def __init__(self,
                 text_size: styles.TextSize,
-                char_linea: int = conf.CHAR_LINEA,
+                char_linea: int = config.CHAR_LINEA,
                 text_color: Any = ft.colors.BLACK87,
-                container_heigth: int = conf.LISTVIEW_CONTAINER_HEIGHT,
+                container_heigth: int = config.LISTVIEW_CONTAINER_HEIGHT,
                 listview_padding: int = 5,
                 ) -> None:
         super().__init__()
@@ -163,7 +162,7 @@ class ListViewTextBox(ft.UserControl):
 
     def _build_typed_dataset(self,
                             text: str,
-                            limit: int = conf.CHAR_LINEA) -> list[str]:
+                            limit: int = config.CHAR_LINEA) -> list[str]:
         """Crea el dataset para el mecanografiado
 
         Parameters
@@ -201,7 +200,7 @@ class ListViewTextBox(ft.UserControl):
 
     def _build_text_dataset(self,
                             text_lines: list[str],
-                            char_limit: int = conf.CHAR_LINEA_MECANO
+                            char_limit: int = config.CHAR_LINEA_MECANO
                             ) -> list[str]:
         """Crea una lista con las frases
 

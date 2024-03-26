@@ -16,7 +16,7 @@ from typing import Union
 
 import flet as ft
 
-import mecanodei.styles.styles as styles
+import styles.styles as styles
 
 class StatBox(ft.UserControl):
     """Clase que agrupa la visualización

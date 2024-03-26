@@ -19,32 +19,31 @@ import time
 
 import flet as ft
 import logging.config
-from icecream import ic
 
-import config as conf
+import config
 from models.state import State, AppState
 from models.stat_manager import StatManager
 from models.timer import Timer
-from mecanodei.models.text_manager import TypedTextManager
-from mecanodei.models.char_iterator import CharIterator
-from mecanodei.models.file_manager import FileManager
-import mecanodei.styles.styles as styles
-from mecanodei.styles.styles import CustomButtomColorPalette as cp
-from mecanodei.components.stats import StatBox
-from mecanodei.components.ref_text import ListViewTextBox
-from mecanodei.components.custom_button import CustomButton
-from mecanodei.components.app_state import AppStateLight
-from mecanodei.components.analytics import AnalText
-from mecanodei.components.custom_chart import (PPMEvolucionChart,
+from models.text_manager import TypedTextManager
+from models.char_iterator import CharIterator
+from models.file_manager import FileManager
+import styles.styles as styles
+from styles.styles import CustomButtomColorPalette as cp
+from components.stats import StatBox
+from components.ref_text import ListViewTextBox
+from components.custom_button import CustomButton
+from components.app_state import AppStateLight
+from components.analytics import AnalText
+from components.custom_chart import (PPMEvolucionChart,
                                             FailedCharPieChart
                                             )
-from mecanodei.components.simple_label import TitleLabel
-from mecanodei.db.db import (SQLStatManager,
+from components.simple_label import TitleLabel
+from db.db import (SQLStatManager,
                             iniciar_db_log,
                             serializar_pickle
                             )
-from mecanodei.utils.text import get_total_num_char, create_username_for_db
-from mecanodei.utils.time import get_datetime_formatted
+from utils.text import get_total_num_char, create_username_for_db
+from utils.time import get_datetime_formatted
 
 # TODO Mejorar la luz de estados de la app
 # TODO Personalizar icono en la barra de app
@@ -64,9 +63,9 @@ def main(page: ft.Page) -> None:
             mejor_ppm_fecha.show(resultado[1])
             mejor_ppm_archivo.show(resultado[2])
         else:
-            mejor_ppm_texto.show(conf.DEFAULT_CHAR)
-            mejor_ppm_fecha.show(conf.DEFAULT_CHAR)
-            mejor_ppm_archivo.show(conf.DEFAULT_CHAR)
+            mejor_ppm_texto.show(config.DEFAULT_CHAR)
+            mejor_ppm_fecha.show(config.DEFAULT_CHAR)
+            mejor_ppm_archivo.show(config.DEFAULT_CHAR)
         # Peor ppm
         if (resultado := db_handler.get_worst_ppm_file_and_date(user)) \
         is not None:
@@ -74,29 +73,29 @@ def main(page: ft.Page) -> None:
             peor_ppm_fecha.show(resultado[1])
             peor_ppm_archivo.show(resultado[2])
         else:
-            peor_ppm_texto.show(conf.DEFAULT_CHAR)
-            peor_ppm_fecha.show(conf.DEFAULT_CHAR)
-            peor_ppm_archivo.show(conf.DEFAULT_CHAR)
+            peor_ppm_texto.show(config.DEFAULT_CHAR)
+            peor_ppm_fecha.show(config.DEFAULT_CHAR)
+            peor_ppm_archivo.show(config.DEFAULT_CHAR)
         # Precisión media
         if (resultado := db_handler.get_average_precision(user)) is not None:
             precision_media_texto.show(resultado)
         else:
-            precision_media_texto.show(conf.DEFAULT_CHAR)
+            precision_media_texto.show(config.DEFAULT_CHAR)
         # Caracteres totales
         if (resultado := db_handler.get_sum_char(user)) is not None:
             suma_char_texto.show(resultado)
         else:
-            suma_char_texto.show(conf.DEFAULT_CHAR)
+            suma_char_texto.show(config.DEFAULT_CHAR)
         # Número de sesion
         if (resultado := db_handler.get_number_of_sesions(user)) is not None:
             num_sesiones_texto.show(resultado)
         else:
-            num_sesiones_texto.show(conf.DEFAULT_CHAR)
+            num_sesiones_texto.show(config.DEFAULT_CHAR)
         # Número caracteres fallados
         if (resultado := db_handler.get_number_failed_char(user)) is not None:
             char_totales_fallados_texto.show(resultado)
         else:
-            char_totales_fallados_texto.show(conf.DEFAULT_CHAR)
+            char_totales_fallados_texto.show(config.DEFAULT_CHAR)
         # las 5 palabras mas erradas. Columna
         palabras_mas_falladas.controls.clear()
         if (resultado := db_handler.words_most_failed(user)) is not None:            
@@ -141,16 +140,16 @@ def main(page: ft.Page) -> None:
             archivo_mas_usado.show(archivo)
             archivo_mas_usado_veces.value = f'({veces})'
         else:
-            archivo_mas_usado.show(conf.DEFAULT_CHAR)
-            archivo_mas_usado_veces.value = f'({conf.DEFAULT_CHAR})'
+            archivo_mas_usado.show(config.DEFAULT_CHAR)
+            archivo_mas_usado_veces.value = f'({config.DEFAULT_CHAR})'
         # Archivo con más fallos
         if (resultado := db_handler.get_worst_file(user)) is not None:
             archivo, num_fallos = resultado
             peor_archivo.show(archivo)
             fallos_archivo.show(num_fallos)
         else:
-            peor_archivo.show(conf.DEFAULT_CHAR)
-            fallos_archivo.show(conf.DEFAULT_CHAR)
+            peor_archivo.show(config.DEFAULT_CHAR)
+            fallos_archivo.show(config.DEFAULT_CHAR)
         # Gráfico evolución PPM
         # sacamos los valores de db
         if (data_ppm := db_handler.get_all_ppm_and_date(user)) is not None:
@@ -199,7 +198,7 @@ def main(page: ft.Page) -> None:
                 try:
                     text_lines = file_manager.digest(path_txt)
                 except Exception as e:
-                    ic(e)
+                    print(e)
                     logger.error(f"Error al abrir el archivo {path_txt}")
                     texto_mensaje.content.value = \
                         f"Error al abrir el archivo."
@@ -218,7 +217,7 @@ def main(page: ft.Page) -> None:
                 # Calculamos caracteres totales
                 len_texto = get_total_num_char(text_lines)
                 # Validar el texto
-                if len_texto <= conf.MAX_LEN_CHAR:
+                if len_texto <= config.MAX_LEN_CHAR:
                     # Reseteamos el char iterator para que prev_char sea nulo
                     # Por si teníamos otro texto cargado
                     char_iterator.reset()
@@ -242,12 +241,12 @@ def main(page: ft.Page) -> None:
                     # Ponemos app en modo error
                     light_app_state.to(app.error_mode())
                     # Mostramos mensaje de error
-                    err_msg = f'{len_texto} caracteres > {conf.MAX_LEN_CHAR}'
+                    err_msg = f'{len_texto} caracteres > {config.MAX_LEN_CHAR}'
                     texto_mensaje.content.value = err_msg
                     texto_mensaje.bgcolor = ft.colors.RED
                     logger.info(f"""El archivo abierto supera el numero de
                                 caracteres máximos predefinidos:
-                                {conf.MAX_LEN_CHAR}. El archivo tiene:
+                                {config.MAX_LEN_CHAR}. El archivo tiene:
                                 {len_texto} caracteres. Cambia el limite
                                 máximo en el archivo config.py""")
             page.update()
@@ -351,14 +350,14 @@ def main(page: ft.Page) -> None:
         # Sacamos las filas que queda, si quedan menos de x no hacemos scroll
         rows_left = texto_mecanografiar.get_n_rows_left(posicion)
         rows_total = texto_mecanografiar.get_n_rows() # TODO: meter en funcion !
-        if (posicion[0] >= conf.SCROLL_LINE) and (posicion[1] == 0) \
-        and first_time and rows_total > conf.ROWS_IN_LISTVIEW \
-        and (rows_left > conf.LAST_ROWS_NO_SCROLL):
+        if (posicion[0] >= config.SCROLL_LINE) and (posicion[1] == 0) \
+        and first_time and rows_total > config.ROWS_IN_LISTVIEW \
+        and (rows_left > config.LAST_ROWS_NO_SCROLL):
             #fila_ir = max(fila, texto_mecanografiar.get_n_rows() - 1)
             texto_mecanografiar.texto.scroll_to(
                 #key=f'linea_{fila_ir}',
-                delta=conf.SCROLL_DELTA,
-                duration=conf.SCROLL_DURATION,
+                delta=config.SCROLL_DELTA,
+                duration=config.SCROLL_DURATION,
                 #curve=ft.AnimationCurve.SLOW_MIDDLE
                 )
 
@@ -433,10 +432,10 @@ def main(page: ft.Page) -> None:
                 # Comprobamos si shift:
                 if e.shift:
                     # Cambiamos la tecla tecleada por la buena
-                    tecleado = conf.SHIFT_CHAR_DICT.get(tecleado, tecleado)
+                    tecleado = config.SHIFT_CHAR_DICT.get(tecleado, tecleado)
                 # Casos especiales de tecla Ñ o Enter:
-                tecleado = conf.SPECIAL_CHAR_DICT.get(tecleado, tecleado)
-                if tecleado not in conf.NOT_SHOWN_KEYS:
+                tecleado = config.SPECIAL_CHAR_DICT.get(tecleado, tecleado)
+                if tecleado not in config.NOT_SHOWN_KEYS:
                     procesar_tecla(tecleado,
                                     pos,
                                     char_referencia,
@@ -498,7 +497,7 @@ def main(page: ft.Page) -> None:
                 try:
                     db_handler.insert_one(data_db)
                 except Exception as e:
-                    ic(e)
+                    print(e)
                     texto_mensaje.content.value = \
                         f"Error al insertar en db."
                     texto_mensaje.bgcolor = ft.colors.RED
@@ -550,10 +549,10 @@ def main(page: ft.Page) -> None:
     db_handler = SQLStatManager()
     # Instanciamos el logger
     logger = logging.getLogger("my_app")
-    logging.config.dictConfig(conf.LOGGING_CONFIG)
+    logging.config.dictConfig(config.LOGGING_CONFIG)
 
-    page.fonts = conf.APP_FONTS
-    page.title = conf.APP_NAME
+    page.fonts = config.APP_FONTS
+    page.title = config.APP_NAME
     page.bgcolor = cp.grisaceo
     page.theme = ft.Theme(
         font_family= 'fonts/Poppins-Medium.ttf',
@@ -565,8 +564,8 @@ def main(page: ft.Page) -> None:
             on_background=ft.colors.WHITE
         )
     )
-    page.window_width = conf.WIDTH
-    page.window_height = conf.HEIGHT
+    page.window_width = config.WIDTH
+    page.window_height = config.HEIGHT
     page.window_resizable = False
     page.horizontal_alignment = ft.MainAxisAlignment.CENTER
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
@@ -575,7 +574,7 @@ def main(page: ft.Page) -> None:
     ### INICIO VIEW MENU ################################################
 
     user_dropdown = ft.Dropdown(
-        value=conf.USERS[0],
+        value=config.USERS[0],
         width=300,
         text_style=ft.TextStyle(font_family='Poppins',
                                 color=cp.azul_oscuro),
@@ -586,7 +585,7 @@ def main(page: ft.Page) -> None:
         #bgcolor=styles.Colors.fondo_contenedores,
         content_padding=styles.PaddingSize.SMALLER.value,
         options=[
-            ft.dropdown.Option(user) for user in conf.USERS
+            ft.dropdown.Option(user) for user in config.USERS
             ],
         on_change=definir_usuario,
         )
@@ -622,7 +621,7 @@ def main(page: ft.Page) -> None:
             ),
             ft.Container(
                 ft.Text(
-                    conf.INSTRUCTIONS,
+                    config.INSTRUCTIONS,
                     size=styles.TextSize.STANDARD.value,
                     color=cp.azul_oscuro
                 ),
@@ -700,7 +699,7 @@ def main(page: ft.Page) -> None:
         texto='Cargar',
         ayuda='Carga un archivo',
         funcion=lambda _: file_picker.pick_files(
-            allowed_extensions=conf.VALID_FORMATS)
+            allowed_extensions=config.VALID_FORMATS)
         )
 
     texto_path_fichero = ft.Text(size=styles.TextSize.DEFAULT.value)
@@ -807,7 +806,7 @@ def main(page: ft.Page) -> None:
     contenedor_mecanografiar = ft.Container(
         texto_mecanografiar,
         height=444,
-        width=conf.MECANO_WIDTH,
+        width=config.MECANO_WIDTH,
         #expand=True,
         **styles.contenedor_mecanografiar
         )

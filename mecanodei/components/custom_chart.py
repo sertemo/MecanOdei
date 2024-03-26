@@ -13,15 +13,13 @@
 # limitations under the License.
 
 import flet as ft
-from icecream import ic
 
-from mecanodei.styles.styles import (
+from styles.styles import (
     PaddingSize, TextSize,
     Colors, CustomButtomColorPalette
 )
-import mecanodei.config as conf
-from mecanodei.utils.time import shortten_to_day_month
-import mecanodei.config as conf
+import config
+from utils.time import shortten_to_day_month
 
 class PPMEvolucionChart(ft.UserControl):
     def __init__(self) -> None:
@@ -99,7 +97,7 @@ class PPMEvolucionChart(ft.UserControl):
         return ft.Container(
             self.chart,
             height=260,
-            width=conf.WIDTH // 2,
+            width=config.WIDTH // 2,
             #border=ft.border.all(width=3, color=ft.colors.WHITE12),
             #border_radius=BorderRadiusSize.MEDIUM.value,
             padding= PaddingSize.LARGE.value
@@ -225,7 +223,7 @@ class FailedCharPieChart(ft.UserControl):
         new_data : list[tuple[str, int]]
             _description_
         """
-        iter_colors = iter(conf.CHART_COLORS)
+        iter_colors = iter(config.CHART_COLORS)
         # Lo primero es sacar los porcentajes
         data_perc = self._calculate_char_percentages(new_data)
         # Creamos las sections
