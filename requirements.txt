@@ -1,5 +1,0 @@
-
-flet==0.20.1
-icecream
-python-docx==1.1.0
-pytz==2024.1

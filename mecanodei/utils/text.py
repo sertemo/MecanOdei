@@ -17,7 +17,7 @@
 from collections.abc import Sequence
 import unicodedata
 
-import mecanodei.config as conf
+import config
 
 def quitar_tildes(texto: str) -> str:
     """Quita tíldes y acentos especiales pero deja la ñ
@@ -89,7 +89,7 @@ class Batcher(Sequence):
         self.caracteres_linea = caracteres_linea
         self.idx_word = 0
         self.idx_char = 0
-        self.end_of_line_char = conf.EOP_CHAR
+        self.end_of_line_char = config.EOP_CHAR
         self.add_final_char = add_final_char
 
 

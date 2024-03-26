@@ -17,7 +17,7 @@
 from collections import Counter
 import pickle
 import sqlite3
-from typing import Any, Iterator
+from typing import Any
 
 import config
 from models.stat_manager import CharTrack

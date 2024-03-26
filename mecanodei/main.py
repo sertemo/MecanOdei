@@ -35,8 +35,8 @@ from components.custom_button import CustomButton
 from components.app_state import AppStateLight
 from components.analytics import AnalText
 from components.custom_chart import (PPMEvolucionChart,
-                                            FailedCharPieChart
-                                            )
+                                    FailedCharPieChart
+                                    )
 from components.simple_label import TitleLabel
 from db.db import (SQLStatManager,
                             iniciar_db_log,

@@ -15,7 +15,7 @@
 from datetime import datetime
 import pytz
 
-import mecanodei.config as conf
+import config
 
 def get_datetime_formatted()-> str:
     """Devuelve la fecha actual formateada en str como:
@@ -30,7 +30,7 @@ def get_datetime_formatted()-> str:
         datetime.now(
             tz=pytz.timezone('Europe/Madrid')
             ), 
-        format=conf.DATE_FORMAT
+        format=config.DATE_FORMAT
         )
 
 def shortten_to_day_month(datetime_str: str) -> str:
@@ -48,7 +48,7 @@ def shortten_to_day_month(datetime_str: str) -> str:
     str
         _description_
     """
-    fecha_obj = datetime.strptime(datetime_str, conf.DATE_FORMAT)    
+    fecha_obj = datetime.strptime(datetime_str, config.DATE_FORMAT)    
     resultado = fecha_obj.strftime(
         """%d/%m\n(%H:%M)"""
         )    

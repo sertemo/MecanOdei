@@ -15,7 +15,7 @@
 # Pestaña para la opción de transcripción
 
 import flet as ft
-from mecanodei.styles import styles
+from styles import styles
 
 # TODO Zona de carga de directorio
 # TODO directorio con muchos txt, FileManager para cargar uno aleatorio
