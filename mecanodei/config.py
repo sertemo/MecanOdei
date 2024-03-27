@@ -41,6 +41,8 @@ APP_FONTS = {
         "Poppins": "fonts/Poppins-Medium.ttf",
     }
 APP_NAME = 'MecanOdei'
+APP_VERSION = '0.1.0' # Sincronizar con pyproject.toml
+APP_AUTHOR = 'STM'
 INSTRUCTIONS = '''
 1. Selecciona un usuario en el Menú.
 2. Carga un archivo de texto en la pantalla Practicar.

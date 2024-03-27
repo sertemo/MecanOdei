@@ -552,10 +552,12 @@ def main(page: ft.Page) -> None:
     logging.config.dictConfig(config.LOGGING_CONFIG)
 
     page.fonts = config.APP_FONTS
-    page.title = config.APP_NAME
+    page.title = dedent(f"""
+        {config.APP_NAME} v{config.APP_VERSION} 
+        by {config.APP_AUTHOR}""")
     page.bgcolor = cp.grisaceo
     page.theme = ft.Theme(
-        font_family= 'fonts/Poppins-Medium.ttf',
+        font_family="Poppins",
         color_scheme=ft.ColorScheme(
             primary=cp.azul_oscuro,
             background=cp.grisaceo,
@@ -569,6 +571,7 @@ def main(page: ft.Page) -> None:
     page.window_resizable = False
     page.horizontal_alignment = ft.MainAxisAlignment.CENTER
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
+    page.update()
 
 
     ### INICIO VIEW MENU ################################################
