@@ -46,7 +46,6 @@ from utils.text import get_total_num_char, create_username_for_db
 from utils.time import get_datetime_formatted
 
 # TODO Mejorar la luz de estados de la app
-# TODO Personalizar icono en la barra de app
 
 
 def main(page: ft.Page) -> None:

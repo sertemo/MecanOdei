@@ -14,6 +14,8 @@
 
 from pathlib import Path
 
+import toml
+
 # Usuarios
 USERS_DICT_LIST = [
     {   
@@ -40,8 +42,9 @@ APP_FONTS = {
         "Overpass": "fonts/Overpass-Medium.ttf",
         "Poppins": "fonts/Poppins-Medium.ttf",
     }
+PYPROJECT_FILE = toml.load('pyproject.toml')
 APP_NAME = 'MecanOdei'
-APP_VERSION = '0.1.0' # Sincronizar con pyproject.toml
+APP_VERSION = PYPROJECT_FILE['tool']['poetry']['version']
 APP_AUTHOR = 'STM'
 INSTRUCTIONS = '''
 1. Selecciona un usuario en el Menú.

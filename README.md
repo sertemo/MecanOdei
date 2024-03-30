@@ -1,6 +1,8 @@
-# MecanOdei
+# MecanOdei v0.1.0
 ## Aplicación para mejorar la mecanografía
 Aplicación sugerida por **Odei Bilbao** para practicar la mecanografía de textos
+
+![alt text](<mecanodei/assets/img/mecanodei v0.1.0 img.JPG>)
 
 ## Views
 Aplicación con un menú como pantalla principal.
@@ -46,5 +48,5 @@ Esto hace que me plantee lo siguiente:
 - En la partede Estadísticas, trackear la palabra perteneciente a las letras falladas
 - [x] Hay un problema capturando la **Ñ**
 ### 21/03/2024
-- [] Crear otro botón debajo del de carga para generar un texto aleatorio basado en una plantilla en el que ciertos elementos son variables y seleccionado aleatoriamente de entre varias opciones prefijadas. Crear el archivo ficticio en función de algunas variables
-- [] Añadir más configuraciones
+- Crear otro botón debajo del de carga para generar un texto aleatorio basado en una plantilla en el que ciertos elementos son variables y seleccionado aleatoriamente de entre varias opciones prefijadas. Crear el archivo ficticio en función de algunas variables
+- Añadir más configuraciones
