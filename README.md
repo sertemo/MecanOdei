@@ -50,3 +50,18 @@ Esto hace que me plantee lo siguiente:
 ### 21/03/2024
 - Crear otro botón debajo del de carga para generar un texto aleatorio basado en una plantilla en el que ciertos elementos son variables y seleccionado aleatoriamente de entre varias opciones prefijadas. Crear el archivo ficticio en función de algunas variables
 - Añadir más configuraciones
+
+## Licencia
+Copyright 2024 Sergio Tejedor Moreno
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
